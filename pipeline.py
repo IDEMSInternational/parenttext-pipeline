@@ -143,16 +143,16 @@ def main(credentials = None, token = None):
         # step 9: add quick replies to message text and translation
         #####################################################################
 
-        # # step 4: add quick replies to message text and translation
-        # source_file_name = source_file_name + "_no_QR"
-        # select_phrases_file = "./edits/select_phrases.json"
-        # special_words = "./edits/special_words.json"
-        # add_selectors = "yes"
-        # output_path_4 = "./output/"
-        # output_name_4 = source_file_name
+        input_path_9 = "./output/" +  output_file_name_8_2 + ".json"
+        select_phrases_file = "./edits/select_phrases.json"
+        special_words = "./edits/special_words.json"
+        add_selectors = "yes"
+        output_path_9 = "./output/"
+        output_file_name_9 = source_file_name + "_9"
 
-        # subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "move_quick_replies", input_path, select_phrases_file, output_name_4, output_path_4, add_selectors, special_words])
-        # print("Removed quick replies")
+        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "move_quick_replies", input_path_9, select_phrases_file, output_file_name_9, output_path_9, add_selectors, special_words])
+        
+        print("Step 9 complete, removed quick replies")
 
         #####################################################################
         # step 9: safeguarding

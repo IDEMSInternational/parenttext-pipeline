@@ -21,9 +21,9 @@ def main(credentials = None, token = None):
         if not os.path.exists("./temp/"):
             os.makedirs("./temp/")
 
-        ############################################################################################################################################
+        #####################################################################
         #Step 1: Load google sheets and convert to RapidPro JSON
-        ############################################################################################################################################
+        #####################################################################
 
         output_file_name_1 = source_file_name + "_1"
         output_path_1 = "./output/" + output_file_name_1 + ".json"
@@ -32,9 +32,9 @@ def main(credentials = None, token = None):
         
         print("Step 1 complete, created " + output_file_name_1)
 
-        ############################################################################################################################################
+        #####################################################################
         # Step 2: Flow edits (for all deployments) and localization (changes specific to a deployment)
-        ############################################################################################################################################
+        #####################################################################
 
         input_path_2 = "../parenttext-pipeline/output/" + output_file_name_1 + ".json"
         output_file_name_2 = source_file_name + "_2"
@@ -51,9 +51,9 @@ def main(credentials = None, token = None):
         # subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/fix_ui.js", output_path_2, output_path_2])
         # print("Fixed _ui")
 
-        ############################################################################################################################################
+        #####################################################################
         # Step 3: Catch errors pre-translation
-        ############################################################################################################################################
+        #####################################################################
 
         input_path_3_1 = "./output/" +  output_file_name_2 + ".json"
         output_file_name_3_1 = source_file_name + "_3_1"
@@ -69,15 +69,14 @@ def main(credentials = None, token = None):
 
         print("Step 3 complete, reviewed files pre-translation")
 
-        ############################################################################################################################################
+        #####################################################################
         # Step 4: Extract Text to send to translators
-        ############################################################################################################################################
+        #####################################################################
 
 
-
-        ############################################################################################################################################
+        #####################################################################
         # Step 5: Fetch PO files and convert to JSON
-        ############################################################################################################################################
+        #####################################################################
         
         output_translation_folder_5 = "./temp/"
         
@@ -93,9 +92,9 @@ def main(credentials = None, token = None):
 
         print("Step 5 complete, fetched translations and converted to json")
 
-        ############################################################################################################################################
+        #####################################################################
         # Step 6: Localise translations back into JSON files
-        ############################################################################################################################################
+        #####################################################################
         
         input_path_6 = "./output/" +  output_file_name_3_1 + ".json"
         output_file_name_6 = source_file_name + "_6"
@@ -112,17 +111,37 @@ def main(credentials = None, token = None):
 
         print("Step 6 complete, localised translations back into JSON")
 
-        ############################################################################################################################################
-        # step 6: text & translation edits for dictionaries
-        ############################################################################################################################################
+        #####################################################################
+        # step 7: text & translation edits for dictionaries
+        #####################################################################
 
-        ############################################################################################################################################
-        # step 7: integrity check 
-        ############################################################################################################################################
+        #####################################################################
+        # step 8: catch errors post translation 
+        #####################################################################
 
-        ############################################################################################################################################
-        # step 8: add quick replies to message text and translation
-        ############################################################################################################################################
+        input_path_8_1 = "./output/" +  output_file_name_6 + ".json"
+        output_file_name_8_1 = source_file_name + "_8_1"
+        has_any_words_log = "8_has_any_words_check"
+
+        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "has_any_words_check", input_path_8_1, "./output", output_file_name_8_1,  has_any_words_log])
+
+        input_path_8_2 = "./output/" +  output_file_name_8_1 + ".json"
+        output_file_name_8_2 = source_file_name + "_8_2"
+        fix_arg_qr_log = "8_arg_qr_log"
+        
+        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "fix_arg_qr_translation", input_path_8_2, "./output", output_file_name_8_2, fix_arg_qr_log])
+
+        input_path_8_3 = "./output/" +  output_file_name_8_2 + ".json"
+        integrity_log = "8_integrity_log"
+        excel_log_name = "./temp/8_excel_log.xlsx"
+        
+        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "overall_integrity_check", input_path_8_3, "./output", integrity_log, excel_log_name])
+
+        print("Step 8 complete, reviewed files post translation")
+
+        #####################################################################
+        # step 9: add quick replies to message text and translation
+        #####################################################################
 
         # # step 4: add quick replies to message text and translation
         # source_file_name = source_file_name + "_no_QR"
@@ -135,9 +154,9 @@ def main(credentials = None, token = None):
         # subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "move_quick_replies", input_path, select_phrases_file, output_name_4, output_path_4, add_selectors, special_words])
         # print("Removed quick replies")
 
-        ############################################################################################################################################
+        #####################################################################
         # step 9: safeguarding
-        ############################################################################################################################################
+        #####################################################################
 
         # # # step 5: safeguarding
         # sg_flow_uuid = "ecbd9a63-0139-4939-8b76-343543eccd94"
@@ -154,9 +173,9 @@ def main(credentials = None, token = None):
         #     subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/srh_edit_redirect_flow.js", output_path_5, safeguarding_path, output_path_5])
         #     print("Edited redirect sg flow")
 
-        ############################################################################################################################################
+        #####################################################################
         # step 10. split files (if too big)?
-        ############################################################################################################################################
+        #####################################################################
 
         # # # step final: split in 2 json files because it's too heavy to load (need to replace wrong flow names)
         # if "srh_content" in source_file_name:

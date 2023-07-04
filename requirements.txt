@@ -6,3 +6,4 @@ openpyxl~=3.0.7
 google-api-python-client~=2.6.0
 google-auth-oauthlib~=0.4.4
 rapidpro-flow-tools~=2.0.7
+rapidpro-abtesting@https://github.com/IDEMSInternational/rapidpro_abtesting/archive/refs/heads/master.tar.gz

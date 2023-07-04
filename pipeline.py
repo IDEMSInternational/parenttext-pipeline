@@ -36,16 +36,18 @@ def main(credentials = None, token = None):
         # Step 2: Flow edits (for all deployments) and localization (changes specific to a deployment)
         #####################################################################
 
-        input_path_2 = "../parenttext-pipeline/output/" + output_file_name_1 + ".json"
+        input_path_2 = "output/" + output_file_name_1 + ".json"
         output_file_name_2 = source_file_name + "_2"
-        output_path_2 = "../parenttext-pipeline/output/" + output_file_name_2 + ".json"
-        AB_log = "../parenttext-pipeline/temp/2_AB_warnings.log"
+        output_path_2 = "output/" + output_file_name_2 + ".json"
+        AB_log = "temp/2_AB_warnings.log"
 
-        os.chdir("../rapidpro_abtesting")
-        subprocess.run(["python", "main.py", input_path_2, output_path_2, ab_testing_sheet_ID, "--format", "google_sheets", "--logfile", AB_log])
-        os.chdir("../parenttext-pipeline")
-        
-        print("Step 2 complete, added A/B tests and localization")        
+        subprocess.run([
+            "python", "-m", "rapidpro_abtesting.main",
+            input_path_2, output_path_2, ab_testing_sheet_ID,
+            "--format", "google_sheets",
+            "--logfile", AB_log
+        ])
+        print("Step 2 complete, added A/B tests and localization")
 
         # Fix issues with _ui ?????not working?????
         # subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/fix_ui.js", output_path_2, output_path_2])

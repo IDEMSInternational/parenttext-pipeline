@@ -41,8 +41,12 @@ def main(credentials = None, token = None):
         output_path_2 = "../parenttext-pipeline/output/" + output_file_name_2 + ".json"
         AB_log = "../parenttext-pipeline/temp/2_AB_warnings.log"
 
-        os.chdir("../rapidpro_abtesting")
-        subprocess.run(["python", "main.py", input_path_2, output_path_2, ab_testing_sheet_ID, "--format", "google_sheets", "--logfile", AB_log])
+        subprocess.run([
+            "python", "-m", "rapidpro_abtesting.main",
+            input_path_2, output_path_2, ab_testing_sheet_ID,
+            "--format", "google_sheets",
+            "--logfile", AB_log
+        ])
         os.chdir("../parenttext-pipeline")
         
         print("Step 2 complete, added A/B tests and localization")        

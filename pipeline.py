@@ -47,9 +47,7 @@ def main(credentials = None, token = None):
             "--format", "google_sheets",
             "--logfile", AB_log
         ])
-        os.chdir("../parenttext-pipeline")
-        
-        print("Step 2 complete, added A/B tests and localization")        
+        print("Step 2 complete, added A/B tests and localization")
 
         # Fix issues with _ui ?????not working?????
         # subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/fix_ui.js", output_path_2, output_path_2])

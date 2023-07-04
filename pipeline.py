@@ -36,10 +36,10 @@ def main(credentials = None, token = None):
         # Step 2: Flow edits (for all deployments) and localization (changes specific to a deployment)
         #####################################################################
 
-        input_path_2 = "../parenttext-pipeline/output/" + output_file_name_1 + ".json"
+        input_path_2 = "output/" + output_file_name_1 + ".json"
         output_file_name_2 = source_file_name + "_2"
-        output_path_2 = "../parenttext-pipeline/output/" + output_file_name_2 + ".json"
-        AB_log = "../parenttext-pipeline/temp/2_AB_warnings.log"
+        output_path_2 = "output/" + output_file_name_2 + ".json"
+        AB_log = "temp/2_AB_warnings.log"
 
         subprocess.run([
             "python", "-m", "rapidpro_abtesting.main",

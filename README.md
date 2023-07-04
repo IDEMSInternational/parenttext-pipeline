@@ -1,5 +1,5 @@
 # parenttext-pipeline
-Public repositry for all tools related to ParentText
+Public repositry to handle the process for producing final RapidPro flows from data held in google sheets
 
 ## Setup
 1. Install python `>=3.6`
@@ -9,7 +9,6 @@ Public repositry for all tools related to ParentText
 
 ## Running pipeline
 ```
-The script pipeline.py contains the full process to produce RapidPro flows from the google sheets
+The file pipelines.py contains the general functions that can be used to run the pipeline
 
-The script can be run from the command line with `python pipeline.py`
 ```

@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "parenttext-pipeline"
+version = "0.1.0"
+authors = [
+    {name = "IDEMS International", email = "communications@idems.international"},
+]
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "GPL-3.0-or-later"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Text Processing :: General",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "google-api-python-client~=2.6.0",
+    "google-auth-oauthlib~=0.4.4",
+]

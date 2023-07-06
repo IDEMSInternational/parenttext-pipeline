@@ -1,7 +1,8 @@
 import os
 import subprocess
 import sys
-from rapidpro_flow_tools import flow_converter
+from rpft.converters import create_flows
+from rapidpro_abtesting.main import apply_abtests
 
 def prepare_for_translations(sources, ab_testing_sheet_ID, outputpath, model, credentials = None, token = None):
 
@@ -28,9 +29,9 @@ def prepare_for_translations(sources, ab_testing_sheet_ID, outputpath, model, cr
         output_file_name_1 = source_file_name + "_1"
         output_path_1 = os.path.join(outputpath, output_file_name_1 + ".json")
 
-        # flow_converter.convert_flow("create_flows", spreadsheet_id, output_path_1, "google_sheets", model, credentials, token)
+        create_flows([spreadsheet_id], output_path_1, "google_sheets", model)
         
-        # print("Step 1 complete, created " + output_file_name_1)
+        print("Step 1 complete, created " + output_file_name_1)
 
         #####################################################################
         # Step 2: Flow edits (for all deployments) and localization (changes specific to a deployment)
@@ -43,15 +44,9 @@ def prepare_for_translations(sources, ab_testing_sheet_ID, outputpath, model, cr
         input_path_2 = output_path_1
         output_file_name_2 = source_file_name + "_2"
         output_path_2 = os.path.join(outputpath, output_file_name_2 + ".json")
-        # AB_log = os.path.join(outputpath, "/2_AB_warnings.log")
 
-        # subprocess.run([
-        #     "python", "-m", "rapidpro-abtesting.main",
-        #     input_path_2, output_path_2, ab_testing_sheet_ID,
-        #     "--format", "google_sheets",
-        #     "--logfile", AB_log
-        # ])
-        # print("Step 2 complete, added A/B tests and localization")        
+        apply_abtests(input_path_2, output_path_2, [ab_testing_sheet_ID], "google_sheets")
+        print("Step 2 complete, added A/B tests and localization")        
  
         # Fix issues with _ui ?????not working?????
         # subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/fix_ui.js", output_path_2, output_path_2])
@@ -223,6 +218,7 @@ def process_post_translation(sources, languages, translation_repo, outputpath, s
         #     subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/split_in_multiple_json_files.js", input_path_6, str(n_file)])
 
         #     print(f"Split file in {n_file}")
+
 
 def process_safeguarding_words(input_file, output_path, output_name):
 

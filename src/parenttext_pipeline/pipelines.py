@@ -142,7 +142,7 @@ def run_pipeline(
 
             subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "localize", input_path_5, json_translation_path, language, output_file_name_5, outputpath])
 
-        print("Step 6 complete, localised translations back into JSON")
+        print("Step 5 complete, localised translations back into JSON")
 
         #####################################################################
         # step 6: text & translation edits for dictionaries
@@ -201,7 +201,7 @@ def run_pipeline(
         # step 9: implement safeguarding
         #####################################################################
                
-        input_path_9 = os.path.join(outputpath + output_file_name_8 + ".json")
+        input_path_9 = os.path.join(outputpath, output_file_name_8 + ".json")
 
         if(SG_path and SG_flow_name and SG_sheet_ID):
             output_file_name_9 = source_file_name + "_9"

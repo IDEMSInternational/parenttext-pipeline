@@ -16,7 +16,8 @@ def run_pipeline(
         special_words,
         count_threshold,
         length_threshold,
-        ab_testing_sheet_ID = None, 
+        ab_testing_sheet_ID = None,
+        localisation_sheet_ID = None, 
         dict_edits_sheet_ID = None, 
         SG_sheet_ID = None, 
         SG_flow_name = None,
@@ -57,8 +58,9 @@ def run_pipeline(
         #Load core file information
 
         source_file_name = source["filename"]
-        spreadsheet_id  = source["spreadsheet_id"]
+        spreadsheet_ids  = source["spreadsheet_ids"]
         crowdin_file_name = source["crowdin_name"]
+        tags = source["tags"]
         split_num = source["split_no"]
 
         #Setup output and temp files to store intermediary JSON files and log files
@@ -69,10 +71,10 @@ def run_pipeline(
         #Step 1: Load google sheets and convert to RapidPro JSON
         #####################################################################
 
-        output_file_name_1 = source_file_name + "_1"
+        output_file_name_1 = source_file_name + "_1_load_from_sheets"
         output_path_1 = os.path.join(outputpath, output_file_name_1 + ".json")
 
-        create_flows([spreadsheet_id], output_path_1, "google_sheets", model)
+        create_flows([spreadsheet_ids], output_path_1, "google_sheets", model, [tags])
         
         print("Step 1 complete, created " + output_file_name_1)
 
@@ -83,10 +85,10 @@ def run_pipeline(
         input_path_2 = output_path_1
 
         if(ab_testing_sheet_ID):            
-            output_file_name_2 = source_file_name + "_2"
+            output_file_name_2 = source_file_name + "_2_flow_edits"
             output_path_2 = os.path.join(outputpath, output_file_name_2 + ".json")
 
-            apply_abtests(input_path_2, output_path_2, [ab_testing_sheet_ID], "google_sheets")
+            apply_abtests(input_path_2, output_path_2, [ab_testing_sheet_ID, localisation_sheet_ID], "google_sheets")
             print("Step 2 complete, added A/B tests and localization")
         else:
             output_path_2 = output_path_1
@@ -101,7 +103,7 @@ def run_pipeline(
         ####################################################################
 
         input_path_3_1 = output_path_2
-        output_file_name_3_1 = source_file_name + "_3_1"
+        output_file_name_3_1 = source_file_name + "_3_1_has_any_word_check"
         has_any_words_log = "3_has_any_words_check"
 
         subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "has_any_words_check", input_path_3_1, outputpath, output_file_name_3_1, has_any_words_log])
@@ -135,7 +137,7 @@ def run_pipeline(
         #####################################################################
         
         input_path_5 = os.path.join(outputpath, source_file_name + "_3_1.json")
-        output_file_name_5 = source_file_name + "_5"
+        output_file_name_5 = source_file_name + "_5_localised_translations"
 
         for lang in languages:
 
@@ -154,7 +156,7 @@ def run_pipeline(
         input_path_6 = os.path.join(outputpath, output_file_name_5 + ".json")
 
         if(dict_edits_sheet_ID):            
-            output_file_name_6 = source_file_name + "_6"
+            output_file_name_6 = source_file_name + "_6_dict_edits"
             output_path_6 = os.path.join(outputpath, output_file_name_6 + ".json")
 
             apply_abtests(input_path_2, output_path_2, [dict_edits_sheet_ID], "google_sheets")
@@ -168,13 +170,13 @@ def run_pipeline(
         #####################################################################
 
         input_path_7_1 = output_path_6
-        output_file_name_7_1 = source_file_name + "_7_1"
+        output_file_name_7_1 = source_file_name + "_7_1_has_any_word_check"
         has_any_words_log = "7_has_any_words_check"
 
         subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "has_any_words_check", input_path_7_1, outputpath, output_file_name_7_1,  has_any_words_log])
 
         input_path_7_2 = os.path.join(outputpath, output_file_name_7_1 + ".json")
-        output_file_name_7_2 = source_file_name + "_7_2"
+        output_file_name_7_2 = source_file_name + "_7_2_fix_arg_qr_translation"
         fix_arg_qr_log = "7_arg_qr_log"
         
         subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "fix_arg_qr_translation", input_path_7_2, outputpath, output_file_name_7_2, fix_arg_qr_log])
@@ -192,7 +194,7 @@ def run_pipeline(
         #####################################################################
 
         input_path_8 = os.path.join(outputpath, output_file_name_7_2 + ".json")
-        output_file_name_8 = source_file_name + "_8"
+        output_file_name_8 = source_file_name + "_8_modify_QR"
 
         #We can do different things to our quick replies depending on the deployment channel
         if(qr_treatment == "move"):
@@ -215,7 +217,7 @@ def run_pipeline(
         input_path_9 = output_path_8
 
         if(SG_path and SG_flow_name and SG_sheet_ID):
-            output_file_name_9 = source_file_name + "_9"
+            output_file_name_9 = source_file_name + "_9_safeguarding"
             output_path_9 = os.path.join(outputpath, output_file_name_9)
             subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/srh_add_safeguarding_to_flows.js", input_path_9, SG_path, output_path_9, SG_sheet_ID, SG_flow_name])
             print("Added safeguarding")

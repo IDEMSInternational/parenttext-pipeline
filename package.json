@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@idems/idems-chatbot-tools": "^1.0.1",
-    "@idems/idems_translation_chatbot": "^1.0.2",
+    "@idems/idems_translation_chatbot": "^1.0.3",
     "@idems/idems_translation_common": "^1.0.0",
     "@idems/safeguarding-rapidpro": "^1.0.0",
     "uuid": "^9.0.0"

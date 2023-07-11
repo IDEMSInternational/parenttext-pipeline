@@ -10,9 +10,12 @@ def run_pipeline(
         languages, 
         translation_repo, 
         outputpath, 
+        qr_treatment,
         select_phrases, 
         add_selectors,
-        special_words, 
+        special_words,
+        count_threshold,
+        length_threshold,
         ab_testing_sheet_ID = None, 
         dict_edits_sheet_ID = None, 
         SG_sheet_ID = None, 
@@ -191,17 +194,25 @@ def run_pipeline(
         input_path_8 = os.path.join(outputpath, output_file_name_7_2 + ".json")
         output_file_name_8 = source_file_name + "_8"
 
-        #changes to be made here aroud length of strings.
+        #We can do different things to our quick replies depending on the deployment channel
+        if(qr_treatment == "move"):
+            subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "move_quick_replies", input_path_8, select_phrases, output_file_name_8, outputpath, add_selectors, special_words])
+            output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
+            print("Step 8 complete, removed quick replies")
+        elif(qr_treatment == "reformat"):
+            subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "reformat_quick_replies", input_path_8, select_phrases, output_file_name_8, outputpath, count_threshold, length_threshold, special_words])
+            output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
+            print("Step 8 complete, reformatted quick replies")
+        else:
+            output_path_8 = input_path_8
+            print("Step 8 skipped, no QR edits specified")
 
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "move_quick_replies", input_path_8, select_phrases, output_file_name_8, outputpath, add_selectors, special_words])
-        
-        print("Step 8 complete, removed quick replies")
 
         #####################################################################
         # step 9: implement safeguarding
         #####################################################################
                
-        input_path_9 = os.path.join(outputpath, output_file_name_8 + ".json")
+        input_path_9 = output_path_8
 
         if(SG_path and SG_flow_name and SG_sheet_ID):
             output_file_name_9 = source_file_name + "_9"
@@ -232,13 +243,3 @@ def run_pipeline(
         else:
             print("Step 10 skipped as file not specified to be split")
 
-
-def process_safeguarding_words(input_file, output_path, output_name):
-
-    #####################################################################
-    #Fetch translated safeguarding words and turn into JSON
-    #####################################################################
-
-    #"./extract_keywords.py" has the rough script required to run this process, need to adapt as necessary
-
-    print("Safeguarding word processing complete")

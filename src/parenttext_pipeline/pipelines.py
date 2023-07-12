@@ -74,7 +74,7 @@ def run_pipeline(
         output_file_name_1 = source_file_name + "_1_load_from_sheets"
         output_path_1 = os.path.join(outputpath, output_file_name_1 + ".json")
 
-        create_flows([spreadsheet_ids], output_path_1, "google_sheets", model, [tags])
+        create_flows(spreadsheet_ids, output_path_1, "google_sheets", model, tags)
         
         print("Step 1 complete, created " + output_file_name_1)
 
@@ -84,11 +84,19 @@ def run_pipeline(
 
         input_path_2 = output_path_1
 
-        if(ab_testing_sheet_ID):            
+        if(ab_testing_sheet_ID or localisation_sheet_ID):            
             output_file_name_2 = source_file_name + "_2_flow_edits"
             output_path_2 = os.path.join(outputpath, output_file_name_2 + ".json")
 
-            apply_abtests(input_path_2, output_path_2, [ab_testing_sheet_ID, localisation_sheet_ID], "google_sheets")
+            input_sheets = []
+            if(ab_testing_sheet_ID and localisation_sheet_ID):
+                input_sheets = [ab_testing_sheet_ID, localisation_sheet_ID]
+            elif(ab_testing_sheet_ID):
+                input_sheets = [ab_testing_sheet_ID]
+            else:
+                input_sheets = [localisation_sheet_ID]
+
+            apply_abtests(input_path_2, output_path_2, input_sheets, "google_sheets")
             print("Step 2 complete, added A/B tests and localization")
         else:
             output_path_2 = output_path_1
@@ -120,7 +128,7 @@ def run_pipeline(
         # Step 4: Extract Text to send to translators
         #####################################################################
 
-        input_path_4 = os.path.join(outputpath, output_file_name_3_1 + ".json")
+        input_path_4 = input_path_3_2
         output_file_name_4 = crowdin_file_name
         output_path_4 = os.path.join(outputpath, "send_to_translators")
 
@@ -136,7 +144,7 @@ def run_pipeline(
         # Step 5: Localise translations back into JSON files
         #####################################################################
         
-        input_path_5 = os.path.join(outputpath, source_file_name + "_3_1.json")
+        input_path_5 = input_path_3_2
         output_file_name_5 = source_file_name + "_5_localised_translations"
 
         for lang in languages:

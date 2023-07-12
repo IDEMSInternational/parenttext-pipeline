@@ -29,6 +29,6 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "google-api-python-client~=2.6.0",
-    "google-auth-oauthlib~=0.4.4",
+    "rapidpro-abtesting@https://github.com/IDEMSInternational/rapidpro_abtesting/archive/refs/heads/master.tar.gz",
+    "rpft@https://github.com/IDEMSInternational/rapidpro-flow-toolkit/archive/refs/heads/main.tar.gz",
 ]

@@ -12,3 +12,26 @@ Public repository to handle the process for producing final RapidPro flows from 
 # Running pipeline
 
 The file `pipelines.py` contains the general functions that can be used to run the pipeline.
+
+# RapidPro flow importer
+
+A user account on a RapidPro server is required.
+
+## CLI
+
+```
+rpimport --help
+```
+
+## Python import
+
+```
+from parenttext_pipeline.importer import import_definition
+
+import_definition(
+    host,
+    username,
+    password,
+    definition_file,
+)
+```

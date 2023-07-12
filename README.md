@@ -1,14 +1,14 @@
-# parenttext-pipeline
-Public repositry to handle the process for producing final RapidPro flows from data held in google sheets
+# ParentText Pipeline
 
-## Setup
-1. Install python `>=3.6`
-2. Run `pip install -r requirements.txt`
-3. Install node and npm lts
-4. Run `npm install`
+Public repository to handle the process for producing final RapidPro flows from data held in Google Sheets.
 
-## Running pipeline
-```
-The file pipelines.py contains the general functions that can be used to run the pipeline
+# Setup
 
-```
+1. Install Python >= 3.8
+2. Install Python dependencies: `pip install -e .`
+3. Install Node and npm LTS versions
+4. Install Node dependencies: `npm install`
+
+# Running pipeline
+
+The file `pipelines.py` contains the general functions that can be used to run the pipeline.

@@ -80,7 +80,7 @@ def process_keywords(sources, output):
 
 		#Always change the output name when processing new xlsx file to avoid overwritting.
 		#with open("./keywords/keywords_json/safeguarding_template_drug_2.json", "w") as outfile:
-		with open(output_file, "w") as outfile:
+		with open(output, "w") as outfile:
 			json.dump(all_tables, outfile, indent=4)
 
 		dictionaries[language] = all_tables

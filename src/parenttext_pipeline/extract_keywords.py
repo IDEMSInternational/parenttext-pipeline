@@ -14,7 +14,6 @@ def process_keywords(sources, output):
 
 		input_file = source["path"]
 		language = source["key"]
-		output_file = source["output"]
 
 		book = openpyxl.load_workbook(input_file)
 		all_tables = dict()

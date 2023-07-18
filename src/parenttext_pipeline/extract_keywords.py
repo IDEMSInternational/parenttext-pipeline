@@ -87,7 +87,7 @@ def process_keywords(sources, output):
 
 	full_dictionary = merge_dictionaries(dictionaries)
 
-	with open(output + "safeguarding_words.json", "w") as outfile:
+	with open(output + "/safeguarding_words.json", "w") as outfile:
 			json.dump(full_dictionary, outfile, indent=4)
 
 def read_entries_from_range(xmin, xmax, row1, row2):

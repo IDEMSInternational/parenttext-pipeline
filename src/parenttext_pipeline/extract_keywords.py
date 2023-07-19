@@ -18,7 +18,6 @@ def process_keywords(sources, output):
 		book = openpyxl.load_workbook(input_file)
 		all_tables = dict()
 		for sheet in book.worksheets:
-			print("Processing sheet " + sheet.title)
 			rows = list(sheet.iter_rows())
 			table_found = False
 			for y, row in enumerate(rows):
@@ -60,10 +59,10 @@ def process_keywords(sources, output):
 					}
 					joint_entry[lang1] = lang1_entry
 					joint_entry["Translation"] = {}
-					joint_entry["Translation"][lang2] = {
-						"keywords": [],
-						"mispellings": [],
-					}
+					joint_entry["Translation"][lang2] = {}
+					# 	"keywords": [],
+					# 	"mispellings": [],
+					# }
 
 				if high_risk_entries_lang2 or misspelling_entries_lang2:
 					lang2_entry = {
@@ -78,10 +77,10 @@ def process_keywords(sources, output):
 
 			all_tables[sheet.title] = table_content
 
-		#Always change the output name when processing new xlsx file to avoid overwritting.
-		#with open("./keywords/keywords_json/safeguarding_template_drug_2.json", "w") as outfile:
-		with open(output, "w") as outfile:
-			json.dump(all_tables, outfile, indent=4)
+		# #Always change the output name when processing new xlsx file to avoid overwritting.
+		# #with open("./keywords/keywords_json/safeguarding_template_drug_2.json", "w") as outfile:
+		# with open(output, "w") as outfile:
+		# 	json.dump(all_tables, outfile, indent=4)
 
 		dictionaries[language] = all_tables
 
@@ -111,18 +110,21 @@ def merge_dictionaries(dictionaries):
 			for sheet_ref in merged_dict:
 				for sheet in dic:
 					if sheet == sheet_ref:
+						print("Processing sheet "+ sheet)
 						for count, value in enumerate(merged_dict[sheet]):
 							original_english = value["English"]["keywords"][0]
 							try:
 								ref_english = dic[sheet][count]["English"]["keywords"][0]
-							except KeyError:
+							except IndexError:
 								ref_english = None
 							if original_english == ref_english:
+
 								additional_translation = {}
 								additional_translation =  dic[sheet][count]["Translation"][lang]
 								merged_dict[sheet][count]["Translation"][lang] = additional_translation
 							else:
 								print("There is a match problem in '" + sheet + "' sheet, please check all the spreadsheets have the same english rows in the same order")
+								break
 						
 						
 	return merged_dict

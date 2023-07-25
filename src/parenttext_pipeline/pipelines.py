@@ -155,7 +155,7 @@ def run_pipeline(
 
             subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "localize", input_path_5, json_translation_path, language, output_file_name_5, outputpath])
 
-            input_path_5 = os.path.join(outputpath, output_file_name_5)
+            input_path_5 = os.path.join(outputpath, output_file_name_5 + ".json")
 
         print("Step 5 complete, localised translations back into JSON")
 

@@ -169,7 +169,7 @@ def run_pipeline(
             output_file_name_6 = source_file_name + "_6_dict_edits"
             output_path_6 = os.path.join(outputpath, output_file_name_6 + ".json")
 
-            apply_abtests(input_path_2, output_path_2, [dict_edits_sheet_ID], "google_sheets")
+            apply_abtests(input_path_6, output_path_6, [dict_edits_sheet_ID], "google_sheets")
             print("Step 6 complete, text & translation edits made for dictionaries")
         else:
             output_path_6 = input_path_6

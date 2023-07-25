@@ -155,6 +155,8 @@ def run_pipeline(
 
             subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "localize", input_path_5, json_translation_path, language, output_file_name_5, outputpath])
 
+            input_path_5 = os.path.join(outputpath, output_file_name_5)
+
         print("Step 5 complete, localised translations back into JSON")
 
         #####################################################################
@@ -224,11 +226,18 @@ def run_pipeline(
                
         input_path_9 = output_path_8
 
+        # Sheet_ID is not sheet_id, it is a flow id
+
         if(SG_path and SG_flow_name and SG_sheet_ID):
             output_file_name_9 = source_file_name + "_9_safeguarding"
             output_path_9 = os.path.join(outputpath, output_file_name_9)
             subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/srh_add_safeguarding_to_flows.js", input_path_9, SG_path, output_path_9, SG_sheet_ID, SG_flow_name])
             print("Added safeguarding")
+
+
+            #Always run this step, warning will run if it does not find a flow
+            # Pass in the names of flows to edit   
+            # take a list of flow names 
 
             if "srh_safeguarding" in source_file_name:
                 subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/srh_edit_redirect_flow.js", output_path_9, SG_path, output_path_9])

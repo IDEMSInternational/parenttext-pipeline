@@ -2,7 +2,13 @@ import json
 import openpyxl
 
 
-def process_keywords(sources, output):
+def process_keywords_to_file(sources, output):
+    content = process_keywords(sources)
+    with open(output + "/safeguarding_words.json", "w") as outfile:
+        json.dump(content, outfile, indent=4)
+
+
+def process_keywords(sources):
 
 	MATCHING_STRING = "Please insert translation of each word under each corresponding cell. If the particular word does not translate into the chosen language, please leave it blank"
 	HEADER1 = "High-risk key words"
@@ -84,10 +90,8 @@ def process_keywords(sources, output):
 
 		dictionaries[language] = all_tables
 
-	full_dictionary = merge_dictionaries(dictionaries)
+	return merge_dictionaries(dictionaries)
 
-	with open(output + "/safeguarding_words.json", "w") as outfile:
-			json.dump(full_dictionary, outfile, indent=4)
 
 def read_entries_from_range(xmin, xmax, row1, row2):
 		entries = []

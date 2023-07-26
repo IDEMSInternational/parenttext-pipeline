@@ -19,9 +19,11 @@ def run_pipeline(
         ab_testing_sheet_ID = None,
         localisation_sheet_ID = None, 
         dict_edits_sheet_ID = None, 
-        SG_sheet_ID = None, 
+        SG_flow_ID = None, 
         SG_flow_name = None,
-        SG_path = None
+        SG_path = None,
+        redirect_flow_names = None
+
         ):
 
     #####################################################################
@@ -83,6 +85,7 @@ def run_pipeline(
         #####################################################################
 
         input_path_2 = output_path_1
+        log_file_path = os.path.join(outputpath, "2_ab_testing.log")
 
         if(ab_testing_sheet_ID or localisation_sheet_ID):            
             output_file_name_2 = source_file_name + "_2_flow_edits"
@@ -96,7 +99,7 @@ def run_pipeline(
             else:
                 input_sheets = [localisation_sheet_ID]
 
-            apply_abtests(input_path_2, output_path_2, input_sheets, "google_sheets")
+            apply_abtests(input_path_2, output_path_2, input_sheets, "google_sheets", log_file_path)
             print("Step 2 complete, added A/B tests and localization")
         else:
             output_path_2 = output_path_1
@@ -164,12 +167,13 @@ def run_pipeline(
         #####################################################################
 
         input_path_6 = os.path.join(outputpath, output_file_name_5 + ".json")
+        log_file_path = os.path.join(outputpath, "6_dict_edits.log")
 
         if(dict_edits_sheet_ID):            
             output_file_name_6 = source_file_name + "_6_dict_edits"
             output_path_6 = os.path.join(outputpath, output_file_name_6 + ".json")
 
-            apply_abtests(input_path_6, output_path_6, [dict_edits_sheet_ID], "google_sheets")
+            apply_abtests(input_path_6, output_path_6, [dict_edits_sheet_ID], "google_sheets", log_file_path)
             print("Step 6 complete, text & translation edits made for dictionaries")
         else:
             output_path_6 = input_path_6
@@ -228,20 +232,14 @@ def run_pipeline(
 
         # Sheet_ID is not sheet_id, it is a flow id
 
-        if(SG_path and SG_flow_name and SG_sheet_ID):
+        if(SG_path and SG_flow_name and SG_flow_ID and redirect_flow_names):
             output_file_name_9 = source_file_name + "_9_safeguarding"
             output_path_9 = os.path.join(outputpath, output_file_name_9)
-            subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/srh_add_safeguarding_to_flows.js", input_path_9, SG_path, output_path_9, SG_sheet_ID, SG_flow_name])
+            subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/v2_add_safeguarding_to_flows.js", input_path_9, SG_path, output_path_9, SG_flow_ID, SG_flow_name])
             print("Added safeguarding")
-
-
-            #Always run this step, warning will run if it does not find a flow
-            # Pass in the names of flows to edit   
-            # take a list of flow names 
-
-            if "srh_safeguarding" in source_file_name:
-                subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/srh_edit_redirect_flow.js", output_path_9, SG_path, output_path_9])
-                print("Edited redirect sg flow")
+            
+            subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/v2_edit_redirect_flow.js", output_path_9, SG_path, output_path_9, redirect_flow_names])
+            print("Edited redirect sg flows")
 
             print("Step 9 complete, adding safeguarding flows")
 

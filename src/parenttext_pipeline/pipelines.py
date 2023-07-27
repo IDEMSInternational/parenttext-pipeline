@@ -5,7 +5,9 @@ from rpft.converters import create_flows
 from rapidpro_abtesting.main import apply_abtests
 
 def run_pipeline(
-        sources, 
+        sources,
+        special_expiration,
+        default_expiration, 
         model, 
         languages, 
         translation_repo, 
@@ -73,12 +75,18 @@ def run_pipeline(
         #Step 1: Load google sheets and convert to RapidPro JSON
         #####################################################################
 
-        output_file_name_1 = source_file_name + "_1_load_from_sheets"
-        output_path_1 = os.path.join(outputpath, output_file_name_1 + ".json")
+        output_file_name_1_1 = source_file_name + "_1_1_load_from_sheets"
+        output_path_1_1 = os.path.join(outputpath, output_file_name_1_1 + ".json")
 
-        create_flows(spreadsheet_ids, output_path_1, "google_sheets", model, tags)
+        create_flows(spreadsheet_ids, output_path_1_1, "google_sheets", model, tags)
+
+        input_path_1_2 = output_path_1_1
+        output_file_name_1_2 = source_file_name + "_1_2_modified_expiration_times"
+        output_path_1_2 = os.path.join(outputpath, output_file_name_1_2 + ".json")
+
+        subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/update_expiration_time.js", input_path_1_2, special_expiration, default_expiration, output_path_1_2])
         
-        print("Step 1 complete, created " + output_file_name_1)
+        print("Step 1 complete, created " + source_file_name + " and modified expiration times")
 
         #####################################################################
         # Step 2: Flow edits (for all deployments) and localization (changes specific to a deployment)
@@ -131,15 +139,21 @@ def run_pipeline(
         # Step 4: Extract Text to send to translators
         #####################################################################
 
-        input_path_4 = input_path_3_2
-        output_file_name_4 = crowdin_file_name
-        output_path_4 = os.path.join(outputpath, "send_to_translators")
+        input_path_4_1 = input_path_3_2
+        output_file_name_4_1 = source_file_name + "_4_english_for_translation"
+
+        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "extract_simple", input_path_4_1, outputpath, output_file_name_4_1])
+        
+        translator_folder = os.path.join(outputpath, "send_to_translators")
 
         #Setup output file to send to translators if it doesn't exist
-        if not os.path.exists(output_path_4):
-            os.makedirs(output_path_4)
+        if not os.path.exists(translator_folder):
+            os.makedirs(translator_folder)
 
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "extract_simple", input_path_4, output_path_4, output_file_name_4])
+        input_path_4_2 = os.path.join(outputpath, output_file_name_4_1 + ".json") 
+        output_path_4_2 = os.path.join(translator_folder, crowdin_file_name + ".pot")      
+
+        subprocess.run(["node", "./node_modules/@idems/idems_translation_common/index.js", "convert", input_path_4_2, output_path_4_2])
 
         print("Step 4 complete, extracted text for translation")
 

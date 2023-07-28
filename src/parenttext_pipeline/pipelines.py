@@ -250,12 +250,10 @@ def run_pipeline(
             output_file_name_9 = source_file_name + "_9_safeguarding"
             output_path_9 = os.path.join(outputpath, output_file_name_9)
             subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/v2_add_safeguarding_to_flows.js", input_path_9, SG_path, output_path_9, SG_flow_ID, SG_flow_name])
-            print("Added safeguarding")
             
             subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/v2_edit_redirect_flow.js", output_path_9, SG_path, output_path_9, redirect_flow_names])
-            print("Edited redirect sg flows")
 
-            print("Step 9 complete, adding safeguarding flows")
+            print("Step 9 complete, adding safeguarding flows and edited redirect flows")
 
         else:
             output_path_9 = input_path_9

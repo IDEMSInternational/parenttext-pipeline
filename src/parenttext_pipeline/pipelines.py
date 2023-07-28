@@ -92,7 +92,7 @@ def run_pipeline(
         # Step 2: Flow edits (for all deployments) and localization (changes specific to a deployment)
         #####################################################################
 
-        input_path_2 = output_path_1
+        input_path_2 = output_path_1_2
         log_file_path = os.path.join(outputpath, "2_ab_testing.log")
 
         if(ab_testing_sheet_ID or localisation_sheet_ID):            
@@ -110,7 +110,7 @@ def run_pipeline(
             apply_abtests(input_path_2, output_path_2, input_sheets, "google_sheets", log_file_path)
             print("Step 2 complete, added A/B tests and localization")
         else:
-            output_path_2 = output_path_1
+            output_path_2 = output_path_1_2
             print("Step 2 skipped, no AB testing sheet ID provided")        
  
         # Fix issues with _ui ?????not working?????

@@ -3,7 +3,7 @@
     "@idems/idems-chatbot-tools": "^1.0.1",
     "@idems/idems_translation_chatbot": "^1.0.10",
     "@idems/idems_translation_common": "^1.0.0",
-    "@idems/safeguarding-rapidpro": "^1.0.3",
+    "@idems/safeguarding-rapidpro": "^1.0.4",
     "uuid": "^9.0.0"
   }
 }

@@ -1,5 +1,6 @@
 import os
 import subprocess
+import requests
 import sys
 from rpft.converters import create_flows
 from rapidpro_abtesting.main import apply_abtests
@@ -10,7 +11,8 @@ def run_pipeline(
         default_expiration, 
         model, 
         languages, 
-        translation_repo, 
+        translation_repo,
+        folder_within_repo, 
         outputpath, 
         qr_treatment,
         select_phrases, 
@@ -42,15 +44,17 @@ def run_pipeline(
         if not os.path.exists(translations_store_folder):
             os.makedirs(translations_store_folder)
 
-        #Fetch all relevant translation files
-        translations_fetch_folder = os.path.join(translation_repo, lang_code)
-        for root, dirs, files in os.walk(translations_fetch_folder):
+        #Download relevant translation files from github
+        language_folder_in_repo = folder_within_repo + "/" + lang_code
+        raw_translation_store = os.path.join(translations_store_folder, "raw_po_files")
+        download_translations_github(translation_repo, language_folder_in_repo, raw_translation_store)
+
+        for root, dirs, files in os.walk(raw_translation_store):
             for file in files:
-                file_name, file_extension = os.path.splitext(file)
-                if file_extension == ".po":
-                    source_file_path = os.path.join(root, file)
-                    dest_file_path = os.path.join(translations_store_folder, file_name + ".json")
-                    subprocess.run(["node", "./node_modules/@idems/idems_translation_common/index.js", "convert", source_file_path, dest_file_path])
+                file_name, file_extension = os.path.splitext(file)                
+                source_file_path = os.path.join(root, file)
+                dest_file_path = os.path.join(translations_store_folder, file_name + ".json")
+                subprocess.run(["node", "./node_modules/@idems/idems_translation_common/index.js", "convert", source_file_path, dest_file_path])
 
         #Merge all translation files into a single JSON that we can localise back into our flows
         subprocess.run(["node", "./node_modules/@idems/idems_translation_common/index.js", "concatenate_json", translations_store_folder, translations_store_folder, "merged_translations.json"])
@@ -271,4 +275,40 @@ def run_pipeline(
 
         else:
             print("Step 10 skipped as file not specified to be split")
+
+
+def download_translations_github(repo_url, folder_path, local_folder):
+    # Parse the repository URL to get the owner and repo name
+    parts = repo_url.split("/")
+    owner = parts[-2]
+    repo_name = parts[-1].split(".")[0]  # Remove '.git' extension if present
+
+    # Construct the GitHub API URL to get the contents of the folder
+    api_url = f"https://api.github.com/repos/{owner}/{repo_name}/contents/{folder_path}"
+
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+
+        contents = response.json()
+
+        if not os.path.exists(local_folder):
+            os.makedirs(local_folder)
+
+        for item in contents:
+            item_type = item["type"]
+            item_name = item["name"]
+            item_download_url = item["download_url"]
+
+            local_file_path = os.path.join(local_folder, item_name)
+
+            if item_type == "file" and item_name.endswith(".po"):
+                response = requests.get(item_download_url)
+                response.raise_for_status()
+
+                with open(local_file_path, "wb") as local_file:
+                    local_file.write(response.content)
+
+    except Exception as e:
+        print("An error occurred:", e)
 

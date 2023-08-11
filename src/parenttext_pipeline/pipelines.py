@@ -252,7 +252,7 @@ def run_pipeline(
 
         if(SG_path and SG_flow_name and SG_flow_ID and redirect_flow_names):
             output_file_name_9 = source_file_name + "_9_safeguarding"
-            output_path_9 = os.path.join(outputpath, output_file_name_9)
+            output_path_9 = os.path.join(outputpath, output_file_name_9 + ".json")
             subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/v2_add_safeguarding_to_flows.js", input_path_9, SG_path, output_path_9, SG_flow_ID, SG_flow_name])
             
             subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/v2_edit_redirect_flow.js", output_path_9, SG_path, output_path_9, redirect_flow_names])

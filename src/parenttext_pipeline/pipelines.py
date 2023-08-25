@@ -241,7 +241,16 @@ def run_pipeline(
             output_path_8 = input_path_8
             print("Step 8 skipped, no QR edits specified")
 
+#######################
+        if(split_num>1):
+            input_path_8b = output_path_8
+            subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/split_in_multiple_json_files.js", input_path_8b, str(split_num)])
 
+            print(f"Step 10 complete, split file in {split_num}")
+
+        else:
+            print("Step 10 skipped as file not specified to be split")
+###################
         #####################################################################
         # step 9: implement safeguarding
         #####################################################################

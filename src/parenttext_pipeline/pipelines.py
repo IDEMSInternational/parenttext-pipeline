@@ -22,7 +22,8 @@ def run_pipeline(
         length_threshold,
         ab_testing_sheet_ID = None,
         localisation_sheet_ID = None, 
-        dict_edits_sheet_ID = None, 
+        eng_edits_sheet_ID = None,
+        transl_edits_sheet_ID = None,
         SG_flow_ID = None, 
         SG_flow_name = None,
         SG_path = None,
@@ -181,17 +182,27 @@ def run_pipeline(
         print("Step 5 complete, localised translations back into JSON")
 
         #####################################################################
-        # step 6: text & translation edits for dictionaries
+        # step 6: post translation edits
         #####################################################################
 
         input_path_6 = os.path.join(outputpath, output_file_name_5 + ".json")
         log_file_path = os.path.join(outputpath, "6_dict_edits.log")
 
-        if(dict_edits_sheet_ID):            
+
+        if(eng_edits_sheet_ID or transl_edits_sheet_ID):  
+            input_edit_sheets = []
+
+            if(eng_edits_sheet_ID and transl_edits_sheet_ID):
+                input_edit_sheets = [eng_edits_sheet_ID, transl_edits_sheet_ID]
+            elif(eng_edits_sheet_ID):
+                input_sheets = [eng_edits_sheet_ID]
+            else:
+                input_sheets = [transl_edits_sheet_ID]  
+
             output_file_name_6 = source_file_name + "_6_dict_edits"
             output_path_6 = os.path.join(outputpath, output_file_name_6 + ".json")
 
-            apply_abtests(input_path_6, output_path_6, [dict_edits_sheet_ID], "google_sheets", log_file_path)
+            apply_abtests(input_path_6, output_path_6, input_edit_sheets, "google_sheets", log_file_path)
             print("Step 6 complete, text & translation edits made for dictionaries")
         else:
             output_path_6 = input_path_6

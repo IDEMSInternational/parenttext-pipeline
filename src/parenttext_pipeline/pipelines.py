@@ -1,34 +1,88 @@
 import os
 import subprocess
 import requests
-import sys
+from dataclasses import dataclass
+
 from rpft.converters import create_flows
 from rapidpro_abtesting.main import apply_abtests
+
+
+@dataclass(kw_only=True)
+class Config:
+    sources: list
+    special_expiration: str
+    default_expiration: int
+    model: str
+    languages: list
+    translation_repo: str
+    folder_within_repo: str
+    outputpath: str = "output"
+    qr_treatment: str
+    select_phrases: str
+    add_selectors: str
+    special_words: str
+    count_threshold: int
+    length_threshold: int
+    ab_testing_sheet_id: str = ""
+    localisation_sheet_id: str = ""
+    eng_edits_sheet_id: str = ""
+    transl_edits_sheet_id: str = ""
+    sg_flow_id: str = ""
+    sg_flow_name: str = ""
+    sg_path: str = ""
+    redirect_flow_names: str = ""
+
+
+def run(config: Config):
+    run_pipeline(
+        config.sources,
+        config.special_expiration,
+        config.default_expiration,
+        config.model,
+        config.languages,
+        config.translation_repo,
+        config.folder_within_repo,
+        config.outputpath,
+        config.qr_treatment,
+        config.select_phrases,
+        config.add_selectors,
+        config.special_words,
+        config.count_threshold,
+        config.length_threshold,
+        ab_testing_sheet_ID=config.ab_testing_sheet_id,
+        localisation_sheet_ID=config.localisation_sheet_id,
+        eng_edits_sheet_ID=config.eng_edits_sheet_id,
+        transl_edits_sheet_ID=config.transl_edits_sheet_id,
+        SG_flow_ID=config.sg_flow_id,
+        SG_flow_name=config.sg_flow_name,
+        SG_path=config.sg_path,
+        redirect_flow_names=config.redirect_flow_names,
+    )
+
 
 def run_pipeline(
         sources,
         special_expiration,
-        default_expiration, 
-        model, 
-        languages, 
+        default_expiration,
+        model,
+        languages,
         translation_repo,
-        folder_within_repo, 
-        outputpath, 
+        folder_within_repo,
+        outputpath,
         qr_treatment,
-        select_phrases, 
+        select_phrases,
         add_selectors,
         special_words,
         count_threshold,
         length_threshold,
-        ab_testing_sheet_ID = None,
-        localisation_sheet_ID = None, 
-        eng_edits_sheet_ID = None,
-        transl_edits_sheet_ID = None,
-        SG_flow_ID = None, 
-        SG_flow_name = None,
-        SG_path = None,
-        redirect_flow_names = None
-
+        ab_testing_sheet_ID=None,
+        localisation_sheet_ID=None,
+        eng_edits_sheet_ID=None,
+        transl_edits_sheet_ID=None,
+        SG_flow_ID=None,
+        SG_flow_name=None,
+        SG_path=None,
+        redirect_flow_names=None,
         ):
 
     #####################################################################
@@ -64,20 +118,20 @@ def run_pipeline(
 
     for source in sources:
 
-        #Load core file information
+        # Load core file information
 
         source_file_name = source["filename"]
-        spreadsheet_ids  = source["spreadsheet_ids"]
+        spreadsheet_ids = source["spreadsheet_ids"]
         crowdin_file_name = source["crowdin_name"]
         tags = source["tags"]
         split_num = source["split_no"]
 
-        #Setup output and temp files to store intermediary JSON files and log files
+        # Setup output and temp files to store intermediary JSON files and log files
         if not os.path.exists(outputpath):
             os.makedirs(outputpath)
 
         #####################################################################
-        #Step 1: Load google sheets and convert to RapidPro JSON
+        # Step 1: Load google sheets and convert to RapidPro JSON
         #####################################################################
 
         output_file_name_1_1 = source_file_name + "_1_1_load_from_sheets"
@@ -89,8 +143,15 @@ def run_pipeline(
         output_file_name_1_2 = source_file_name + "_1_2_modified_expiration_times"
         output_path_1_2 = os.path.join(outputpath, output_file_name_1_2 + ".json")
 
-        subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/update_expiration_time.js", input_path_1_2, special_expiration, default_expiration, output_path_1_2])
-        
+        subprocess.run([
+            "node",
+            "./node_modules/@idems/idems-chatbot-tools/update_expiration_time.js",
+            input_path_1_2,
+            special_expiration,
+            default_expiration,
+            output_path_1_2,
+        ])
+
         print("Step 1 complete, created " + source_file_name + " and modified expiration times")
 
         #####################################################################
@@ -239,13 +300,35 @@ def run_pipeline(
         input_path_8 = os.path.join(outputpath, output_file_name_7_2 + ".json")
         output_file_name_8 = source_file_name + "_8_modify_QR"
 
-        #We can do different things to our quick replies depending on the deployment channel
-        if(qr_treatment == "move"):
-            subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "move_quick_replies", input_path_8, select_phrases, output_file_name_8, outputpath, add_selectors, special_words])
+        # We can do different things to our quick replies depending on the deployment
+        # channel
+        if qr_treatment == "move":
+            subprocess.run([
+                "node",
+                "./node_modules/@idems/idems_translation_chatbot/index.js",
+                "move_quick_replies",
+                input_path_8,
+                select_phrases,
+                output_file_name_8,
+                outputpath,
+                add_selectors,
+                special_words
+            ])
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
             print("Step 8 complete, removed quick replies")
-        elif(qr_treatment == "reformat"):
-            subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "reformat_quick_replies", input_path_8, select_phrases, output_file_name_8, outputpath, count_threshold, length_threshold, special_words])
+        elif qr_treatment == "reformat":
+            subprocess.run([
+                "node",
+                "./node_modules/@idems/idems_translation_chatbot/index.js",
+                "reformat_quick_replies",
+                input_path_8,
+                select_phrases,
+                output_file_name_8,
+                outputpath,
+                count_threshold,
+                length_threshold,
+                special_words
+            ])
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
             print("Step 8 complete, reformatted quick replies")
         else:
@@ -322,4 +405,3 @@ def download_translations_github(repo_url, folder_path, local_folder):
 
     except Exception as e:
         print("An error occurred:", e)
-

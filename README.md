@@ -1,6 +1,6 @@
 # ParentText Pipeline
 
-Public repository to handle the process for producing final RapidPro flows from data held in Google Sheets.
+Handles the process for producing RapidPro flows from data held in Google Sheets.
 
 # Setup
 
@@ -9,9 +9,15 @@ Public repository to handle the process for producing final RapidPro flows from 
 3. Install Node and npm LTS versions
 4. Install Node dependencies: `npm install`
 
-# Running pipeline
+# Run
 
-The file `pipelines.py` contains the general functions that can be used to run the pipeline.
+To start the pipeline:
+
+```
+python -m parenttext_pipeline.cli
+```
+
+You will need to create a file called 'config.py', in the current working directory, and define a callable called 'create_config' that returns the pipeline settings as a dict. More details can be in the [configuration page].
 
 # RapidPro flow importer
 
@@ -35,3 +41,5 @@ import_definition(
     definition_file,
 )
 ```
+
+[configuration page]: docs/configuration.md

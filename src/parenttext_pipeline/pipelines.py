@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from rpft.converters import create_flows
 from rapidpro_abtesting.main import apply_abtests
 
+from parenttext_pipeline.steps import update_expiration_time
+
 
 @dataclass(kw_only=True)
 class Config:
@@ -143,14 +145,12 @@ def run_pipeline(
         output_file_name_1_2 = source_file_name + "_1_2_modified_expiration_times"
         output_path_1_2 = os.path.join(outputpath, output_file_name_1_2 + ".json")
 
-        subprocess.run([
-            "node",
-            "./node_modules/@idems/idems-chatbot-tools/update_expiration_time.js",
+        update_expiration_time(
             input_path_1_2,
-            special_expiration,
             default_expiration,
-            output_path_1_2,
-        ])
+            special_expiration,
+            output_path_1_2
+        )
 
         print("Step 1 complete, created " + source_file_name + " and modified expiration times")
 

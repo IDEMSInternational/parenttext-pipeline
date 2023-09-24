@@ -31,7 +31,7 @@ dependencies = [
     "beautifulsoup4~=4.12",
     "rapidpro-abtesting@https://github.com/IDEMSInternational/rapidpro_abtesting/archive/refs/heads/master.tar.gz",
     "requests~=2.31",
-    "rpft@https://github.com/IDEMSInternational/rapidpro-flow-toolkit/archive/refs/heads/main.tar.gz",
+    "rpft@https://github.com/edmoss345/rapidpro-flow-toolkit/archive/refs/heads/adding-csv-converter.tar.gz",
 ]
 
 [project.scripts]

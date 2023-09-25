@@ -184,11 +184,12 @@ def run_pipeline(
 
         #Create a CSV archive copy
 
-        # Setup achrive folder if it doesn't exist
-        if not os.path.exists(archive_outputpath):
-            os.makedirs(archive_outputpath)
-
         if create_archive:
+
+            # Setup achrive folder if it doesn't exist
+            if not os.path.exists(archive_outputpath):
+                os.makedirs(archive_outputpath)
+        
             google_sheets_as_csv(spreadsheet_ids, archive_outputpath)
 
         print("Step 1 complete, created " + source_file_name + " and modified expiration times")

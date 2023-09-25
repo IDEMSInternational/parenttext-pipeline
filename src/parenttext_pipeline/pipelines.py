@@ -133,7 +133,7 @@ def run_pipeline(
         spreadsheet_ids = []
         spreadsheet_locations = []
         for sheet in spreadsheet_info:
-            spreadsheet_ids.append(sheet["id"])
+            spreadsheet_ids.append(sheet["ID"])
             spreadsheet_locations.append(sheet["location"])
         archive_inputpath = source["archive_input_path"]
         crowdin_file_name = source["crowdin_name"]
@@ -151,8 +151,23 @@ def run_pipeline(
         output_file_name_1_1 = source_file_name + "_1_1_load_from_sheets"
         output_path_1_1 = os.path.join(outputpath, output_file_name_1_1 + ".json")
 
-        if "offline" in spreadsheet_locations:
-            print("offline sheets used")
+        if "archive" in spreadsheet_locations:
+            
+            content_index_sheets = []
+            for sheet in spreadsheet_info:
+                spreadsheet_id = sheet["ID"]
+                spreadsheet_location = sheet["location"]
+                if spreadsheet_location == "live":
+                    if not os.path.exists("./temp"):
+                        os.makedirs("./temp")
+                    #download live sheets to csv as required
+                    google_sheets_as_csv([spreadsheet_id], "./temp")
+                    relative_path = os.path.join("./temp", spreadsheet_id, "content_index.csv")
+                else:
+                    relative_path = os.path.join(archive_inputpath, spreadsheet_id, "content_index.csv")
+                content_index_sheets.append(relative_path)   
+
+            create_flows(content_index_sheets, output_path_1_1, "csv", model, tags)
         else:
             create_flows(spreadsheet_ids, output_path_1_1, "google_sheets", model, tags)
 

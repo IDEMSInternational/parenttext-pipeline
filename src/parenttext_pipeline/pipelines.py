@@ -98,8 +98,13 @@ def run_pipeline(
 
         #Setup file to store the translations we retrieve from the translation repo
         translations_store_folder = os.path.join(outputpath, lang_name + "_translations")
-        if not os.path.exists(translations_store_folder):
-            os.makedirs(translations_store_folder)
+        
+        # Check if the file exists
+        if os.path.exists(translations_store_folder):
+            # Delete the file to avoid potential duplication
+            os.remove(translations_store_folder)
+            
+        os.makedirs(translations_store_folder)
 
         #Download relevant translation files from github
         language_folder_in_repo = folder_within_repo + "/" + lang_code

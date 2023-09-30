@@ -1,9 +1,11 @@
 import os
 import subprocess
 import requests
+import shutil
+import tempfile
 from dataclasses import dataclass
 
-from rpft.converters import create_flows, google_sheets_as_csv
+from rpft.converters import create_flows
 from rapidpro_abtesting.main import apply_abtests
 
 from parenttext_pipeline.steps import update_expiration_time
@@ -20,7 +22,6 @@ class Config:
     folder_within_repo: str
     outputpath: str = "output"
     archive_outputpath: str
-    create_archive: bool
     qr_treatment: str
     select_phrases: str
     add_selectors: str
@@ -47,8 +48,6 @@ def run(config: Config):
         config.translation_repo,
         config.folder_within_repo,
         config.outputpath,
-        config.archive_outputpath,
-        config.create_archive,
         config.qr_treatment,
         config.select_phrases,
         config.add_selectors,
@@ -75,8 +74,6 @@ def run_pipeline(
         translation_repo,
         folder_within_repo,
         outputpath,
-        archive_outputpath,
-        create_archive,
         qr_treatment,
         select_phrases,
         add_selectors,
@@ -129,13 +126,9 @@ def run_pipeline(
         # Load core file information
 
         source_file_name = source["filename"]
-        spreadsheet_info = source["spreadsheet_info"]
-        spreadsheet_ids = []
-        spreadsheet_locations = []
-        for sheet in spreadsheet_info:
-            spreadsheet_ids.append(sheet["ID"])
-            spreadsheet_locations.append(sheet["location"])
+        spreadsheet_ids = source["spreadsheet_ids"]
         archive_inputpath = source["archive_input_path"]
+        run_from_archive = source["run_from_archive"]
         crowdin_file_name = source["crowdin_name"]
         tags = source["tags"]
         split_num = source["split_no"]
@@ -151,21 +144,21 @@ def run_pipeline(
         output_file_name_1_1 = source_file_name + "_1_1_load_from_sheets"
         output_path_1_1 = os.path.join(outputpath, output_file_name_1_1 + ".json")
 
-        if "archive" in spreadsheet_locations:
+        if run_from_archive:
+
+            temp_dir = tempfile.TemporaryDirectory()
+
+            shutil.unpack_archive(archive_inputpath, temp_dir.name)
+
+            print(os.listdir(temp_dir.name))
             
             content_index_sheets = []
-            for sheet in spreadsheet_info:
-                spreadsheet_id = sheet["ID"]
-                spreadsheet_location = sheet["location"]
-                if spreadsheet_location == "live":
-                    if not os.path.exists("./temp"):
-                        os.makedirs("./temp")
-                    #download live sheets to csv as required
-                    google_sheets_as_csv([spreadsheet_id], "./temp")
-                    relative_path = os.path.join("./temp", spreadsheet_id, "content_index.csv")
-                else:
-                    relative_path = os.path.join(archive_inputpath, spreadsheet_id, "content_index.csv")
-                content_index_sheets.append(relative_path)   
+            for spreadsheet_id in spreadsheet_ids:
+                print(spreadsheet_id)
+                relative_path = os.path.join(temp_dir.name, spreadsheet_id, "content_index.csv")
+                content_index_sheets.append(relative_path)
+
+            print(content_index_sheets)   
 
             create_flows(content_index_sheets, output_path_1_1, "csv", model, tags)
         else:
@@ -181,16 +174,6 @@ def run_pipeline(
             special_expiration,
             output_path_1_2
         )
-
-        #Create a CSV archive copy
-
-        if create_archive:
-
-            # Setup achrive folder if it doesn't exist
-            if not os.path.exists(archive_outputpath):
-                os.makedirs(archive_outputpath)
-        
-            google_sheets_as_csv(spreadsheet_ids, archive_outputpath)
 
         print("Step 1 complete, created " + source_file_name + " and modified expiration times")
 

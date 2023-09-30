@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import requests
 from dataclasses import dataclass
@@ -102,7 +103,7 @@ def run_pipeline(
         # Check if the file exists
         if os.path.exists(translations_store_folder):
             # Delete the file to avoid potential duplication
-            os.remove(translations_store_folder)
+            shutil.rmtree(translations_store_folder)
             
         os.makedirs(translations_store_folder)
 

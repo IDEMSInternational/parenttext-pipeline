@@ -2,6 +2,8 @@ import os
 import shutil
 import subprocess
 import requests
+import shutil
+import tempfile
 from dataclasses import dataclass
 
 from rpft.converters import create_flows
@@ -52,6 +54,7 @@ def run(config: Config):
         config.special_words,
         config.count_threshold,
         config.length_threshold,
+        config,
         ab_testing_sheet_ID=config.ab_testing_sheet_id,
         localisation_sheet_ID=config.localisation_sheet_id,
         eng_edits_sheet_ID=config.eng_edits_sheet_id,
@@ -78,6 +81,7 @@ def run_pipeline(
         special_words,
         count_threshold,
         length_threshold,
+        config: Config,
         ab_testing_sheet_ID=None,
         localisation_sheet_ID=None,
         eng_edits_sheet_ID=None,
@@ -125,13 +129,8 @@ def run_pipeline(
     print("Step 0 complete, fetched all available translations and converted to json")
 
     for source in sources:
-
-        # Load core file information
-
         source_file_name = source["filename"]
-        spreadsheet_ids = source["spreadsheet_ids"]
         crowdin_file_name = source["crowdin_name"]
-        tags = source["tags"]
         split_num = source["split_no"]
 
         # Setup output and temp files to store intermediary JSON files and log files
@@ -142,29 +141,16 @@ def run_pipeline(
         # Step 1: Load google sheets and convert to RapidPro JSON
         #####################################################################
 
-        output_file_name_1_1 = source_file_name + "_1_1_load_from_sheets"
-        output_path_1_1 = os.path.join(outputpath, output_file_name_1_1 + ".json")
+        archive_fp = download_archive(config, source)
+        input_path_1_2 = load_sheets(config, source, archive_fp)
+        input_path_2 = update_expiration_time(config, source, input_path_1_2)
 
-        create_flows(spreadsheet_ids, output_path_1_1, "google_sheets", model, tags)
-
-        input_path_1_2 = output_path_1_1
-        output_file_name_1_2 = source_file_name + "_1_2_modified_expiration_times"
-        output_path_1_2 = os.path.join(outputpath, output_file_name_1_2 + ".json")
-
-        update_expiration_time(
-            input_path_1_2,
-            default_expiration,
-            special_expiration,
-            output_path_1_2
-        )
-
-        print("Step 1 complete, created " + source_file_name + " and modified expiration times")
+        print("Step 1 complete")
 
         #####################################################################
         # Step 2: Flow edits (for all deployments) and localization (changes specific to a deployment)
         #####################################################################
 
-        input_path_2 = output_path_1_2
         log_file_path = os.path.join(outputpath, "2_ab_testing.log")
 
         if(ab_testing_sheet_ID or localisation_sheet_ID):            
@@ -182,7 +168,7 @@ def run_pipeline(
             apply_abtests(input_path_2, output_path_2, input_sheets, "google_sheets", log_file_path)
             print("Step 2 complete, added A/B tests and localization")
         else:
-            output_path_2 = output_path_1_2
+            output_path_2 = input_path_2
             print("Step 2 skipped, no AB testing sheet ID provided")        
  
         # Fix issues with _ui ?????not working?????
@@ -375,6 +361,52 @@ def run_pipeline(
 
         else:
             print("Step 10 skipped as file not specified to be split")
+
+
+def download_archive(config, source):
+    location = source.get("archive")
+    archive_fp = os.path.join(config.outputpath, source["filename"] + ".zip")
+
+    if location and location.startswith("http"):
+        response = requests.get(location)
+
+        if response.ok:
+            with open(archive_fp, "wb") as archive:
+                archive.write(response.content)
+            print(f"Archive downloaded, url={location}, file={archive_fp}")
+
+        return archive_fp
+    else:
+        return location
+
+
+def load_sheets(config, source, archive_fp):
+    output_path = os.path.join(
+        config.outputpath,
+        source["filename"] + "_1_1_load_from_sheets.json",
+    )
+    spreadsheet_ids = source["spreadsheet_ids"]
+    tags = source["tags"]
+
+    if archive_fp:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            shutil.unpack_archive(archive_fp, temp_dir)
+            create_flows(
+                [
+                    os.path.join(temp_dir, spreadsheet_id, "content_index.csv")
+                    for spreadsheet_id in spreadsheet_ids
+                ],
+                output_path,
+                "csv",
+                config.model,
+                tags,
+            )
+    else:
+        create_flows(spreadsheet_ids, output_path, "google_sheets", model, tags)
+
+    print(f"RapidPro flows created, file={output_path}")
+
+    return output_path
 
 
 def download_translations_github(repo_url, folder_path, local_folder):

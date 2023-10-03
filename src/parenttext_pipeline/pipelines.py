@@ -149,16 +149,12 @@ def run_pipeline(
             temp_dir = tempfile.TemporaryDirectory()
 
             shutil.unpack_archive(archive_inputpath, temp_dir.name)
-
-            print(os.listdir(temp_dir.name))
             
             content_index_sheets = []
             for spreadsheet_id in spreadsheet_ids:
-                print(spreadsheet_id)
+                
                 relative_path = os.path.join(temp_dir.name, spreadsheet_id, "content_index.csv")
                 content_index_sheets.append(relative_path)
-
-            print(content_index_sheets)   
 
             create_flows(content_index_sheets, output_path_1_1, "csv", model, tags)
         else:

@@ -402,7 +402,7 @@ def load_sheets(config, source, archive_fp):
                 tags,
             )
     else:
-        create_flows(spreadsheet_ids, output_path, "google_sheets", model, tags)
+        create_flows(spreadsheet_ids, output_path, "google_sheets", config.model, tags)
 
     print(f"RapidPro flows created, file={output_path}")
 

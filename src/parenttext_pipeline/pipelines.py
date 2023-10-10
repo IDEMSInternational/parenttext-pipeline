@@ -1,15 +1,14 @@
 import os
-import shutil
-import subprocess
 import requests
 import shutil
+import subprocess
 import tempfile
 from dataclasses import dataclass
 
 from rpft.converters import create_flows
 from rapidpro_abtesting.main import apply_abtests
 
-from parenttext_pipeline.steps import update_expiration_time
+from parenttext_pipeline.steps import update_expiration_time, split_rapidpro_json
 
 
 @dataclass(kw_only=True)
@@ -131,7 +130,6 @@ def run_pipeline(
     for source in sources:
         source_file_name = source["filename"]
         crowdin_file_name = source["crowdin_name"]
-        split_num = source["split_no"]
 
         # Setup output and temp files to store intermediary JSON files and log files
         if not os.path.exists(outputpath):
@@ -347,20 +345,14 @@ def run_pipeline(
 
         else:
             output_path_9 = input_path_9
-            print("Step 9 skipped, no sareguarding details provided")
+            print("Step 9 skipped, no safeguarding details provided")
 
         #####################################################################
         # step 10. split files (if too big)?
         #####################################################################
 
-        if(split_num>1):
-            input_path_10 = output_path_9
-            subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/split_in_multiple_json_files.js", input_path_10, str(split_num)])
-
-            print(f"Step 10 complete, split file in {split_num}")
-
-        else:
-            print("Step 10 skipped as file not specified to be split")
+        split_rapidpro_json(config, source, output_path_9)
+        print("Step 10 completed")
 
 
 def download_archive(config, source):

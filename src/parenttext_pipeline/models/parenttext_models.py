@@ -70,6 +70,7 @@ class PlhContentModel(DataRowModel):
 	video: VideoBlockModel = VideoBlockModel()
 	audio: AudioBlockModel = AudioBlockModel()
 	congratulations: CongratulationsBlockModel = CongratulationsBlockModel()
+	attached_single_doc: str = ''
 
 
 class TrackerInfoModel(ParserModel):
@@ -125,6 +126,7 @@ class GoalCheckInModel(DataRowModel):
 	response: GoalCheckInResponseModel = GoalCheckInResponseModel()
 	troubleshooting: TroubleshootingModel = TroubleshootingModel()
 	conclusion: str = ''
+	attached_single_doc: str = ''
 
 class PbSurveyBehaveModel(ParserModel):
 	name: str = ''
@@ -134,6 +136,7 @@ class SurveyBehaveModel(DataRowModel):
 	intro: str = ''
 	select_instructions: str = ''
 	pb: List[PbSurveyBehaveModel] = []
+	attached_single_doc: str = ''
 ###########################################################
 # onboarding
 
@@ -151,6 +154,7 @@ class OnboardingQuestionWithOptionsModel(DataRowModel):
 	image: str = ''
 	variable: str = ''
 	options : List[OnboardingQuestionOptionModel] = []
+	attached_single_doc: str = ''
 
 class OnboardingQuestionInputTestModel(ParserModel):
 	expression: str = ''
@@ -162,6 +166,7 @@ class OnboardingQuestionInputModel(DataRowModel):
 	variable: str = ''
 	test: OnboardingQuestionInputTestModel = OnboardingQuestionInputTestModel()
 	error_message: str = ''
+	attached_single_doc: str = ''
 
 class OnboardingRangeModel(ParserModel):
 	limit: str = ''
@@ -194,6 +199,7 @@ class HomeActivityCheckInModel(DataRowModel):
 	activity: str = ''
 	positive_message: str = ''
 	negative_message: str = ''
+	attached_single_doc: str = ''
 
 class WhatsappTemplateModel(DataRowModel):
 	name: str = ''
@@ -207,12 +213,14 @@ class WgUnicefModel(DataRowModel):
 	end_message_concerning: List[str] = []
 	end_message_not_concerning: List[str] = []
 	questions_ids: List[str] = []
+	attached_single_doc: str = ''
 
 class WgUnicefQuestionModel(DataRowModel):
 	qst: str = ''
 	options: List[str] = []
 	concerning_options: List[str] = []
 	concerning_feedback: str = ''
+	attached_single_doc: str = ''
 
 class SwycModel(DataRowModel):
 	intro: List[str] = []
@@ -223,6 +231,7 @@ class SwycModel(DataRowModel):
 	end_message_concerning: List[str] = []
 	end_message_not_concerning: List[str] = []
 	questions: List[str] = []
+	attached_single_doc: str = ''
 
 #########################
 ## delivery
@@ -337,6 +346,7 @@ class ComicNamesModel(DataRowModel):
 
 class DictionaryModel(DataRowModel):
 	languages: List[str] = []
+	attached_single_doc: str = ''
 
 class UseDictionaryModel(DataRowModel):
 	dict_name: str = ''
@@ -391,6 +401,7 @@ class SettingsProfileModel(DataRowModel):
 	update_prog_var_flow: str = ''
 	variable: str = ''
 	var: List[VarProfileModel] = []
+	attached_single_doc: str = ''
 											
 ####################################
 ## Safeguarding

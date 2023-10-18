@@ -220,7 +220,11 @@ def run_pipeline(
         #####################################################################
         
         input_path_5 = input_path_3_2
-        output_file_name_5 = source_file_name + "_5_localised_translations"
+        if len(languages) == 0:
+            output_file_name_5 = output_file_name_3_1
+            print("no lang")
+        else:
+            output_file_name_5 = source_file_name + "_5_localised_translations"
 
         for lang in languages:
 

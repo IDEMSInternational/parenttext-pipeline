@@ -236,14 +236,14 @@ class SwycModel(DataRowModel):
 #########################
 ## delivery
 
-class GoalModel(DataRowModel):
-	goal_name: str = ''
-	priority: str = ''
-	age_group: str = ''
-	relationship: str = ''
-	modules: List[str] = []
 
 
+class RangeProgDataModel(ParserModel):
+	limit: str = ''
+	value: str = ''
+
+class ProgDataModel(DataRowModel):
+	ranges: List[RangeProgDataModel] = []
 
 class SplitModel(DataRowModel):
 	split_variable: str = ''
@@ -275,9 +275,8 @@ class OptionsWrapperNoOptionModel(ParserModel):
 
 class OptionsWrapperModel(DataRowModel):
 	list_var: str = ''
-	dict_var: str = ''
-	dict_ID: str = ''
-	n_max_opt: int = 9
+	print_type: str = ''
+	n_max_opt: int = 10
 	msg_no_options: OptionsWrapperNoOptionModel = OptionsWrapperNoOptionModel()
 	msg_one_option: OptionsWrapperOneOptionModel = OptionsWrapperOneOptionModel()
 	msg_multiple_options: str = ''

@@ -307,6 +307,8 @@ class InteractionOptionModel(ParserModel):
 class InteractionModel(DataRowModel):
 	question: str = ''
 	options: List[InteractionOptionModel] = []
+	webhook_template_name: str = ''
+	webhook_template_args: str = ''
 	wa_template_ID: str = ''
 	wa_template_vars: List[str] = []
 

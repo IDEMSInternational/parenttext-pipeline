@@ -42,4 +42,10 @@ import_definition(
 )
 ```
 
+# Archive tool
+
+Used to create snapshots of source Google Sheets to support repeatable pipeline runs. See [archive tool docs] for details.
+
+
 [configuration page]: docs/configuration.md
+[archive tool docs]: docs/archive.md

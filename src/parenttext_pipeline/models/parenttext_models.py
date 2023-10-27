@@ -119,6 +119,7 @@ class GoalCheckInModel(DataRowModel):
 	pre_question: str = ''
 	question: str = ''
 	options: List[str] = []
+	skip_option: str = '' 
 	add_qr: str = ''
 	negative: List[str] = []
 	positive: List[str] = []
@@ -236,14 +237,14 @@ class SwycModel(DataRowModel):
 #########################
 ## delivery
 
-class GoalModel(DataRowModel):
-	goal_name: str = ''
-	priority: str = ''
-	age_group: str = ''
-	relationship: str = ''
-	modules: List[str] = []
 
 
+class RangeProgDataModel(ParserModel):
+	limit: str = ''
+	value: str = ''
+
+class ProgDataModel(DataRowModel):
+	ranges: List[RangeProgDataModel] = []
 
 class SplitModel(DataRowModel):
 	split_variable: str = ''
@@ -275,9 +276,8 @@ class OptionsWrapperNoOptionModel(ParserModel):
 
 class OptionsWrapperModel(DataRowModel):
 	list_var: str = ''
-	dict_var: str = ''
-	dict_ID: str = ''
-	n_max_opt: int = 9
+	print_type: str = ''
+	n_max_opt: int = 10
 	msg_no_options: OptionsWrapperNoOptionModel = OptionsWrapperNoOptionModel()
 	msg_one_option: OptionsWrapperOneOptionModel = OptionsWrapperOneOptionModel()
 	msg_multiple_options: str = ''
@@ -308,6 +308,8 @@ class InteractionOptionModel(ParserModel):
 class InteractionModel(DataRowModel):
 	question: str = ''
 	options: List[InteractionOptionModel] = []
+	webhook_template_name: str = ''
+	webhook_template_args: str = ''
 	wa_template_ID: str = ''
 	wa_template_vars: List[str] = []
 
@@ -408,6 +410,7 @@ class SettingsProfileModel(DataRowModel):
 
 class ReferralsModel(DataRowModel):
 	referrals: str = ''
+	option_name: str = ''
 
 
 class SafeguardingRedirectModel(DataRowModel):
@@ -420,3 +423,7 @@ class SafeguardingEntryModel(DataRowModel):
 	question: str = ''
 	intro: str = ''
 	no_message: str = ''
+
+class SafeguardingLaunchFlowModel(DataRowModel):
+	flow: str = ''
+	conclusion_msg: str = ''

@@ -119,6 +119,7 @@ class GoalCheckInModel(DataRowModel):
 	pre_question: str = ''
 	question: str = ''
 	options: List[str] = []
+	skip_option: str = '' 
 	add_qr: str = ''
 	negative: List[str] = []
 	positive: List[str] = []
@@ -409,6 +410,7 @@ class SettingsProfileModel(DataRowModel):
 
 class ReferralsModel(DataRowModel):
 	referrals: str = ''
+	option_name: str = ''
 
 
 class SafeguardingRedirectModel(DataRowModel):
@@ -421,3 +423,7 @@ class SafeguardingEntryModel(DataRowModel):
 	question: str = ''
 	intro: str = ''
 	no_message: str = ''
+
+class SafeguardingLaunchFlowModel(DataRowModel):
+	flow: str = ''
+	conclusion_msg: str = ''

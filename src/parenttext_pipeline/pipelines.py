@@ -1,3 +1,4 @@
+import json
 import os
 import requests
 import shutil
@@ -383,18 +384,27 @@ def load_sheets(config, source, archive_fp):
     if archive_fp:
         with tempfile.TemporaryDirectory() as temp_dir:
             shutil.unpack_archive(archive_fp, temp_dir)
-            create_flows(
+            flows = create_flows(
                 [
                     os.path.join(temp_dir, spreadsheet_id, "content_index.csv")
                     for spreadsheet_id in spreadsheet_ids
                 ],
-                output_path,
+                None,
                 "csv",
-                config.model,
-                tags,
+                data_models=config.model,
+                tags=tags,
             )
     else:
-        create_flows(spreadsheet_ids, output_path, "google_sheets", config.model, tags)
+        flows = create_flows(
+            spreadsheet_ids,
+            None,
+            "google_sheets",
+            data_models=config.model,
+            tags=tags,
+        )
+
+    with open(output_path, "w") as export:
+        json.dump(flows, export, indent=4)
 
     print(f"RapidPro flows created, file={output_path}")
 

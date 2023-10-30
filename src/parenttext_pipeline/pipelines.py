@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import tempfile
 from dataclasses import dataclass
+from pathlib import Path
 
 from rpft.converters import create_flows
 from rapidpro_abtesting.main import apply_abtests
@@ -39,96 +40,59 @@ class Config:
 
 
 def run(config: Config):
-    run_pipeline(
-        config.sources,
-        config.special_expiration,
-        config.default_expiration,
-        config.model,
-        config.languages,
-        config.translation_repo,
-        config.folder_within_repo,
-        config.outputpath,
-        config.qr_treatment,
-        config.select_phrases,
-        config.add_selectors,
-        config.special_words,
-        config.count_threshold,
-        config.length_threshold,
-        config,
-        ab_testing_sheet_ID=config.ab_testing_sheet_id,
-        localisation_sheet_ID=config.localisation_sheet_id,
-        eng_edits_sheet_ID=config.eng_edits_sheet_id,
-        transl_edits_sheet_ID=config.transl_edits_sheet_id,
-        SG_flow_ID=config.sg_flow_id,
-        SG_flow_name=config.sg_flow_name,
-        SG_path=config.sg_path,
-        redirect_flow_names=config.redirect_flow_names,
-    )
-
-
-def run_pipeline(
-        sources,
-        special_expiration,
-        default_expiration,
-        model,
-        languages,
-        translation_repo,
-        folder_within_repo,
-        outputpath,
-        qr_treatment,
-        select_phrases,
-        add_selectors,
-        special_words,
-        count_threshold,
-        length_threshold,
-        config: Config,
-        ab_testing_sheet_ID=None,
-        localisation_sheet_ID=None,
-        eng_edits_sheet_ID=None,
-        transl_edits_sheet_ID=None,
-        SG_flow_ID=None,
-        SG_flow_name=None,
-        SG_path=None,
-        redirect_flow_names=None,
-        ):
+    outputpath = config.outputpath
 
     #####################################################################
     # Step 0: Fetch available PO files and convert to JSON
     #####################################################################
 
-    for lang in languages:
-
+    for lang in config.languages:
         lang_name = lang["language"]
         lang_code = lang["code"]
+        translations_store_folder = Path(outputpath) / f"{lang_name}_translations"
 
-        #Setup file to store the translations we retrieve from the translation repo
-        translations_store_folder = os.path.join(outputpath, lang_name + "_translations")
-        
-        # Check if the file exists
         if os.path.exists(translations_store_folder):
-            # Delete the file to avoid potential duplication
             shutil.rmtree(translations_store_folder)
-            
+
         os.makedirs(translations_store_folder)
 
-        #Download relevant translation files from github
-        language_folder_in_repo = folder_within_repo + "/" + lang_code
+        # Download relevant translation files from github
+        language_folder_in_repo = config.folder_within_repo + "/" + lang_code
         raw_translation_store = os.path.join(translations_store_folder, "raw_po_files")
-        download_translations_github(translation_repo, language_folder_in_repo, raw_translation_store)
+        download_translations_github(
+            config.translation_repo,
+            language_folder_in_repo,
+            raw_translation_store,
+        )
 
         for root, dirs, files in os.walk(raw_translation_store):
             for file in files:
-                file_name, file_extension = os.path.splitext(file)                
+                file_name = Path(file).stem
                 source_file_path = os.path.join(root, file)
-                dest_file_path = os.path.join(translations_store_folder, file_name + ".json")
-                subprocess.run(["node", "./node_modules/@idems/idems_translation_common/index.js", "convert", source_file_path, dest_file_path])
+                dest_file_path = os.path.join(
+                    translations_store_folder,
+                    file_name + ".json",
+                )
+                run_node(
+                    "idems_translation_common/index.js",
+                    "convert",
+                    source_file_path,
+                    dest_file_path,
+                )
 
-        #Merge all translation files into a single JSON that we can localise back into our flows
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_common/index.js", "concatenate_json", translations_store_folder, translations_store_folder, "merged_translations.json"])
+        # Merge all translation files into a single JSON that we can localise back into
+        # our flows
+        run_node(
+            "idems_translation_common/index.js",
+            "concatenate_json",
+            translations_store_folder,
+            translations_store_folder,
+            "merged_translations.json",
+        )
 
     print("Step 0 complete, fetched all available translations and converted to json")
 
-    for source in sources:
+    for source in config.sources:
         source_file_name = source["filename"]
         crowdin_file_name = source["crowdin_name"]
 
@@ -147,32 +111,35 @@ def run_pipeline(
         print("Step 1 complete")
 
         #####################################################################
-        # Step 2: Flow edits (for all deployments) and localization (changes specific to a deployment)
+        # Step 2: Flow edits (for all deployments) and localization (changes specific to
+        # a deployment)
         #####################################################################
 
         log_file_path = os.path.join(outputpath, "2_ab_testing.log")
+        ab_testing_sheet_id = config.ab_testing_sheet_id
+        localisation_sheet_id = config.localisation_sheet_id
 
-        if(ab_testing_sheet_ID or localisation_sheet_ID):            
+        if ab_testing_sheet_id or localisation_sheet_id:
             output_file_name_2 = source_file_name + "_2_flow_edits"
             output_path_2 = os.path.join(outputpath, output_file_name_2 + ".json")
 
-            input_sheets = []
-            if(ab_testing_sheet_ID and localisation_sheet_ID):
-                input_sheets = [ab_testing_sheet_ID, localisation_sheet_ID]
-            elif(ab_testing_sheet_ID):
-                input_sheets = [ab_testing_sheet_ID]
-            else:
-                input_sheets = [localisation_sheet_ID]
+            input_sheets = [
+                sheet
+                for sheet in [config.ab_testing_sheet_id, config.localisation_sheet_id]
+                if sheet
+            ]
 
-            apply_abtests(input_path_2, output_path_2, input_sheets, "google_sheets", log_file_path)
+            apply_abtests(
+                input_path_2,
+                output_path_2,
+                input_sheets,
+                "google_sheets",
+                log_file_path,
+            )
             print("Step 2 complete, added A/B tests and localization")
         else:
             output_path_2 = input_path_2
-            print("Step 2 skipped, no AB testing sheet ID provided")        
- 
-        # Fix issues with _ui ?????not working?????
-        # subprocess.run(["node", "./node_modules/@idems/idems-chatbot-tools/fix_ui.js", output_path_2, output_path_2])
-        # print("Fixed _ui")
+            print("Step 2 skipped, no AB testing sheet ID provided")
 
         ####################################################################
         # Step 3: Catch errors pre-translation
@@ -182,13 +149,27 @@ def run_pipeline(
         output_file_name_3_1 = source_file_name + "_3_1_has_any_word_check"
         has_any_words_log = "3_has_any_words_check"
 
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "has_any_words_check", input_path_3_1, outputpath, output_file_name_3_1, has_any_words_log])
+        run_node(
+            "idems_translation_chatbot/index.js",
+            "has_any_words_check",
+            input_path_3_1,
+            outputpath,
+            output_file_name_3_1,
+            has_any_words_log,
+        )
 
         input_path_3_2 = os.path.join(outputpath, output_file_name_3_1 + ".json")
         integrity_log = "3_integrity_log"
         excel_log_name = os.path.join(outputpath, "3_excel_log.xlsx")
-        
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "overall_integrity_check", input_path_3_2, outputpath, integrity_log, excel_log_name])
+
+        run_node(
+            "idems_translation_chatbot/index.js",
+            "overall_integrity_check",
+            input_path_3_2,
+            outputpath,
+            integrity_log,
+            excel_log_name,
+        )
 
         print("Step 3 complete, reviewed files pre-translation")
 
@@ -199,35 +180,55 @@ def run_pipeline(
         input_path_4_1 = input_path_3_2
         output_file_name_4_1 = source_file_name + "_4_english_for_translation"
 
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "extract_simple", input_path_4_1, outputpath, output_file_name_4_1])
-        
+        run_node(
+            "idems_translation_chatbot/index.js",
+            "extract_simple",
+            input_path_4_1,
+            outputpath,
+            output_file_name_4_1,
+        )
+
         translator_folder = os.path.join(outputpath, "send_to_translators")
 
-        #Setup output file to send to translators if it doesn't exist
+        # Setup output file to send to translators if it doesn't exist
         if not os.path.exists(translator_folder):
             os.makedirs(translator_folder)
 
-        input_path_4_2 = os.path.join(outputpath, output_file_name_4_1 + ".json") 
-        output_path_4_2 = os.path.join(translator_folder, crowdin_file_name + ".pot")      
+        input_path_4_2 = os.path.join(outputpath, output_file_name_4_1 + ".json")
+        output_path_4_2 = os.path.join(translator_folder, crowdin_file_name + ".pot")
 
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_common/index.js", "convert", input_path_4_2, output_path_4_2])
+        run_node(
+            "idems_translation_common/index.js",
+            "convert",
+            input_path_4_2,
+            output_path_4_2,
+        )
 
         print("Step 4 complete, extracted text for translation")
 
         #####################################################################
         # Step 5: Localise translations back into JSON files
         #####################################################################
-        
+
         input_path_5 = input_path_3_2
         output_file_name_5 = source_file_name + "_5_localised_translations"
 
-        for lang in languages:
-
+        for lang in config.languages:
             language = lang["language"]
 
-            json_translation_path = os.path.join(outputpath, language + "_translations", "merged_translations.json")
+            json_translation_path = os.path.join(
+                outputpath, language + "_translations", "merged_translations.json"
+            )
 
-            subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "localize", input_path_5, json_translation_path, language, output_file_name_5, outputpath])
+            run_node(
+                "idems_translation_chatbot/index.js",
+                "localize",
+                input_path_5,
+                json_translation_path,
+                language,
+                output_file_name_5,
+                outputpath,
+            )
 
             input_path_5 = os.path.join(outputpath, output_file_name_5 + ".json")
 
@@ -240,47 +241,70 @@ def run_pipeline(
         input_path_6 = os.path.join(outputpath, output_file_name_5 + ".json")
         log_file_path = os.path.join(outputpath, "6_dict_edits.log")
 
+        input_edit_sheets = [
+            sheet
+            for sheet in [config.eng_edits_sheet_id, config.transl_edits_sheet_id]
+            if sheet
+        ]
 
-        if(eng_edits_sheet_ID or transl_edits_sheet_ID):  
-            input_edit_sheets = []
-
-            if(eng_edits_sheet_ID and transl_edits_sheet_ID):
-                input_edit_sheets = [eng_edits_sheet_ID, transl_edits_sheet_ID]
-            elif(eng_edits_sheet_ID):
-                input_sheets = [eng_edits_sheet_ID]
-            else:
-                input_sheets = [transl_edits_sheet_ID]  
-
+        if input_edit_sheets:
             output_file_name_6 = source_file_name + "_6_dict_edits"
             output_path_6 = os.path.join(outputpath, output_file_name_6 + ".json")
 
-            apply_abtests(input_path_6, output_path_6, input_edit_sheets, "google_sheets", log_file_path)
+            apply_abtests(
+                input_path_6,
+                output_path_6,
+                input_edit_sheets,
+                "google_sheets",
+                log_file_path,
+            )
             print("Step 6 complete, text & translation edits made for dictionaries")
         else:
             output_path_6 = input_path_6
-            print("Step 6 skipped, no dict edits sheet ID provided") 
+            print("Step 6 skipped, no dict edits sheet ID provided")
 
         #####################################################################
-        # step 7: catch errors post translation 
+        # step 7: catch errors post translation
         #####################################################################
 
         input_path_7_1 = output_path_6
         output_file_name_7_1 = source_file_name + "_7_1_has_any_word_check"
         has_any_words_log = "7_has_any_words_check"
 
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "has_any_words_check", input_path_7_1, outputpath, output_file_name_7_1,  has_any_words_log])
+        run_node(
+            "idems_translation_chatbot/index.js",
+            "has_any_words_check",
+            input_path_7_1,
+            outputpath,
+            output_file_name_7_1,
+            has_any_words_log,
+        )
 
         input_path_7_2 = os.path.join(outputpath, output_file_name_7_1 + ".json")
         output_file_name_7_2 = source_file_name + "_7_2_fix_arg_qr_translation"
         fix_arg_qr_log = "7_arg_qr_log"
-        
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "fix_arg_qr_translation", input_path_7_2, outputpath, output_file_name_7_2, fix_arg_qr_log])
+
+        run_node(
+            "idems_translation_chatbot/index.js",
+            "fix_arg_qr_translation",
+            input_path_7_2,
+            outputpath,
+            output_file_name_7_2,
+            fix_arg_qr_log,
+        )
 
         input_path_7_3 = os.path.join(outputpath, output_file_name_7_2 + ".json")
         integrity_log = "7_integrity_log"
-        excel_log_name = os.path.join(outputpath,"8_excel_log.xlsx")
-        
-        subprocess.run(["node", "./node_modules/@idems/idems_translation_chatbot/index.js", "overall_integrity_check", input_path_7_3, "./output", integrity_log, excel_log_name])
+        excel_log_name = os.path.join(outputpath, "8_excel_log.xlsx")
+
+        run_node(
+            "idems_translation_chatbot/index.js",
+            "overall_integrity_check",
+            input_path_7_3,
+            outputpath,
+            integrity_log,
+            excel_log_name,
+        )
 
         print("Step 7 complete, reviewed files post translation")
 
@@ -293,57 +317,71 @@ def run_pipeline(
 
         # We can do different things to our quick replies depending on the deployment
         # channel
-        if qr_treatment == "move":
-            subprocess.run([
-                "node",
-                "./node_modules/@idems/idems_translation_chatbot/index.js",
+        if config.qr_treatment == "move":
+            run_node(
+                "idems_translation_chatbot/index.js",
                 "move_quick_replies",
                 input_path_8,
-                select_phrases,
+                config.select_phrases,
                 output_file_name_8,
                 outputpath,
-                add_selectors,
-                special_words
-            ])
+                config.add_selectors,
+                config.special_words,
+            )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
             print("Step 8 complete, removed quick replies")
-        elif qr_treatment == "reformat":
-            subprocess.run([
-                "node",
-                "./node_modules/@idems/idems_translation_chatbot/index.js",
+        elif config.qr_treatment == "reformat":
+            run_node(
+                "idems_translation_chatbot/index.js",
                 "reformat_quick_replies",
                 input_path_8,
-                select_phrases,
+                config.select_phrases,
                 output_file_name_8,
                 outputpath,
-                count_threshold,
-                length_threshold,
-                special_words
-            ])
+                config.count_threshold,
+                config.length_threshold,
+                config.special_words,
+            )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
             print("Step 8 complete, reformatted quick replies")
         else:
             output_path_8 = input_path_8
             print("Step 8 skipped, no QR edits specified")
 
-
         #####################################################################
         # step 9: implement safeguarding
         #####################################################################
-               
+
         input_path_9 = output_path_8
 
-        # Sheet_ID is not sheet_id, it is a flow id
-
-        if(SG_path and SG_flow_name and SG_flow_ID and redirect_flow_names):
+        if (
+            config.sg_path
+            and config.sg_flow_name
+            and config.sg_flow_id
+            and config.redirect_flow_names
+        ):
             output_file_name_9 = source_file_name + "_9_safeguarding"
             output_path_9 = os.path.join(outputpath, output_file_name_9 + ".json")
-            subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/v2_add_safeguarding_to_flows.js", input_path_9, SG_path, output_path_9, SG_flow_ID, SG_flow_name])
-            
-            subprocess.run(["node", "./node_modules/@idems/safeguarding-rapidpro/v2_edit_redirect_flow.js", output_path_9, SG_path, output_path_9, redirect_flow_names])
+            run_node(
+                "safeguarding-rapidpro/v2_add_safeguarding_to_flows.js",
+                input_path_9,
+                config.sg_path,
+                output_path_9,
+                config.sg_flow_id,
+                config.sg_flow_name,
+            )
 
-            print("Step 9 complete, adding safeguarding flows and edited redirect flows")
+            run_node(
+                "safeguarding-rapidpro/v2_edit_redirect_flow.js",
+                output_path_9,
+                config.sg_path,
+                output_path_9,
+                config.redirect_flow_names,
+            )
 
+            print(
+                "Step 9 complete, adding safeguarding flows and edited redirect flows"
+            )
         else:
             output_path_9 = input_path_9
             print("Step 9 skipped, no safeguarding details provided")
@@ -367,6 +405,11 @@ def download_archive(config, source):
             with open(archive_fp, "wb") as archive:
                 archive.write(response.content)
             print(f"Archive downloaded, url={location}, file={archive_fp}")
+        else:
+            print(
+                f"Archive download failed, "
+                f"status={response.status_code}, url={location}"
+            )
 
         return archive_fp
     else:
@@ -424,20 +467,14 @@ def download_translations_github(repo_url, folder_path, local_folder):
         response = requests.get(api_url)
         response.raise_for_status()
 
-        contents = response.json()
-
         if not os.path.exists(local_folder):
             os.makedirs(local_folder)
 
-        for item in contents:
-            item_type = item["type"]
-            item_name = item["name"]
-            item_download_url = item["download_url"]
+        for item in response.json():
+            local_file_path = Path(local_folder) / item["name"]
 
-            local_file_path = os.path.join(local_folder, item_name)
-
-            if item_type == "file" and item_name.endswith(".po"):
-                response = requests.get(item_download_url)
+            if item["type"] == "file" and local_file_path.suffix == ".po":
+                response = requests.get(item["download_url"])
                 response.raise_for_status()
 
                 with open(local_file_path, "wb") as local_file:
@@ -445,3 +482,7 @@ def download_translations_github(repo_url, folder_path, local_folder):
 
     except Exception as e:
         print("An error occurred:", e)
+
+
+def run_node(script, *args):
+    subprocess.run(["node", "node_modules/@idems/" + script, *args])

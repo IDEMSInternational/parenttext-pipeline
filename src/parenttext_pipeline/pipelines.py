@@ -362,18 +362,18 @@ def run(config: Config):
         ):
             output_file_name_9 = source_file_name + "_9_safeguarding"
             output_path_9 = os.path.join(outputpath, output_file_name_9 + ".json")
-            run_node(
-                "safeguarding-rapidpro/v2_add_safeguarding_to_flows.js",
-                input_path_9,
-                config.sg_path,
-                output_path_9,
-                config.sg_flow_id,
-                config.sg_flow_name,
-            )
+            # run_node(
+            #     "safeguarding-rapidpro/v2_add_safeguarding_to_flows.js",
+            #     input_path_9,
+            #     config.sg_path,
+            #     output_path_9,
+            #     config.sg_flow_id,
+            #     config.sg_flow_name,
+            # )
 
             run_node(
                 "safeguarding-rapidpro/v2_edit_redirect_flow.js",
-                output_path_9,
+                input_path_9,
                 config.sg_path,
                 output_path_9,
                 config.redirect_flow_names,

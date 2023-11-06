@@ -237,7 +237,13 @@ class SwycModel(DataRowModel):
 #########################
 ## delivery
 
+class IdGeneratorModel(DataRowModel):
+    success_msg: str = ''
+    failure_msg: str = ''
 
+class WebhookSettingsModel(DataRowModel):
+    url: str = ''
+    token: str = ''
 
 class RangeProgDataModel(ParserModel):
 	limit: str = ''

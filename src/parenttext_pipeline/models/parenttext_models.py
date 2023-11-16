@@ -371,13 +371,11 @@ class MessageMenuModel(ParserModel):
 	text: str = ''
 	image: str = ''
 	
-class ReturnOptionModel(ParserModel):
-	text: str = ''
-	flow: str = ''
 
 class MenuModel(DataRowModel):
 	message: MessageMenuModel = MessageMenuModel()
-	return_option: ReturnOptionModel = ReturnOptionModel()
+	return_option: MenuOptionModel = MenuOptionModel()
+	exit_option: MenuOptionModel = MenuOptionModel()
 	options: List[MenuOptionModel] = []
 
 class MenuBlocksModel(ParserModel):

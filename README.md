@@ -47,5 +47,21 @@ import_definition(
 Used to create snapshots of source Google Sheets to support repeatable pipeline runs. See [archive tool docs] for details.
 
 
+# Transcode
+
+ParentText chatbots need supporting media files. This project contains a script that will transcode source video files to video and audio files that meet the ParentText specification.
+
+## Requirements
+
+The script uses the [FFmpeg] command, so it will need to be installed before the script can be used.
+
+## CLI
+
+```
+python -m parenttext.transcode --help
+```
+
+
 [configuration page]: docs/configuration.md
 [archive tool docs]: docs/archive.md
+[FFmpeg]: https://ffmpeg.org/

@@ -371,13 +371,11 @@ class MessageMenuModel(ParserModel):
 	text: str = ''
 	image: str = ''
 	
-class ReturnOptionModel(ParserModel):
-	text: str = ''
-	flow: str = ''
 
 class MenuModel(DataRowModel):
 	message: MessageMenuModel = MessageMenuModel()
-	return_option: ReturnOptionModel = ReturnOptionModel()
+	return_option: MenuOptionModel = MenuOptionModel()
+	exit_option: MenuOptionModel = MenuOptionModel()
 	options: List[MenuOptionModel] = []
 
 class MenuBlocksModel(ParserModel):
@@ -433,3 +431,29 @@ class SafeguardingEntryModel(DataRowModel):
 class SafeguardingLaunchFlowModel(DataRowModel):
 	flow: str = ''
 	conclusion_msg: str = ''
+
+# content delivery data models (to be amended when new languages are required)
+class Language(ParserModel):
+    eng: str = ""
+    msa: str = ""
+    zho: str = ""
+
+class GoalDataModel(DataRowModel):
+    priority_c: str = ""
+    priority_p: str = ""
+    relationship: List[str] = []
+    name_c: Language = Language()
+
+
+class ModuleDataModel(DataRowModel):
+    topic_ID: str = ""
+    priority_in_topic: str = ""
+    age: List[int] = []
+    child_gender: List[str] = []
+    name_c: Language = Language()
+
+class GoalTopicLinkModel(DataRowModel):
+    goal_id_c: str = ""
+    priority_in_goal_c: str = ""
+    goal_id_p: str = ""
+    priority_in_goal_p: str = ""

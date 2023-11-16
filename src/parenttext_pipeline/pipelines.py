@@ -429,7 +429,7 @@ def load_sheets(config, source, archive_fp):
             shutil.unpack_archive(archive_fp, temp_dir)
             flows = create_flows(
                 [
-                    os.path.join(temp_dir, spreadsheet_id, "content_index.csv")
+                    os.path.join(temp_dir, spreadsheet_id)
                     for spreadsheet_id in spreadsheet_ids
                 ],
                 None,

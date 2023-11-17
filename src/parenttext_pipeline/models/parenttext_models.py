@@ -291,6 +291,7 @@ class OptionsWrapperModel(DataRowModel):
 	extra_message: str = ''
 	update_var: str = ''
 	update_var_flow: str = ''
+	dict_ID: str = ''
 
 
 class ProceedModel(ParserModel):

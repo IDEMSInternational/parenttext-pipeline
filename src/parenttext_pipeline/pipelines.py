@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from rpft.converters import create_flows
+from rpft.logger.logger import initialize_main_logger
 from rapidpro_abtesting.main import apply_abtests
 
 from parenttext_pipeline.steps import update_expiration_time, split_rapidpro_json
@@ -41,6 +42,9 @@ class Config:
 
 def run(config: Config):
     outputpath = config.outputpath
+
+    if not os.path.exists(outputpath):
+        os.makedirs(outputpath)
 
     #####################################################################
     # Step 0: Fetch available PO files and convert to JSON
@@ -92,13 +96,11 @@ def run(config: Config):
 
     print("Step 0 complete, fetched all available translations and converted to json")
 
+    initialize_main_logger(Path(outputpath) / "rpft.log")
+
     for source in config.sources:
         source_file_name = source["filename"]
         crowdin_file_name = source["crowdin_name"]
-
-        # Setup output and temp files to store intermediary JSON files and log files
-        if not os.path.exists(outputpath):
-            os.makedirs(outputpath)
 
         #####################################################################
         # Step 1: Load google sheets and convert to RapidPro JSON

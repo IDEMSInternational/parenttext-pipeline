@@ -35,7 +35,7 @@ def login(session, host, username, password):
         },
     )
 
-    if r.status_code == 200 and "Your Message Hub" in r.text:
+    if r.status_code == 200 and r.url == f"{host}/msg/inbox/":
         print(f"Login completed, url={url}, username={username}")
     else:
         raise ImporterError("Login failed", r)
@@ -93,7 +93,7 @@ def print_error(e: ImporterError):
             "url": r.request.url,
             "method": r.request.method,
             "headers": dict(r.request.headers),
-            "body": sub(r"password=.*&", "password=(hidden)&", r.request.body),
+            "body": sub(r"password=.*&", "password=(hidden)&", r.request.body or ""),
         }
     )
     print("## RESPONSE")

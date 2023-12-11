@@ -125,6 +125,12 @@ class GoalCheckInModel(DataRowModel):
 	positive: List[str] = []
 	improvement: str = ''
 	response: GoalCheckInResponseModel = GoalCheckInResponseModel()
+	post_goal_positive_follow_up_question: str = ''
+	post_goal_positive_follow_up_options: List[str] = []
+	follow_up_positive_options: List[str] = []
+	follow_up_negative_options: List[str] = []
+	follow_up_positive_message: str = ''
+	follow_up_negative_message: str = ''
 	troubleshooting: TroubleshootingModel = TroubleshootingModel()
 	conclusion: str = ''
 	attached_single_doc: str = ''

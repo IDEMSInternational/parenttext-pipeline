@@ -30,6 +30,7 @@ class Config:
     special_words: str
     count_threshold: int
     length_threshold: int
+    qr_limit: int = 100
     ab_testing_sheet_id: str = ""
     localisation_sheet_id: str = ""
     eng_edits_sheet_id: str = ""
@@ -328,6 +329,7 @@ def run(config: Config):
                 output_file_name_8,
                 outputpath,
                 config.add_selectors,
+                config.qr_limit,
                 config.special_words,
             )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
@@ -342,7 +344,18 @@ def run(config: Config):
                 outputpath,
                 config.count_threshold,
                 config.length_threshold,
+                config.qr_limit,
                 config.special_words,
+            )
+            output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
+            print("Step 8 complete, reformatted quick replies")
+        elif config.qr_treatment == "wechat":
+            run_node(
+                "idems_translation_chatbot/index.js",
+                "convert_qr_to_html",
+                input_path_8,
+                output_file_name_8,
+                outputpath
             )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
             print("Step 8 complete, reformatted quick replies")

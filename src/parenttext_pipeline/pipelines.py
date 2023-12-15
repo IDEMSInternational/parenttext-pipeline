@@ -30,6 +30,7 @@ class Config:
     special_words: str
     count_threshold: int
     length_threshold: int
+    qr_limit: int = 100
     ab_testing_sheet_id: str = ""
     localisation_sheet_id: str = ""
     eng_edits_sheet_id: str = ""

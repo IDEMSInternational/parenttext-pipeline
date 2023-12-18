@@ -358,7 +358,7 @@ def run(config: Config):
                 outputpath
             )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
-            print("Step 8 complete, reformatted quick replies")
+            print("Step 8 complete, moved quick replies to html")
         else:
             output_path_8 = input_path_8
             print("Step 8 skipped, no QR edits specified")

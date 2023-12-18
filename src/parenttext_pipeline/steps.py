@@ -46,7 +46,7 @@ def split_rapidpro_json(config, source, in_fp):
         print(f"File splitting skipped, batch_count={n}")
         return
 
-    with open(in_fp) as in_json:
+    with open(in_fp, 'r', encoding='utf-8') as in_json:
         org = json.load(in_json)
 
     flows_per_file = len(org["flows"]) // n

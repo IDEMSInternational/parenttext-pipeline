@@ -30,7 +30,7 @@ class Config:
     special_words: str
     count_threshold: int
     length_threshold: int
-    qr_limit: int = 100
+    qr_limit: int = 10
     ab_testing_sheet_id: str = ""
     localisation_sheet_id: str = ""
     eng_edits_sheet_id: str = ""
@@ -344,7 +344,7 @@ def run(config: Config):
                 outputpath,
                 config.count_threshold,
                 config.length_threshold,
-                config.qr_limit,
+                str(config.qr_limit),
                 config.special_words,
             )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")

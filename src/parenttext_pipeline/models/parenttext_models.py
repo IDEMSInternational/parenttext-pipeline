@@ -368,6 +368,15 @@ class UseDictionaryModel(DataRowModel):
 	N: str = ''
 	key: str = ''
 
+
+class CongratsDataModel(DataRowModel):
+	msg: str = ''
+	extra_msg: str = ''
+
+class SingleMessageModel(DataRowModel):
+	msg: str = ''
+	description: str = ''
+	next_button_option: str = ''
 ####################################
 ## Menu
 class MenuOptionModel(ParserModel):
@@ -444,12 +453,16 @@ class Language(ParserModel):
     eng: str = ""
     msa: str = ""
     zho: str = ""
+    spa: str = ""
 
 class GoalDataModel(DataRowModel):
     priority_c: str = ""
+    priority_t: str = ""
     priority_p: str = ""
     relationship: List[str] = []
     name_c: Language = Language()
+    name_t: Language = Language()
+
 
 
 class ModuleDataModel(DataRowModel):
@@ -458,9 +471,12 @@ class ModuleDataModel(DataRowModel):
     age: List[int] = []
     child_gender: List[str] = []
     name_c: Language = Language()
+    name: Language = Language()
 
 class GoalTopicLinkModel(DataRowModel):
     goal_id_c: str = ""
-    priority_in_goal_c: str = ""
+    goal_id_t: str = ""
     goal_id_p: str = ""
+    priority_in_goal_c: str = ""
     priority_in_goal_p: str = ""
+    priority_in_goal_t: str = ""

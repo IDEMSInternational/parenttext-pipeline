@@ -341,10 +341,15 @@ class TimedProgrammeModel(DataRowModel):
 class ActivityTypeModel(DataRowModel):
 	option_name: str = ''
 
+class AgeGroupModel(ParserModel):
+    baby: str = ''
+    child: str = ''
+    teen: str = ''
+	
 class ActivityOfferModel(DataRowModel):
 	activity_handler_flow: str = ''
 	offer_msg: str = ''
-	accept: str = ''
+	accept: AgeGroupModel = AgeGroupModel()
 	refuse: str = ''
 	refuse_msg: str = ''
 	next_offer_msg: str = ''
@@ -373,10 +378,14 @@ class CongratsDataModel(DataRowModel):
 	msg: str = ''
 	extra_msg: str = ''
 
+class MetadataModel(ParserModel):
+    description: str = ''
+
 class SingleMessageModel(DataRowModel):
 	msg: str = ''
-	description: str = ''
 	next_button_option: str = ''
+	metadata: MetadataModel = MetadataModel()
+
 ####################################
 ## Menu
 class MenuOptionModel(ParserModel):
@@ -460,6 +469,8 @@ class GoalDataModel(DataRowModel):
     priority_t: str = ""
     priority_p: str = ""
     relationship: List[str] = []
+    checkin_c: str = ""
+    checkin_t: str = ""
     name_c: Language = Language()
     name_t: Language = Language()
 

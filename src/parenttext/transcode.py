@@ -27,7 +27,10 @@ def parse_args():
         "--format",
         default="video",
         choices=["audio", "video"],
-        help=("output format (default: 'video')"),
+        help=(
+            "output format (default: 'video'); 'audio' extracts audio only from source"
+            " videos and saves as MP3"
+        ),
     )
 
     return parser.parse_args()

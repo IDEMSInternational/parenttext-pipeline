@@ -171,6 +171,8 @@ class OnboardingQuestionInputTestModel(ParserModel):
 class OnboardingQuestionInputModel(DataRowModel):
 	question: str = ''
 	variable: str = ''
+	skip_option: str = ''
+	skip_value: str = ''
 	test: OnboardingQuestionInputTestModel = OnboardingQuestionInputTestModel()
 	error_message: str = ''
 	attached_single_doc: str = ''

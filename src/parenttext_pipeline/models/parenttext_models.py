@@ -59,6 +59,13 @@ class AudioBlockModel(ParserModel):
 	file_name: str = ''
 	expiration_time_min: str = ''
 
+class OptVideoBlockModel(ParserModel):
+	query: str = ''
+	yes_opt: str = ''
+	no_opt: str = ''
+	intro: str = ''
+	file_name: str = ''
+
 class PlhContentModel(DataRowModel):
 	module_name: str = ''
 	introduction: IntroductionBlockModel = IntroductionBlockModel()
@@ -70,6 +77,7 @@ class PlhContentModel(DataRowModel):
 	video: VideoBlockModel = VideoBlockModel()
 	audio: AudioBlockModel = AudioBlockModel()
 	congratulations: CongratulationsBlockModel = CongratulationsBlockModel()
+	opt_video: OptVideoBlockModel = OptVideoBlockModel()
 	attached_single_doc: str = ''
 
 

@@ -9,15 +9,13 @@ class TestProcessKeywords(TestCase):
 
     def test_everything(self):
         sources = [
-            {
-                "path": resource_path("zul_mod.xlsx"),
-                "key": "zul",
-            },
+            {"path": resource_path("sg_hau.xlsx"), "key": "hau"},
+            {"path": resource_path("sg_zul.xlsx"), "key": "zul"},
         ]
 
         content = process_keywords(sources)
 
-        with open(resource_path("zul_mod_expected.json"), "r") as fp_expected:
+        with open(resource_path("sg_expected.json"), "r") as fp_expected:
             self.assertDictEqual(
                 content,
                 json.load(fp_expected),

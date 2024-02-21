@@ -12,6 +12,7 @@ from rpft.logger.logger import initialize_main_logger
 from rapidpro_abtesting.main import apply_abtests
 
 from parenttext_pipeline.steps import update_expiration_time, split_rapidpro_json
+from parenttext_pipeline.extract_keywords import process_keywords_to_file
 
 
 @dataclass(kw_only=True)
@@ -38,6 +39,7 @@ class Config:
     sg_flow_id: str = ""
     sg_flow_name: str = ""
     sg_path: str = ""
+    sg_sources: list = None
     redirect_flow_names: str = ""
 
 
@@ -369,6 +371,10 @@ def run(config: Config):
 
         input_path_9 = output_path_8
 
+        if config.sg_sources:
+            config.sg_path = Path(config.outputpath) / "safeguarding_words.json"
+            process_keywords_to_file(config.sg_sources, config.sg_path)
+
         if (
             config.sg_path
             and config.sg_flow_name
@@ -380,7 +386,7 @@ def run(config: Config):
             run_node(
                 "safeguarding-rapidpro/v2_add_safeguarding_to_flows.js",
                 input_path_9,
-                config.sg_path,
+                str(config.sg_path),
                 output_path_9,
                 config.sg_flow_id,
                 config.sg_flow_name,
@@ -389,7 +395,7 @@ def run(config: Config):
             run_node(
                 "safeguarding-rapidpro/v2_edit_redirect_flow.js",
                 output_path_9,
-                config.sg_path,
+                str(config.sg_path),
                 output_path_9,
                 config.redirect_flow_names,
             )

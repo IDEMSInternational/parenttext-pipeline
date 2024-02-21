@@ -5,7 +5,7 @@ import openpyxl
 
 
 def process_keywords_to_file(sources, output):
-    with open(output + "/safeguarding_words.json", "w") as outfile:
+    with open(output, "w") as outfile:
         json.dump(process_keywords(sources), outfile, indent=4)
 
 
@@ -117,8 +117,8 @@ def read_cols(row, start, end=None):
 
 
 def merge_dictionaries(dictionaries):
-    it = iter(dictionaries.values())
-    merged = next(it)
+    it = iter(dictionaries.items())
+    merged = next(it)[1]
     for lang, dic in it:
         for sheet in merged:
             if sheet in dic:

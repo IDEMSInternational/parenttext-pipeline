@@ -303,6 +303,7 @@ class OptionsWrapperModel(DataRowModel):
 	msg_no_options: OptionsWrapperNoOptionModel = OptionsWrapperNoOptionModel()
 	msg_one_option: OptionsWrapperOneOptionModel = OptionsWrapperOneOptionModel()
 	msg_multiple_options: str = ''
+	select_instructions: str = ''
 	extra_option: str = ''
 	extra_message: str = ''
 	update_var: str = ''
@@ -460,10 +461,20 @@ class SafeguardingRedirectModel(DataRowModel):
 
 class SafeguardingEntryModel(DataRowModel):
 	question: str = ''
+	yes_opt: str = ''
+	yes_aliases: str = ''
+	no_opt: str = ''
+	no_aliases: str = ''
 	intro: str = ''
 	no_message: str = ''
 
+
+class UpdateVarModel(ParserModel):
+	name: str = ''
+	value: str = ''
+
 class SafeguardingLaunchFlowModel(DataRowModel):
+	var: UpdateVarModel = UpdateVarModel()
 	flow: str = ''
 	conclusion_msg: str = ''
 

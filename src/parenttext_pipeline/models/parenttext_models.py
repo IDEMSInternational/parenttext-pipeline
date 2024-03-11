@@ -64,10 +64,12 @@ class OptVideoBlockModel(ParserModel):
 	yes_opt: str = ''
 	no_opt: str = ''
 	intro: str = ''
-	file_name: str = ''
+	no_msg: str = ''
+
 
 class PlhContentModel(DataRowModel):
 	module_name: str = ''
+	pause_id: str = ''
 	introduction: IntroductionBlockModel = IntroductionBlockModel()
 	importance: ImportanceBlockModel = ImportanceBlockModel()
 	quiz: QuizBlockModel = QuizBlockModel()
@@ -168,6 +170,9 @@ class OnboardingQuestionWithOptionsModel(DataRowModel):
 	question: str = ''
 	image: str = ''
 	variable: str = ''
+	completion_variable: str = ''
+	back_option: str = ''
+	back_flow: str = ''
 	options : List[OnboardingQuestionOptionModel] = []
 	attached_single_doc: str = ''
 
@@ -253,6 +258,10 @@ class SwycModel(DataRowModel):
 #########################
 ## delivery
 
+class VariableModel(DataRowModel):
+	name: str = ''
+	value: str = '' 
+
 class IdGeneratorModel(DataRowModel):
     success_msg: str = ''
     failure_msg: str = ''
@@ -272,6 +281,7 @@ class SplitModel(DataRowModel):
 	split_variable: str = ''
 	flow_name: str = ''
 	text_name: str = ''
+	nested: str = ''
 
 
 class ModuleModel(DataRowModel):
@@ -457,6 +467,7 @@ class SafeguardingRedirectModel(DataRowModel):
 	flow: str = ''
 	expiration_msg: str = ''
 	kw_type: str = ''
+	enabled: str = ''
 	proceed: str = ''
 
 class SafeguardingEntryModel(DataRowModel):
@@ -475,8 +486,11 @@ class UpdateVarModel(ParserModel):
 
 class SafeguardingLaunchFlowModel(DataRowModel):
 	var: UpdateVarModel = UpdateVarModel()
-	flow: str = ''
+	disabled_not_completed_registration: str = ''
+	disabled_not_selected_first_goal: str = ''
 	conclusion_msg: str = ''
+	expiration_msg: str = ''
+
 
 # content delivery data models (to be amended when new languages are required)
 class Language(ParserModel):
@@ -484,6 +498,7 @@ class Language(ParserModel):
     msa: str = ""
     zho: str = ""
     spa: str = ""
+    fra: str = ""
 
 class GoalDataModel(DataRowModel):
     priority_c: str = ""

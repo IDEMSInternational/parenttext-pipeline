@@ -138,11 +138,32 @@ Sheets ID for Sheet containing safeguarding data.
 
 ## sg\_flow\_name
 
-???
+The name of the RapidPro flow for safeguarding.
 
 ## sg\_path
 
-Path to file containing translated safeguarding words.
+Path to file containing translated safeguarding words in JSON format.
+
+## sg\_sources
+
+Defines a list of sources containing safeguarding keywords. Each entry is a `dict` containing the following keys:
+
+- `key`: three letter language code of the translated words
+- `path`: file path on the local file system to the XLSX file containing the words
+
+For example:
+```python
+{
+    "sg_sources": [
+        {
+            "key": "spa",
+            "path": "excel_files/safeguarding mexico.xlsx",
+        },
+    ],
+}
+```
+
+The referenced XLSX files will be converted to a single file called _safeguarding\_words.json_, in the output directory. The `sg_path` setting will be overridden to point to this JSON file, for further processing. If `sg_sources` is not set, `sg_path` will remain unchanged.
 
 ## redirect\_flow\_names
 

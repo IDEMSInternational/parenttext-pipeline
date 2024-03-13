@@ -1,0 +1,887 @@
+{
+    "generic": [
+        {
+            "English": {
+                "keywords": [
+                    "kidnap",
+                    "kidnapping",
+                    "kidnapper",
+                    "kidnapped"
+                ],
+                "mispellings": [
+                    "kiddnapp",
+                    "kidnapp",
+                    "kiddnap",
+                    "kidnape"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "kutfumba",
+                        "kutfumba",
+                        "umtfumbi",
+                        "lotfunjiwe"
+                    ],
+                    "mispellings": [
+                        "ftumba",
+                        "tfunba",
+                        "tfunnba",
+                        "ukutfumbe"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ukuthumba",
+                        "ukuthumba",
+                        "umthumbi",
+                        "othunjiwe"
+                    ],
+                    "mispellings": [
+                        "ukukkumbaa",
+                        "ukuthumbaa",
+                        "ukutthumba",
+                        "ukuthuba"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "death",
+                    "dead",
+                    "dying"
+                ],
+                "mispellings": [
+                    "deeath",
+                    "deat"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "kufa",
+                        "lofile",
+                        "lofako"
+                    ],
+                    "mispellings": [
+                        "khufa",
+                        "kuf"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ukufa",
+                        "ofile",
+                        "ofayo"
+                    ],
+                    "mispellings": [
+                        "ukkufa",
+                        "ukuf"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "illegal"
+                ],
+                "mispellings": [
+                    "ilegal",
+                    "ellegal",
+                    "ileagaly"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "lokungekho emtsetfweni"
+                    ],
+                    "mispellings": [
+                        "kungeko emstetfweni",
+                        "ngekho ensteftweni",
+                        "ngalokungeko emstetfeni"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "okungahambisani nezomthetho"
+                    ],
+                    "mispellings": [
+                        "ukugahambisani nezomthetho",
+                        "akungahambisani nezomthetho",
+                        "ugungehambisani nezimthetho"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "poison",
+                    "poisoning",
+                    "poisoned"
+                ],
+                "mispellings": [
+                    "pesian",
+                    "boisoned",
+                    "poision",
+                    "poisioning",
+                    "poisioned"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "shevu",
+                        "kufakela shevu",
+                        "lofakelwe shevu"
+                    ],
+                    "mispellings": [
+                        "shevi",
+                        "lofkelwe shevu",
+                        "hsevu",
+                        "kufakala shebu",
+                        "kufakwe shevu"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ushevu",
+                        "ukufakela ushevu",
+                        "ofakelwe ushevu"
+                    ],
+                    "mispellings": [
+                        "ushave",
+                        "ofakelwe utsheffu",
+                        "ushevva",
+                        "ukufakela ucevu",
+                        "ofakelwe ucevu"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "crisis",
+                    "crises"
+                ],
+                "mispellings": [
+                    "krisis",
+                    "krises"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "simo lesibucayi",
+                        "simo lesibucayi"
+                    ],
+                    "mispellings": [
+                        "sumo lesibucayi",
+                        "simu lesicayi"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "inhlekelele",
+                        "inhlikelele"
+                    ],
+                    "mispellings": [
+                        "inhikilele",
+                        "inhikelele"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "trouble",
+                    "troubling",
+                    "troublesome",
+                    "troubled"
+                ],
+                "mispellings": [
+                    "troubl",
+                    "trevel",
+                    "trubl"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "inhlupheko",
+                        "kuhlupha",
+                        "lohluphako",
+                        "lohlushiwe"
+                    ],
+                    "mispellings": [
+                        "inkenga",
+                        "inkengs",
+                        "inhlup"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "inkinga",
+                        "ukuhlupha",
+                        "ohluphayo",
+                        "ohlushiwe"
+                    ],
+                    "mispellings": [
+                        "inkinge",
+                        "inkenge",
+                        "inkunga"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "victim",
+                    "victimised"
+                ],
+                "mispellings": [
+                    "victm",
+                    "victimized",
+                    "victem"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "lohlushiwe",
+                        "lohlushiwe"
+                    ],
+                    "mispellings": [
+                        "lokhushiwe",
+                        "lohlshiwe",
+                        "lohleshiwe"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "isisulu",
+                        "olimazekile"
+                    ],
+                    "mispellings": [
+                        "isislu",
+                        "olimazegile",
+                        "isiselu"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "emergency",
+                    "911"
+                ],
+                "mispellings": [
+                    "emergincy",
+                    "emergincey",
+                    "emergince"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "simo lesiphutfumako"
+                    ],
+                    "mispellings": [
+                        "simo lsiphutfumako",
+                        "simo lesihpuftumako",
+                        "isimo lesiphutfu"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "isimo zezokuphuthuma"
+                    ],
+                    "mispellings": [
+                        "isimo eziphuthumeyo",
+                        "isimo esiphuthamaye",
+                        "isimo esiphutumanyo"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "danger",
+                    "dangerous",
+                    "endangered"
+                ],
+                "mispellings": [
+                    "dangeur",
+                    "dangeer",
+                    "dangre"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "ingoti",
+                        "kuyingoti",
+                        "engotini"
+                    ],
+                    "mispellings": [
+                        "inggoti",
+                        "kuyinguti",
+                        "ingooti"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ingozi",
+                        "okuyingozi",
+                        "engozini"
+                    ],
+                    "mispellings": [
+                        "ingosi",
+                        "okuyingesi",
+                        "egosine"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "stalking"
+                ],
+                "mispellings": [
+                    "staling",
+                    "staking",
+                    "stakling",
+                    "stalkin"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "kutuma"
+                    ],
+                    "mispellings": [
+                        "ktuma",
+                        "kutum",
+                        "kutumu",
+                        "kutm"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ukucupha"
+                    ],
+                    "mispellings": [
+                        "ukucopha",
+                        "ukuchopha",
+                        "ukucuphu",
+                        "ukucaphu"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "follow",
+                    "following",
+                    "followed"
+                ],
+                "mispellings": [
+                    "folow",
+                    "folowed",
+                    "followin",
+                    "folowin"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "kulandzela",
+                        "lanzelayo",
+                        "kulandzelwe"
+                    ],
+                    "mispellings": [
+                        "landxelwa",
+                        "landzelws",
+                        "kulandzel",
+                        "kulanzel"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ukulandela",
+                        "olandelwayo"
+                    ],
+                    "mispellings": [
+                        "ukuladela",
+                        "oladelayo",
+                        "ladelweyo",
+                        "ladelayo"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "suffer",
+                    "suffering",
+                    "suffered"
+                ],
+                "mispellings": []
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "hlupheka",
+                        "kuhlupheka",
+                        "hluphekile"
+                    ],
+                    "mispellings": []
+                },
+                "zul": {
+                    "keywords": [
+                        "ukuzwa ubuhlungu",
+                        "ozwa ubuhlungu",
+                        "ozwe ubuhlungu"
+                    ],
+                    "mispellings": []
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "hide",
+                    "hiding",
+                    "hid"
+                ],
+                "mispellings": []
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "fihla",
+                        "kufihla",
+                        "fihlile"
+                    ],
+                    "mispellings": []
+                },
+                "zul": {
+                    "keywords": [
+                        "ukufihla",
+                        "fihla",
+                        "kucashile"
+                    ],
+                    "mispellings": []
+                }
+            }
+        }
+    ],
+    "health": [
+        {
+            "English": {
+                "keywords": [
+                    "vomit",
+                    "vomitted",
+                    "vomitting"
+                ],
+                "mispellings": [
+                    "yak",
+                    "vomited",
+                    "womit"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "hlanta",
+                        "hlantile",
+                        "lohlantako"
+                    ],
+                    "mispellings": [
+                        "hhlanta",
+                        "hlantle",
+                        "hatla"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ukuhlanza",
+                        "ohlanzile",
+                        "ohlanzayo"
+                    ],
+                    "mispellings": [
+                        "hhlanza",
+                        "ohanzile",
+                        "hanza"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "puke",
+                    "puking",
+                    "puked"
+                ],
+                "mispellings": []
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "hlanta",
+                        "kuhlanta",
+                        "lohlantile"
+                    ],
+                    "mispellings": []
+                },
+                "zul": {
+                    "keywords": [
+                        "ukuhlanza",
+                        "ukuhlanza",
+                        "ukuhlanza"
+                    ],
+                    "mispellings": []
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "disease",
+                    "STD",
+                    "diseases"
+                ],
+                "mispellings": [
+                    "diseaze",
+                    "dizeese",
+                    "SDT"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "sifo",
+                        "STD",
+                        "tifo"
+                    ],
+                    "mispellings": [
+                        "ssifo",
+                        "sigo",
+                        "SDT"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "isifo",
+                        "STD",
+                        "izifo"
+                    ],
+                    "mispellings": [
+                        "issifo",
+                        "isifoo",
+                        "SDT"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "sick",
+                    "sickness",
+                    "sickly"
+                ],
+                "mispellings": [
+                    "sik",
+                    "seck"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "gula",
+                        "kugula",
+                        "butsakatsaka"
+                    ],
+                    "mispellings": [
+                        "guls",
+                        "gulla"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "gulayo",
+                        "ukugula",
+                        "gulla"
+                    ],
+                    "mispellings": [
+                        "gul",
+                        "gela"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "ill",
+                    "illness",
+                    "illnesses"
+                ],
+                "mispellings": [
+                    "illl",
+                    "illniss",
+                    "illnees"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "gula",
+                        "kugula",
+                        "tifo"
+                    ],
+                    "mispellings": [
+                        "fula",
+                        "kuggula",
+                        "isiffoo"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ukugula",
+                        "isifo",
+                        "izifo"
+                    ],
+                    "mispellings": [
+                        "ukuggula",
+                        "isiffo",
+                        "iziffoo"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "health",
+                    "healthy"
+                ],
+                "mispellings": [
+                    "haelth",
+                    "healthy",
+                    "helath"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "imphilo",
+                        "lophilile"
+                    ],
+                    "mispellings": [
+                        "immphilo",
+                        "pilile",
+                        "temhpilo"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ezempilo",
+                        "okunempilo"
+                    ],
+                    "mispellings": [
+                        "ezephilo",
+                        "okunempilo",
+                        "ezepphilo"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "hospital",
+                    "clinic"
+                ],
+                "mispellings": [
+                    "hopital",
+                    "hopsital"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "sibhedlela",
+                        "umtfolamphilo"
+                    ],
+                    "mispellings": [
+                        "sihbedlela",
+                        "sibhhedlela"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "isibhedlela",
+                        "umtholampilo"
+                    ],
+                    "mispellings": [
+                        "isibedlela",
+                        "isibhehlela"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "miscarriage",
+                    "miscarry"
+                ],
+                "mispellings": [
+                    "miscariage",
+                    "miscarig"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "kuphunyelwa sisu",
+                        "kuphunyelwa sisu"
+                    ],
+                    "mispellings": [
+                        "kuphhunyelwa ssu",
+                        "kupunyelwa siso"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ukuphuphunyelwa yisisu",
+                        "phuphunyelwa yisisu"
+                    ],
+                    "mispellings": [
+                        "ukupupunyelwa yisisu",
+                        "ukupphupunyelwa yisisu"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "pregnant",
+                    "pregnancy",
+                    "expecting"
+                ],
+                "mispellings": [
+                    "pegant",
+                    "preganci",
+                    "prengant"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "ukhulelwe",
+                        "kukhulelwa",
+                        "kukhulelwa"
+                    ],
+                    "mispellings": [
+                        "kulela",
+                        "kuhkulelwa",
+                        "kukukhulelwa"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ukukhulelwa",
+                        "ukukhulelwa",
+                        "khulelwe"
+                    ],
+                    "mispellings": [
+                        "ukukulela",
+                        "ukukhelelwa",
+                        "ukukulelwa"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "abortion",
+                    "abort",
+                    "aborted",
+                    "aborting"
+                ],
+                "mispellings": [
+                    "abbortion",
+                    "obortion"
+                ]
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "kukhishwa kwesisu",
+                        "kukhipha sisu",
+                        "kukhishwe sisu"
+                    ],
+                    "mispellings": [
+                        "kukhhipa sisu",
+                        "kukhiipha"
+                    ]
+                },
+                "zul": {
+                    "keywords": [
+                        "ukukhipha isisu",
+                        "khipha isisu",
+                        "kukhishwe isisu",
+                        "khipha isisu"
+                    ],
+                    "mispellings": [
+                        "ukkukhipha isisu",
+                        "akukhipha isisu"
+                    ]
+                }
+            }
+        },
+        {
+            "English": {
+                "keywords": [
+                    "COVID",
+                    "COVID19"
+                ],
+                "mispellings": []
+            },
+            "Translation": {
+                "hau": {
+                    "keywords": [
+                        "COVID",
+                        "COVID19"
+                    ],
+                    "mispellings": []
+                },
+                "zul": {
+                    "keywords": [
+                        "COVID",
+                        "COVID19"
+                    ],
+                    "mispellings": []
+                }
+            }
+        }
+    ]
+}

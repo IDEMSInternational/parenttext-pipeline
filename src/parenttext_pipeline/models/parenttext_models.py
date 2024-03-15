@@ -490,6 +490,7 @@ class SafeguardingLaunchFlowModel(DataRowModel):
 	disabled_not_selected_first_goal: str = ''
 	conclusion_msg: str = ''
 	expiration_msg: str = ''
+	flow: str = '' #backward compatibility
 
 
 # content delivery data models (to be amended when new languages are required)

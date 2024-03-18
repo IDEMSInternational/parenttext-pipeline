@@ -369,43 +369,40 @@ def run(config: Config):
         # step 9: implement safeguarding
         #####################################################################
 
-        input_path_9 = output_path_8
+        input_path_9a = output_path_8
+        input_path_9b = None
+        output_path_9 = os.path.join(
+            outputpath,
+            source_file_name + "_9_safeguarding.json",
+        )
 
         if config.sg_sources:
             config.sg_path = Path(config.outputpath) / "safeguarding_words.json"
             process_keywords_to_file(config.sg_sources, config.sg_path)
 
-        if (
-            config.sg_path
-            and config.sg_flow_name
-            and config.sg_flow_id
-            and config.redirect_flow_names
-        ):
-            output_file_name_9 = source_file_name + "_9_safeguarding"
-            output_path_9 = os.path.join(outputpath, output_file_name_9 + ".json")
+        if (config.sg_path and config.sg_flow_name and config.sg_flow_id):
             run_node(
                 "safeguarding-rapidpro/v2_add_safeguarding_to_flows.js",
-                input_path_9,
+                input_path_9a,
                 str(config.sg_path),
                 output_path_9,
                 config.sg_flow_id,
                 config.sg_flow_name,
             )
+            input_path_9b = output_path_9
+            print("Safeguarding flows added")
 
+        if config.sg_path and config.redirect_flow_names:
             run_node(
                 "safeguarding-rapidpro/v2_edit_redirect_flow.js",
-                output_path_9,
+                input_path_9b or input_path_9a,
                 str(config.sg_path),
                 output_path_9,
                 config.redirect_flow_names,
             )
+            print("Redirect flows edited")
 
-            print(
-                "Step 9 complete, adding safeguarding flows and edited redirect flows"
-            )
-        else:
-            output_path_9 = input_path_9
-            print("Step 9 skipped, no safeguarding details provided")
+        print("Step 9 completed")
 
         #####################################################################
         # step 10. split files (if too big)?

@@ -351,6 +351,21 @@ def run(config: Config):
             )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
             print("Step 8 complete, reformatted quick replies")
+        elif config.qr_treatment == "reformat_china":
+            run_node(
+                "idems_translation_chatbot/index.js",
+                "reformat_quick_replies",
+                input_path_8,
+                config.select_phrases,
+                output_file_name_8,
+                outputpath,
+                config.count_threshold,
+                config.length_threshold,
+                str(config.qr_limit),
+                config.special_words,
+            )
+            output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
+            print("Step 8 complete, reformatted quick replies to China standard")
         elif config.qr_treatment == "wechat":
             run_node(
                 "idems_translation_chatbot/index.js",

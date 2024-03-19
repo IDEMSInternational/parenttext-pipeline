@@ -354,7 +354,7 @@ def run(config: Config):
         elif config.qr_treatment == "reformat_china":
             run_node(
                 "idems_translation_chatbot/index.js",
-                "reformat_quick_replies",
+                "reformat_quick_replies_china",
                 input_path_8,
                 config.select_phrases,
                 output_file_name_8,

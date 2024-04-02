@@ -4,7 +4,7 @@ Handles the process for producing RapidPro flows from data held in spreadsheets.
 
 # Setup
 
-1. Install Python >= 3.8
+1. Install Python >= 3.10
 2. Install Python dependencies: `pip install -e .`
 3. Install Node and npm LTS versions
 4. Install Node dependencies: `npm install`

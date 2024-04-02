@@ -2,6 +2,13 @@ from rpft.parsers.creation.datarowmodel import DataRowModel
 from rpft.parsers.common.rowparser import ParserModel
 from typing import List
 
+
+###########################################
+#general
+class VariableModel(DataRowModel):
+	name: str = ''
+	value: str = '' 
+
 ###################################################################
 class IntroductionBlockModel(ParserModel):
 	msg_list: List[str] = []
@@ -66,6 +73,10 @@ class OptVideoBlockModel(ParserModel):
 	intro: str = ''
 	no_msg: str = ''
 
+class AudioTipBlockModel(ParserModel):
+	n_files: int = 0
+	next_emoji: str = ''
+	text: str = ''
 
 class PlhContentModel(DataRowModel):
 	module_name: str = ''
@@ -80,6 +91,7 @@ class PlhContentModel(DataRowModel):
 	audio: AudioBlockModel = AudioBlockModel()
 	congratulations: CongratulationsBlockModel = CongratulationsBlockModel()
 	opt_video: OptVideoBlockModel = OptVideoBlockModel()
+	audio_tip: AudioTipBlockModel = AudioTipBlockModel()
 	attached_single_doc: str = ''
 
 
@@ -205,6 +217,17 @@ class OnboardingQuestionRangeModel(DataRowModel):
 	general_error_msg: str = ''
 	ranges: List[OnboardingRangeModel] = []
 
+class OnboardingQuestionConfirmModel(DataRowModel):
+	confirm_question: str = ''
+	proceed_opt: str = ''
+	stop_opt: str = ''
+	stop_message: str = ''
+	confirm_stop_question: str = ''
+	confirm_stop_proceed_opt: str = ''
+	confirm_stop_stop_opt: str = ''
+	farewell_message: str = ''
+	yes_variables: List[VariableModel] = []
+
 ################################
 ## LTP activity
 class LtpActivityModel (DataRowModel):
@@ -258,9 +281,7 @@ class SwycModel(DataRowModel):
 #########################
 ## delivery
 
-class VariableModel(DataRowModel):
-	name: str = ''
-	value: str = '' 
+
 
 class IdGeneratorModel(DataRowModel):
     success_msg: str = ''

@@ -89,7 +89,10 @@ Default is 'output' within the current workin directory.
 How to process "quick replies". Valid values are:
 
 - move: Remove quick replies and add equivalents to them to the message text, and give numerical prompts to allow basic phone users to use the app.
+- move_and_mod: As above but has additional functionality allowing you to replace phrases
 - reformat: Reformat quick replies so that long ones are added to the message text, as above.
+- reformat_china: Reformat quick replies to the standard as requested by China
+- wechat: All quick replies moved to links in message text as can be used in WeChat
 - none: Do nothing.
 
 ## select\_phrases

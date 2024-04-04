@@ -340,7 +340,7 @@ def run(config: Config):
         elif config.qr_treatment == "move_and_mod":
             run_node(
                 "idems_translation_chatbot/index.js",
-                "move_quick_replies",
+                "move_and_mod_quick_replies",
                 input_path_8,
                 config.select_phrases,
                 config.replace_phrases,

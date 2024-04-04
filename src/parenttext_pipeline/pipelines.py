@@ -332,7 +332,7 @@ def run(config: Config):
                 output_file_name_8,
                 outputpath,
                 config.add_selectors,
-                config.qr_limit,
+                str(config.qr_limit),
                 config.special_words,
             )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
@@ -347,7 +347,7 @@ def run(config: Config):
                 output_file_name_8,
                 outputpath,
                 config.add_selectors,
-                config.qr_limit,
+                str(config.qr_limit),
                 config.special_words,
             )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")

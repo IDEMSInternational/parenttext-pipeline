@@ -27,6 +27,7 @@ class Config:
     outputpath: str = "output"
     qr_treatment: str
     select_phrases: str
+    replace_phrases: str
     add_selectors: str
     special_words: str
     count_threshold: int
@@ -336,6 +337,21 @@ def run(config: Config):
             )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
             print("Step 8 complete, removed quick replies")
+        elif config.qr_treatment == "move_and_mod":
+            run_node(
+                "idems_translation_chatbot/index.js",
+                "move_quick_replies",
+                input_path_8,
+                config.select_phrases,
+                config.replace_phrases,
+                output_file_name_8,
+                outputpath,
+                config.add_selectors,
+                config.qr_limit,
+                config.special_words,
+            )
+            output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
+            print("Step 8 complete, removed and modified quick replies")
         elif config.qr_treatment == "reformat":
             run_node(
                 "idems_translation_chatbot/index.js",

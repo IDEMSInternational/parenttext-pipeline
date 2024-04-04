@@ -324,17 +324,17 @@ def run(config: Config):
         # We can do different things to our quick replies depending on the deployment
         # channel
         if config.qr_treatment == "move":
-            # run_node(
-            #     "idems_translation_chatbot/index.js",
-            #     "move_quick_replies",
-            #     input_path_8,
-            #     config.select_phrases,
-            #     output_file_name_8,
-            #     outputpath,
-            #     config.add_selectors,
-            #     config.qr_limit,
-            #     config.special_words,
-            # )
+            run_node(
+                "idems_translation_chatbot/index.js",
+                "move_quick_replies",
+                input_path_8,
+                config.select_phrases,
+                output_file_name_8,
+                outputpath,
+                config.add_selectors,
+                str(config.qr_limit),
+                config.special_words,
+            )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")
             print("Step 8 complete, removed quick replies")
         elif config.qr_treatment == "move_and_mod":
@@ -347,7 +347,7 @@ def run(config: Config):
                 output_file_name_8,
                 outputpath,
                 config.add_selectors,
-                config.qr_limit,
+                str(config.qr_limit),
                 config.special_words,
             )
             output_path_8 = os.path.join(outputpath, output_file_name_8 + ".json")

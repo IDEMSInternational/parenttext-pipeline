@@ -27,7 +27,7 @@ class Config:
     outputpath: str = "output"
     qr_treatment: str
     select_phrases: str
-    replace_phrases: str
+    replace_phrases: str = ""
     add_selectors: str
     special_words: str
     count_threshold: int

@@ -5,9 +5,13 @@ from typing import List
 
 ###########################################
 #general
-class VariableModel(DataRowModel):
+class VariableModel(ParserModel):
 	name: str = ''
 	value: str = '' 
+
+class AttachmentModel(ParserModel):
+	file_type: str = ''
+	url: str = ''
 
 ###################################################################
 class IntroductionBlockModel(ParserModel):
@@ -426,6 +430,7 @@ class MetadataModel(ParserModel):
 class SingleMessageModel(DataRowModel):
 	msg: str = ''
 	next_button_option: str = ''
+	attachment: AttachmentModel = AttachmentModel()
 	metadata: MetadataModel = MetadataModel()
 
 ####################################

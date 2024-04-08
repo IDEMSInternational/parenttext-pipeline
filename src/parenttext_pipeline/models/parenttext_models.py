@@ -5,7 +5,7 @@ from typing import List
 
 ###########################################
 #general
-class VariableModel(ParserModel):
+class VariableModel(DataRowModel):
 	name: str = ''
 	value: str = '' 
 
@@ -363,6 +363,7 @@ class InteractionOptionModel(ParserModel):
 	text: str = ''
 	proceed_result_value: str = ''
 	stop_message: str = ''
+	stop_audio: str = ''
 
 class InteractionModel(DataRowModel):
 	question: str = ''

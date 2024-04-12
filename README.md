@@ -11,10 +11,15 @@ Handles the process for producing RapidPro flows from data held in spreadsheets.
 
 # Run
 
-To start the pipeline:
+Two operations are currently available:
+
+- `pull_data`: Read data from various sources and store them locally in json format.
+- `create_flows`: Compile RapidPro flows from locally stored json files
+
+To start the pipeline performing both operations in sequence:
 
 ```
-python -m parenttext_pipeline.cli
+python -m parenttext_pipeline.cli pull_data create_flows
 ```
 
 You will need to create a file called 'config.py', in the current working directory, and define a callable called 'create_config' that returns the pipeline settings as a dict. More details can be in the [configuration page][config].

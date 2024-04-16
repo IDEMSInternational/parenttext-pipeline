@@ -527,6 +527,9 @@ class Language(ParserModel):
     zho: str = ""
     spa: str = ""
     fra: str = ""
+    afr: str = ""
+    xho: str = ""
+    zul: str = ""
 
 class GoalDataModel(DataRowModel):
     priority_c: str = ""

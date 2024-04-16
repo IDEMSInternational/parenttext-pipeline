@@ -3,26 +3,39 @@ import requests
 import shutil
 import tempfile
 from pathlib import Path
-from parenttext_pipeline.common import clear_or_create_folder, Config, get_step_config, run_node
+from parenttext_pipeline.common import clear_or_create_folder, get_input_subfolder, run_node
 from rpft.converters import convert_to_json
 
 from parenttext_pipeline.extract_keywords import process_keywords_to_file
 
 
-def run(config: Config):
+def run(config):
     clear_or_create_folder(config.inputpath)
     clear_or_create_folder(config.temppath)
     # clear_or_create_folder(config.outputpath)
 
-    #####################################################################
-    # Step 0: Fetch available PO files and convert to JSON
-    #####################################################################
+    for name, source in config.sources.items():
+        if source.format == "sheets":
+            pull_sheets(config, source, name)
+        elif source.format == "json":
+            pull_json(config, source, name)
+        elif source.format == "translation_repo":
+            pull_translations(config, source, name)
+        elif source.format == "safeguarding":
+            pull_safeguarding(config, source, name)
+        else:
+            raise ValueError(f"Invalid source format {source.format}")
+    
+        print(f"Pulled all {name} data")
 
-    step_config, _ = get_step_config(config, "translation")
-    for lang in step_config.languages:
+    print("DONE.")
+
+
+def pull_translations(config, source, source_name):
+    for lang in source.languages:
         lang_code = lang["code"]
-        translations_input_folder = Path(config.inputpath) / "translation" / lang_code
-        translations_temp_folder = Path(config.temppath) / "translation" / lang_code
+        translations_input_folder = Path(config.inputpath) / source_name / lang_code
+        translations_temp_folder = Path(config.temppath) / source_name / lang_code
 
         if os.path.exists(translations_input_folder):
             shutil.rmtree(translations_input_folder)
@@ -31,10 +44,10 @@ def run(config: Config):
         os.makedirs(translations_temp_folder)
 
         # Download relevant PO translation files from github to temp folder
-        language_folder_in_repo = step_config.folder_within_repo + "/" + lang_code
+        language_folder_in_repo = source.folder_within_repo + "/" + lang_code
         translation_temp_po_folder = os.path.join(translations_temp_folder, "raw_po_files")
         download_translations_github(
-            step_config.translation_repo,
+            source.translation_repo,
             language_folder_in_repo,
             translation_temp_po_folder,
         )
@@ -55,51 +68,54 @@ def run(config: Config):
                     dest_file_path,
                 )
 
-    print("Fetched all available translations and converted to json")
 
+def pull_sheets(config, source, source_name):
     # Download all sheets used for flow creation and edits and store as json
-    for step_identifier in ["create_flows", "edits_pretranslation", "edits_posttranslation"]:
-        step_config, step_input_path = get_step_config(config, step_identifier, makedirs=True)
+    source_input_path = get_input_subfolder(config, source_name, makedirs=True)
 
-        spreadsheet_ids = step_config.spreadsheet_ids
-        jsons = {}
-        if step_config.archive is not None:
-            archive_filepath = download_archive(config, step_config)
-            with tempfile.TemporaryDirectory() as temp_dir:
-                shutil.unpack_archive(archive_filepath, temp_dir)
-                for sheet_id in spreadsheet_ids:
-                    csv_folder = os.path.join(temp_dir, sheet_id)
-                    jsons[sheet_id] = convert_to_json([csv_folder], "csv")
-        else:
-            for sheet_id in spreadsheet_ids:
-                jsons[sheet_id] = convert_to_json(sheet_id, "google_sheets")
-        for sheet_id, content in jsons.items():
-            with open(step_input_path / f"{sheet_id}.json", "w") as export:
-                export.write(content)
-
-    print("Download of flow creation and edit sheets complete")
-
-    # Postprocessing files
-    step_config, step_input_path = get_step_config(config, "postprocessing", makedirs=True)
-    shutil.copyfile(step_config.special_expiration_file, step_input_path / "special_expiration.json")
-    shutil.copyfile(step_config.select_phrases_file, step_input_path / "select_phrases.json")
-    shutil.copyfile(step_config.special_words_file, step_input_path / "special_words.json")
-
-    # Safeguarding files
-    step_config, step_input_path = get_step_config(config, "safeguarding", makedirs=True)
-    safeguarding_file_path = step_input_path / "safeguarding_words.json"
-    if step_config.sources:
-        process_keywords_to_file(step_config.sources, safeguarding_file_path)
+    jsons = {}
+    if source.files_archive is not None:
+        if source.subformat != 'csv':
+            raise NotImplementedError(f"files_archive only supported for sheets of subformat csv.")
+        archive_filepath = download_archive(config, source)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            shutil.unpack_archive(archive_filepath, temp_dir)
+            for sheet_id in source.files_list:
+                csv_folder = os.path.join(temp_dir, sheet_id)
+                jsons[sheet_id] = convert_to_json([csv_folder], source.subformat)
     else:
-        shutil.copyfile(step_config.filepath, safeguarding_file_path)
+        for sheet_id in source.files_list:
+            if source.subformat != 'google_sheets':
+                raise NotImplementedError(f"files_list only supported for sheets of subformat google_sheets.")
+            jsons[sheet_id] = convert_to_json(sheet_id, source.subformat)
+    for new_name, sheet_id in source.files_dict.items():
+        jsons[new_name] = convert_to_json(sheet_id, source.subformat)
 
-    print("Download of postprocessing and safeguarding files complete")
+    for sheet_id, content in jsons.items():
+        with open(source_input_path / f"{sheet_id}.json", "w") as export:
+            export.write(content)
 
-    print("DONE.")
+
+def pull_json(config, source, source_name):
+    # Postprocessing files
+    source_input_path = get_input_subfolder(config, source_name, makedirs=True)
+
+    for new_name, filepath in source.files_dict.items():
+        shutil.copyfile(filepath, source_input_path / f"{new_name}.json")
 
 
-def download_archive(config, step_config):
-    location = step_config.archive
+def pull_safeguarding(config, source, source_name):
+    # Safeguarding files
+    source_input_path = get_input_subfolder(config, source_name, makedirs=True)
+    safeguarding_file_path = source_input_path / "safeguarding_words.json"
+    if source.sources:
+        process_keywords_to_file(source.sources, safeguarding_file_path)
+    else:
+        shutil.copyfile(source.filepath, safeguarding_file_path)
+
+
+def download_archive(config, source):
+    location = source.archive
 
     if location and location.startswith("http"):
         response = requests.get(location)

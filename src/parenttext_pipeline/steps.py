@@ -7,31 +7,25 @@ import shutil
 from rapidpro_abtesting.main import apply_abtests
 import rpft.converters
 from rpft.logger.logger import initialize_main_logger
-from parenttext_pipeline.common import get_step_config, run_node
+from parenttext_pipeline.common import get_input_subfolder, get_full_step_files_list, get_full_step_files_dict, run_node, get_source_config, make_output_filepath
 from parenttext_pipeline.extract_keywords import batch
 
 
+def load_flows(config, step_config, step_number, _=None):
+    step_output_file = make_output_filepath(config, f"_{step_number}.json")
 
-def input_files_from_ids(step_input_path, spreadsheet_ids):
-    sheets = [
-        os.path.join(step_input_path, f"{sheet_id}.json")
-        for sheet_id in spreadsheet_ids
-    ]
-    return sheets
+    files = get_full_step_files_list(config, step_config)
+    if len(files) != 1:
+        raise NotImplementedError(f"load_flows must have exactly one file as input (until we support merging)")
 
-
-def make_output_filepath(config, suffix):
-    return os.path.join(
-        config.temppath,
-        config.flows_outputbasename + suffix,
-    )
+    shutil.copyfile(files[0], step_output_file)
+    return step_output_file
 
 
-def create_flows(config):
-    step_config, step_input_path = get_step_config(config, "create_flows")
-    step_output_file = make_output_filepath(config, "_1_1_load_from_sheets.json")
+def create_flows(config, step_config, step_number, _=None):
+    step_output_file = make_output_filepath(config, f"_{step_number}_load_from_sheets.json")
 
-    sheets = input_files_from_ids(step_input_path, step_config.spreadsheet_ids)
+    sheets = get_full_step_files_list(config, step_config)
 
     initialize_main_logger(Path(config.temppath) / "rpft.log")
     flows = rpft.converters.create_flows(
@@ -47,10 +41,11 @@ def create_flows(config):
     return step_output_file
 
 
-def apply_edits(config, step_name, step_number, step_input_file):
-    step_config, step_input_path = get_step_config(config, step_name)
-    input_sheets = input_files_from_ids(step_input_path, step_config.spreadsheet_ids)
+def apply_edits(config, step_config, step_number, step_input_file):
+    step_name = step_config.id
     step_output_file = make_output_filepath(config, f"_{step_number}_{step_name}.json")
+
+    input_sheets = get_full_step_files_list(config, step_config)
     log_file_path = os.path.join(config.temppath, f"{step_name}.log")
 
     apply_abtests(
@@ -64,12 +59,18 @@ def apply_edits(config, step_name, step_number, step_input_file):
     return step_output_file
 
 
-def apply_qr_treatment(config, step_name, step_number, step_input_file):
-    step_config, _ = get_step_config(config, step_name)
+def apply_qr_treatment(config, step_config, step_number, step_input_file):
+    step_name = step_config.id
     step_output_file = make_output_filepath(config, f"_{step_number}_{step_name}.json")
     # This is redundant, and we should change the JS script to just take the output filename
     # instead of step_output_basename and config.temppath as arguments
     step_output_basename = f"{config.flows_outputbasename}_{step_number}_{step_name}"
+
+    files = get_full_step_files_dict(config, step_config)
+    select_phrases_file = files.get("select_phrases_file")
+    special_words_file = files.get("special_words_file")
+    if select_phrases_file is None or special_words_file is None:
+        raise ValueError("qr_treatment sources must reference a select_phrases_file and a special_words_file")
 
     # We can do different things to our quick replies depending on the deployment
     # channel
@@ -78,12 +79,12 @@ def apply_qr_treatment(config, step_name, step_number, step_input_file):
             "idems_translation_chatbot/index.js",
             "move_quick_replies",
             step_input_file,
-            step_config.select_phrases_file,
+            select_phrases_file,
             step_output_basename,
             config.temppath,
             step_config.add_selectors,
             str(step_config.qr_limit),
-            step_config.special_words_file,
+            special_words_file,
         )
         print("Step 8 complete, removed quick replies")
     elif step_config.qr_treatment == "move_and_mod":
@@ -91,13 +92,13 @@ def apply_qr_treatment(config, step_name, step_number, step_input_file):
             "idems_translation_chatbot/index.js",
             "move_and_mod_quick_replies",
             step_input_file,
-            step_config.select_phrases_file,
+            select_phrases_file,
             step_config.replace_phrases,
             step_output_basename,
             config.temppath,
             step_config.add_selectors,
             str(step_config.qr_limit),
-            step_config.special_words_file,
+            special_words_file,
         )
         print("Step 8 complete, removed and modified quick replies")
     elif step_config.qr_treatment == "reformat":
@@ -105,13 +106,13 @@ def apply_qr_treatment(config, step_name, step_number, step_input_file):
             "idems_translation_chatbot/index.js",
             "reformat_quick_replies",
             step_input_file,
-            step_config.select_phrases_file,
+            select_phrases_file,
             step_output_basename,
             config.temppath,
             step_config.count_threshold,
             step_config.length_threshold,
             str(step_config.qr_limit),
-            step_config.special_words_file,
+            special_words_file,
         )
         print("Step 8 complete, reformatted quick replies")
     elif step_config.qr_treatment == "reformat_china":
@@ -119,13 +120,13 @@ def apply_qr_treatment(config, step_name, step_number, step_input_file):
             "idems_translation_chatbot/index.js",
             "reformat_quick_replies_china",
             step_input_file,
-            step_config.select_phrases_file,
+            select_phrases_file,
             step_output_basename,
             config.temppath,
             step_config.count_threshold,
             step_config.length_threshold,
             str(step_config.qr_limit),
-            step_config.special_words_file,
+            special_words_file,
         )
         print("Step 8 complete, reformatted quick replies to China standard")
     elif step_config.qr_treatment == "wechat":
@@ -144,8 +145,14 @@ def apply_qr_treatment(config, step_name, step_number, step_input_file):
     return step_output_file
 
 
-def apply_safeguarding(config, step_name, step_number, step_input_file):
-    step_config, step_input_path = get_step_config(config, step_name)
+def apply_safeguarding(config, step_config, step_number, step_input_file):
+    step_name = step_config.id
+
+    if len(step_config.sources) != 1:
+        raise ValueError("safeguarding step must have exactly one source")
+    source_name = step_config.sources[0]
+    # source_config = get_source_config(config, source_name, step_name)
+    step_input_path = get_input_subfolder(config, source_name)
     safeguarding_file_path = step_input_path / "safeguarding_words.json"
     step_output_file = make_output_filepath(config, f"_{step_number}_{step_name}.json")
 
@@ -175,14 +182,14 @@ def apply_safeguarding(config, step_name, step_number, step_input_file):
     return step_output_file
 
 
-def apply_translations(config, step_name, step_number, step_input_file):
-    step_config, _ = get_step_config(config, step_name)
+def apply_translations(config, step_config, step_number, step_input_file):
+    step_name = step_config.id
     step_output_file = make_output_filepath(config, f"_{step_number}_{step_name}.json")
     # This is redundant, and we should change the JS script to just take the output filename
     # instead of step_output_basename and config.temppath as arguments
     step_output_basename = f"{config.flows_outputbasename}_{step_number}_{step_name}"
 
-    merge_translation_jsons(config, step_name)
+    merge_translation_jsons(config, step_config)
 
     for lang in step_config.languages:
         json_translation_path = os.path.join(
@@ -204,7 +211,8 @@ def apply_translations(config, step_name, step_number, step_input_file):
     return step_output_file
 
 
-def apply_has_any_word_check(config, step_name, step_number, step_input_file):
+def apply_has_any_word_check(config, step_config, step_number, step_input_file):
+    step_name = step_config.id
     step_output_file = make_output_filepath(config, f"_{step_number}_{step_name}.json")
     # This is redundant, and we should change the JS script to just take the output filename
     # instead of step_output_basename and config.temppath as arguments
@@ -224,9 +232,8 @@ def apply_has_any_word_check(config, step_name, step_number, step_input_file):
     return step_output_file
 
 
-def apply_overall_integrity_check(config, step_name, step_number, step_input_file):
-    # Only log files are produced in this step.
-    step_output_file = step_input_file
+def apply_overall_integrity_check(config, step_config, step_number, step_input_file):
+    step_name = step_config.id
     # This is inconsistent. Why not specify the output filename?
     integrity_log = f"{step_number}_{step_name}"
     excel_log_name = os.path.join(config.temppath, f"{step_number}_{step_name}.xlsx")
@@ -240,10 +247,11 @@ def apply_overall_integrity_check(config, step_name, step_number, step_input_fil
         excel_log_name,
     )
 
-    return step_output_file
+    return None
 
 
-def apply_fix_arg_qr_translation(config, step_name, step_number, step_input_file):
+def apply_fix_arg_qr_translation(config, step_config, step_number, step_input_file):
+    step_name = step_config.id
     step_output_file = make_output_filepath(config, f"_{step_number}_{step_name}.json")
     # This is redundant, and we should change the JS script to just take the output filename
     # instead of step_output_basename and config.temppath as arguments
@@ -263,9 +271,8 @@ def apply_fix_arg_qr_translation(config, step_name, step_number, step_input_file
     return step_output_file
 
 
-def apply_extract_texts_for_translators(config, step_name, step_number, step_input_file):
-    # Only translation files are produced in this step.
-    step_output_file = step_input_file
+def apply_extract_texts_for_translators(config, step_config, step_number, step_input_file):
+    step_name = step_config.id
     # This is redundant, and we should change the JS script to just take the output filename
     # instead of step_output_basename and config.temppath as arguments
     step_translation_basename = f"{config.flows_outputbasename}_{step_number}_{step_name}"
@@ -294,13 +301,17 @@ def apply_extract_texts_for_translators(config, step_name, step_number, step_inp
         translation_output_file,
     )
 
-    return step_output_file
+    return None
 
 
-def merge_translation_jsons(config, step_name):
-    step_config, _ = get_step_config(config, step_name)
+def merge_translation_jsons(config, step_config):
+    step_name = step_config.id
+    if len(step_config.sources) != 1:
+        raise ValueError("translation step must have exactly one source")
+    source_name = step_config.sources[0]
+
     for lang in step_config.languages:
-        translations_input_folder = Path(config.inputpath) / step_name / lang["code"]
+        translations_input_folder = Path(config.inputpath) / source_name / lang["code"]
         translations_temp_folder = Path(config.temppath) / step_name / lang["code"]
         os.makedirs(translations_temp_folder, exist_ok=True)
 
@@ -315,13 +326,19 @@ def merge_translation_jsons(config, step_name):
         )
 
 
-def update_expiration_time(config, step_name, step_number, step_input_file):
-    step_config, step_input_path = get_step_config(config, step_name)
+def update_expiration_times(config, step_config, step_number, step_input_file):
+    step_name = step_config.id
     step_output_file = make_output_filepath(config, f"_{step_number}_{step_name}.json")
-    special_expiration_filepath = os.path.join(step_input_path, "special_expiration.json")
 
-    with open(special_expiration_filepath, "r") as specifics_json:
-        specifics = json.load(specifics_json)
+    if not step_config.sources:
+        specifics = {}
+    else:
+        files = get_full_step_files_dict(config, step_config)
+        special_expiration_filepath = files.get("special_expiration_file")
+        if special_expiration_filepath is None:
+            raise ValueError("update_expiration_times sources must reference a special_expiration_file")
+        with open(special_expiration_filepath, "r") as specifics_json:
+            specifics = json.load(specifics_json)
 
     with open(step_input_file, "r") as in_json:
         org = json.load(in_json)

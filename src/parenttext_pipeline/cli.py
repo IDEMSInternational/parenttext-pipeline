@@ -2,6 +2,7 @@ import argparse
 import runpy
 
 from parenttext_pipeline.configs import Config
+from parenttext_pipeline.config_converter import convert_config
 import parenttext_pipeline.compile_flows
 import parenttext_pipeline.pull_data
 
@@ -46,7 +47,11 @@ def load_config():
     create_config = runpy.run_path('config.py').get("create_config")
 
     if create_config and callable(create_config):
-        return Config(**create_config())
+        config = create_config()
+        if "meta" not in config:
+            # Legacy version of config detected. Converting to new config format.
+            config = convert_config(config)
+        return Config(**config)
     else:
         raise ConfigError("Could not find 'create_config' function in 'config.py'")
 

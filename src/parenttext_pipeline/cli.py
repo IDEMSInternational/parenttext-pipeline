@@ -1,13 +1,14 @@
 import argparse
+import json
 import runpy
 
+from packaging.version import Version
+
+from parenttext_pipeline import pipeline_version
 from parenttext_pipeline.configs import Config
 from parenttext_pipeline.config_converter import convert_config
 import parenttext_pipeline.compile_flows
 import parenttext_pipeline.pull_data
-
-
-PIPELINE_VERSION = "1.0.0"
 
 
 OPERATIONS_MAP = {
@@ -35,16 +36,29 @@ def init():
 
     config = load_config()
 
-    config_pipeline_version = config.meta["pipeline_version"]
-    if config_pipeline_version != PIPELINE_VERSION:
-        raise ValueError(f"Pipeline version of the config {config_pipeline_version} does not match {PIPELINE_VERSION}")
+    config_pipeline_version = Version(config.meta["pipeline_version"])
+    real_pipeline_version = Version(pipeline_version())
+    if config_pipeline_version > real_pipeline_version:
+        raise ValueError(f"Pipeline version of the config {config_pipeline_version} is newer than actual pipeline version {real_pipeline_version}")
+    if config_pipeline_version.major != real_pipeline_version.major:
+        raise ValueError(f"Major of config pipeline version {config_pipeline_version} does not match major of actual pipeline version {real_pipeline_version}")
 
     for operation in args.operations:
         OPERATIONS_MAP[operation](config)
 
 
 def load_config():
-    create_config = runpy.run_path('config.py').get("create_config")
+    try:
+        with open('config.json') as f:
+            config = json.load(f)
+            return Config(**config)
+    except FileNotFoundError:
+        pass
+
+    try:
+        create_config = runpy.run_path('config.py').get("create_config")
+    except FileNotFoundError:
+        raise ConfigError("Could not find 'config.json' nor 'config.py'")
 
     if create_config and callable(create_config):
         config = create_config()

@@ -1,8 +1,11 @@
-import os
 import itertools
+import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
+
+from parenttext_pipeline import pipeline_version
 
 
 def clear_or_create_folder(path):
@@ -16,6 +19,10 @@ def get_input_subfolder(config, name, makedirs=False):
     if makedirs:
         os.makedirs(source_input_path)
     return source_input_path
+
+
+def get_sheet_id(config, sheet_name):
+    return config.sheet_names.get(sheet_name, sheet_name)
 
 
 def input_files_from_ids(step_input_path, spreadsheet_ids):
@@ -78,6 +85,21 @@ def make_output_filepath(config, suffix):
         config.temppath,
         config.flows_outputbasename + suffix,
     )
+
+
+def write_meta(config, field_dict, path):
+    meta = {
+        "pipeline_version" : pipeline_version(),
+        "config_version" : config.meta.get("version") or "legacy",
+    } | field_dict
+
+    with open(Path(path) / "meta.json", "w") as outfile:
+        json.dump(meta, outfile, indent=2)
+
+
+def read_meta(path):
+    with open(Path(path) / "meta.json") as infile:
+        return json.load(infile)
 
 
 def run_node(script, *args):

@@ -1,9 +1,10 @@
+from datetime import datetime, timezone
 import os
 import requests
 import shutil
 import tempfile
 from pathlib import Path
-from parenttext_pipeline.common import clear_or_create_folder, get_input_subfolder, run_node
+from parenttext_pipeline.common import clear_or_create_folder, get_input_subfolder, get_sheet_id, run_node, write_meta
 from rpft.converters import convert_to_json
 
 from parenttext_pipeline.extract_keywords import process_keywords_to_file
@@ -12,7 +13,6 @@ from parenttext_pipeline.extract_keywords import process_keywords_to_file
 def run(config):
     clear_or_create_folder(config.inputpath)
     clear_or_create_folder(config.temppath)
-    # clear_or_create_folder(config.outputpath)
 
     for name, source in config.sources.items():
         if source.format == "sheets":
@@ -27,6 +27,11 @@ def run(config):
             raise ValueError(f"Invalid source format {source.format}")
     
         print(f"Pulled all {name} data")
+    
+    meta = {
+        "pull_timestamp" : str(datetime.now(timezone.utc)),
+    }
+    write_meta(config, meta, config.inputpath)
 
     print("DONE.")
 
@@ -84,15 +89,16 @@ def pull_sheets(config, source, source_name):
                 csv_folder = os.path.join(temp_dir, sheet_id)
                 jsons[sheet_id] = convert_to_json([csv_folder], source.subformat)
     else:
-        for sheet_id in source.files_list:
+        for sheet_name in source.files_list:
             if source.subformat != 'google_sheets':
                 raise NotImplementedError(f"files_list only supported for sheets of subformat google_sheets.")
-            jsons[sheet_id] = convert_to_json(sheet_id, source.subformat)
+            sheet_id = get_sheet_id(config, sheet_name)
+            jsons[sheet_name] = convert_to_json(sheet_id, source.subformat)
     for new_name, sheet_id in source.files_dict.items():
         jsons[new_name] = convert_to_json(sheet_id, source.subformat)
 
-    for sheet_id, content in jsons.items():
-        with open(source_input_path / f"{sheet_id}.json", "w") as export:
+    for sheet_name, content in jsons.items():
+        with open(source_input_path / f"{sheet_name}.json", "w") as export:
             export.write(content)
 
 

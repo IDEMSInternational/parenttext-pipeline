@@ -1,10 +1,14 @@
-from parenttext_pipeline.common import clear_or_create_folder
+from parenttext_pipeline.common import clear_or_create_folder, read_meta, write_meta
 from parenttext_pipeline import steps
 
 
 def run(config):
     clear_or_create_folder(config.outputpath)
     clear_or_create_folder(config.temppath)
+
+    data = read_meta(config.inputpath)
+    meta = {"pull_timestamp" : data["pull_timestamp"]}
+    write_meta(config, meta, config.outputpath)
 
     input_file = None
     for step_num, step_config in enumerate(config.steps):

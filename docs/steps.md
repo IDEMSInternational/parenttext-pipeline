@@ -47,10 +47,6 @@ The first step of the pipeline must be `create_flows` or `load_flows`. These two
 
 ### Remarks
 
-Other steps that may be implemented in the future:
-
-- `split_attachments`: Split each message with attachments into two messages.
-
 We want to have the functionality to pull Goals API data from a spreadsheet and store it locally, so it can be read by the API directly from github.
 This does not require a step, but can be implemented by only specifying a `goals_api` source which is not referenced by any step.
 

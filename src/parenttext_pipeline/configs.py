@@ -169,6 +169,7 @@ SOURCE_CONFIGS = {
 class Config:
     meta: dict
     parents: list[dict] = None
+    sheet_names: dict = field(default_factory=dict)
     sources: dict[str, SourceConfig]
     steps: list[StepConfig]
     temppath: str = "temp"

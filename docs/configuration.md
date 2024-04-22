@@ -32,6 +32,8 @@ The config has the following fields:
     - Used to divide the file at the final step to get it to a manageable size that can be uploaded to RapidPro.
 - `steps`: A list of steps. For more details, see [steps]
 - `sources`: A dictionary of data sources. For more details, see [sources]
+- `sheet_names`: A dictionary of from sheet names to sheet_ids (**for Google sheets only**). 
+   Sources can reference sheets by their ID or their sheet names.
 - `parents`: **Not Implemented** One (or multiple?) parent repos whose sources can be referenced
 
 [sources]: sources.md

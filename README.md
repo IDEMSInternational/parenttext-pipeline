@@ -11,7 +11,7 @@ Handles the process for producing RapidPro flows from data held in spreadsheets.
 
 # Run
 
-Two operations are currently available:
+Two [operations] are currently available:
 
 - `pull_data`: Read data from various sources and store them locally in json format.
 - `create_flows`: Compile RapidPro flows from locally stored json files
@@ -32,6 +32,7 @@ You will need to create a file called 'config.py', in the current working direct
 - [Transcode tool] - to prepare video and audio files that may be used by ParentText applications
 
 
+[operations]: docs/operations.md
 [config]: docs/configuration.md
 [Archive tool]: docs/archive.md
 [RapidPro flow importer]: docs/rapidpro-import.md

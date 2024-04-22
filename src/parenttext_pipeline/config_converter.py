@@ -1,4 +1,6 @@
-def convert_config(config, version):
+from parenttext_pipeline import pipeline_version
+
+def convert_config(config):
     return {
         # I am assuming that the list of sources contains only one entry, 
         # as that is what I have observed in practice.
@@ -6,7 +8,7 @@ def convert_config(config, version):
         # specifies the output filename of the .pot file that is produced to
         # uploaded to crowdin. This is ignored as the filename is hardcoded now.
         "meta": {
-            "pipeline_version": "1.0.0",
+            "pipeline_version": pipeline_version(),
         },
         "parents": [],
         "flows_outputbasename": config["sources"][0].get("filename"),
@@ -16,22 +18,24 @@ def convert_config(config, version):
                 "format": "sheets",
                 "subformat": "google_sheets",
                 "files_list": config["sources"][0].get("spreadsheet_ids"),
-                "archive": config["sources"][0].get("archive"),
+                "files_archive": config["sources"][0].get("archive"),
             },
             "edits_pretranslation": {
                 "format": "sheets",
                 "subformat": "google_sheets",
                 "files_list": [
-                    config.get("ab_testing_sheet_id"),
-                    config.get("localisation_sheet_id"),
+                    config.get(sheet_name)
+                    for sheet_name in ["ab_testing_sheet_id", "localisation_sheet_id"]
+                    if config.get(sheet_name)
                 ],
             },
             "edits_posttranslation": {
                 "format": "sheets",
                 "subformat": "google_sheets",
                 "files_list": [
-                    config.get("transl_edits_sheet_id"),
-                    config.get("eng_edits_sheet_id"),
+                    config.get(sheet_name)
+                    for sheet_name in ["transl_edits_sheet_id", "eng_edits_sheet_id"]
+                    if config.get(sheet_name)
                 ],
             },
             "translation": {

@@ -176,6 +176,7 @@ class SurveyBehaveModel(DataRowModel):
 class OnboardingStepsModel(DataRowModel):
 	flow: str = ''
 	variable: str = ''
+	filter_list:  List[str] = ""
 
 class OnboardingQuestionOptionModel(ParserModel):
 	text: str = ''
@@ -191,6 +192,11 @@ class OnboardingQuestionWithOptionsModel(DataRowModel):
 	back_flow: str = ''
 	options : List[OnboardingQuestionOptionModel] = []
 	attached_single_doc: str = ''
+	excluded_values: List[str] = []
+	confirm_question: str = ''
+	go_back_opt: str = ''
+	stop_opt: str = ''
+	stop_message: str = ''
 
 class OnboardingQuestionInputTestModel(ParserModel):
 	expression: str = ''
@@ -216,8 +222,16 @@ class OnboardingQuestionRangeModel(DataRowModel):
 	grouping_variable: str = ''
 	lower_bound: int = 0
 	low_error_msg: str = ''
+	low_confirm_question: str = ''
+	low_stop_opt: str = ''
+	low_go_back_opt: str = ''
+	low_stop_message: str = ''
 	upper_bound: int = 0
 	up_error_msg: str = ''
+	up_confirm_question: str = ''
+	up_stop_opt: str = ''
+	up_go_back_opt: str = ''
+	up_stop_message: str = ''
 	general_error_msg: str = ''
 	ranges: List[OnboardingRangeModel] = []
 
@@ -285,7 +299,8 @@ class SwycModel(DataRowModel):
 #########################
 ## delivery
 
-
+class UserGroupModel(DataRowModel):
+     group_name: str = ""
 
 class IdGeneratorModel(DataRowModel):
     success_msg: str = ''
@@ -450,6 +465,7 @@ class MenuModel(DataRowModel):
 	return_option: MenuOptionModel = MenuOptionModel()
 	exit_option: MenuOptionModel = MenuOptionModel()
 	options: List[MenuOptionModel] = []
+	error_message: str = ''
 
 class MenuBlocksModel(ParserModel):
 	no_opt: str = ''

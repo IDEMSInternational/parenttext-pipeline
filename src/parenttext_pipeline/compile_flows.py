@@ -18,6 +18,8 @@ def run(config):
 
     steps.split_rapidpro_json(config, output_file)
     print("Result written to output folder")
+    steps.write_diffable(config, output_file)
+    print("Diffable written to output folder")
 
 
 STEP_MAPPING = {

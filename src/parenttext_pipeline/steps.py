@@ -400,6 +400,12 @@ def split_rapidpro_json(config, input_filename):
             print(f"File written, path={output_filename}")
 
 
+def write_diffable(config, input_filename, subfolder="diffable"):
+    output_subfolder = Path(config.outputpath) / subfolder
+    os.makedirs(output_subfolder, exist_ok=True)
+    rpft.converters.flows_to_sheets(input_filename, output_subfolder, strip_uuids=True)
+
+
 def edit_campaign(campaign, flows):
     if not campaign["events"]:
         return campaign

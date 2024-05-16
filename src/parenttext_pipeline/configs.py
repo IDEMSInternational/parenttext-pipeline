@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+
 @dataclass(kw_only=True)
 class StepConfig:
     # Identifier (name) of the step
@@ -36,36 +37,47 @@ class SafeguardingStepConfig(StepConfig):
 class UpdateExpirationStepConfig(StepConfig):
     # Default flow expiration time
     default_expiration_time: int
-    # sources: may reference a JSON-type source defining a file_dict containing the following key:
-    # `special_expiration_file`.
+    # sources: may reference a JSON-type source defining a file_dict containing
+    # the following key: `special_expiration_file`.
     # This source file maps flow names to expiration times
 
 
 @dataclass(kw_only=True)
 class QRTreatmentStepConfig(StepConfig):
     # str: how to process quick replies
-    # move: Remove quick replies and add equivalents to them to the message text, and give numerical prompts to allow basic phone users to use the app.
-    # move_and_mod: As above but has additional functionality allowing you to replace phrases
-    # reformat: Reformat quick replies so that long ones are added to the message text, as above.
+    # move: Remove quick replies and add equivalents to them to the message text,
+    #     and give numerical prompts to allow basic phone users to use the app.
+    # move_and_mod: As above but has additional functionality allowing you
+    #     to replace phrases
+    # reformat: Reformat quick replies so that long ones are added to the message text,
+    #     as above.
     # reformat_china: Reformat quick replies to the standard as requested by China
     # wechat: All quick replies moved to links in message text as can be used in WeChat
     qr_treatment: str
     # ???
     qr_limit: int = 10
-    # When qr_treatment is 'reformat', set limits on the number of quick replies that are processed.
-    # If the number of quick replies is below or equal to count_threshold then the quick replies are left in place.
+    # When qr_treatment is 'reformat',
+    # set limits on the number of quick replies that are processed.
+    # If the number of quick replies is below or equal to count_threshold
+    # then the quick replies are left in place.
     count_threshold: str = None
-    # When qr_treatment is 'reformat', set limits on the number of quick replies that are processed.
-    # If the character-length of the longest quick reply is below or equal to length_threshold then the quick replies are left in place.
+    # When qr_treatment is 'reformat', set limits on the number of quick replies
+    # that are processed. If the character-length of the longest quick reply is
+    # below or equal to length_threshold then the quick replies are left in place.
     length_threshold: str = None
-    # If qr_treatment is 'move', add some basic numerical quick replies back in. Valid values are 'yes' or 'no'.
+    # If qr_treatment is 'move', add some basic numerical quick replies back in.
+    # Valid values are 'yes' or 'no'.
     add_selectors: str = None
-    # Path to file with the default phrase (including translations) we want to add if quick replies are being moved to message text.
+    # Path to file with the default phrase (including translations) we want to add
+    # if quick replies are being moved to message text.
     replace_phrases: str = ""
-    # sources: must reference a JSON-type source defining a file_dict containing the following keys:
+    # sources: must reference a JSON-type source defining a file_dict containing the
+    # following keys:
     # `select_phrases_file` and `special_words_file`.
-    # `select_phrases_file`: file with the default phrase (including translations) we want to add if quick replies are being moved to message text.
-    # `special_words_file`: file containing words (including translations) we always want to keep as full quick replies.  
+    # `select_phrases_file`: file with the default phrase (including translations)
+    #     we want to add if quick replies are being moved to message text.
+    # `special_words_file`: file containing words (including translations)
+    #     we always want to keep as full quick replies.
 
 
 @dataclass(kw_only=True)
@@ -78,13 +90,13 @@ class TranslationStepConfig(StepConfig):
     languages: list[dict]
 
 
-STEP_CONFIGS = {   
-    "create_flows" : CreateFlowsStepConfig,
-    "edits" : StepConfig,
-    "translation" : TranslationStepConfig,
-    "safeguarding" : SafeguardingStepConfig,
-    "update_expiration_times" : UpdateExpirationStepConfig,
-    "qr_treatment" : QRTreatmentStepConfig,
+STEP_CONFIGS = {
+    "create_flows": CreateFlowsStepConfig,
+    "edits": StepConfig,
+    "translation": TranslationStepConfig,
+    "safeguarding": SafeguardingStepConfig,
+    "update_expiration_times": UpdateExpirationStepConfig,
+    "qr_treatment": QRTreatmentStepConfig,
     "load_flows": StepConfig,
     "extract_texts_for_translators": StepConfig,
     "fix_arg_qr_translation": StepConfig,
@@ -137,7 +149,10 @@ class SafeguardingSourceConfig(SourceConfig):
 
     def __post_init__(self):
         if self.filepath is None and self.sources is None:
-            raise ValueError("For SafeguardingSourceConfig, either filepath or sources needs to be provided")
+            raise ValueError(
+                "For SafeguardingSourceConfig, either filepath "
+                "or sources needs to be provided"
+            )
 
 
 @dataclass(kw_only=True)
@@ -149,19 +164,21 @@ class TranslationSourceConfig(SourceConfig):
     languages: list[dict]
     # Git repository (synched with crowdin) to read translation PO files from
     translation_repo: str
-    # Folder within within the `translation_repo` repository to read translation PO files from
+    # Folder within within the `translation_repo` repository to read
+    # translation PO files from
     folder_within_repo: str
     # Not Implemented: Commit hash or tag in the repo
-    # TODO: Offer branch, and then store the commit hash as part of the meta info about the output
+    # TODO: Offer branch, and then store the commit hash as part of
+    # the meta info about the output
     commit_hash: str = None
     commit_tag: str = None
 
 
-SOURCE_CONFIGS = {   
-    "sheets" : SheetsSourceConfig,
-    "json" : JSONSourceConfig,
-    "translation_repo" : TranslationSourceConfig,
-    "safeguarding" : SafeguardingSourceConfig,
+SOURCE_CONFIGS = {
+    "sheets": SheetsSourceConfig,
+    "json": JSONSourceConfig,
+    "translation_repo": TranslationSourceConfig,
+    "safeguarding": SafeguardingSourceConfig,
 }
 
 

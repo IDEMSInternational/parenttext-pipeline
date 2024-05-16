@@ -1,12 +1,19 @@
-from datetime import datetime, timezone
 import os
-import requests
 import shutil
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
-from parenttext_pipeline.common import clear_or_create_folder, get_input_subfolder, get_sheet_id, run_node, write_meta
+
+import requests
 from rpft.converters import convert_to_json
 
+from parenttext_pipeline.common import (
+    clear_or_create_folder,
+    get_input_subfolder,
+    get_sheet_id,
+    run_node,
+    write_meta,
+)
 from parenttext_pipeline.extract_keywords import process_keywords_to_file
 
 
@@ -25,11 +32,11 @@ def run(config):
             pull_safeguarding(config, source, name)
         else:
             raise ValueError(f"Invalid source format {source.format}")
-    
+
         print(f"Pulled all {name} data")
-    
+
     meta = {
-        "pull_timestamp" : str(datetime.now(timezone.utc)),
+        "pull_timestamp": str(datetime.now(timezone.utc)),
     }
     write_meta(config, meta, config.inputpath)
 
@@ -50,7 +57,9 @@ def pull_translations(config, source, source_name):
 
         # Download relevant PO translation files from github to temp folder
         language_folder_in_repo = source.folder_within_repo + "/" + lang_code
-        translation_temp_po_folder = os.path.join(translations_temp_folder, "raw_po_files")
+        translation_temp_po_folder = os.path.join(
+            translations_temp_folder, "raw_po_files"
+        )
         download_translations_github(
             source.translation_repo,
             language_folder_in_repo,
@@ -80,8 +89,10 @@ def pull_sheets(config, source, source_name):
 
     jsons = {}
     if source.files_archive is not None:
-        if source.subformat != 'csv':
-            raise NotImplementedError(f"files_archive only supported for sheets of subformat csv.")
+        if source.subformat != "csv":
+            raise NotImplementedError(
+                "files_archive only supported for sheets of subformat csv."
+            )
         archive_filepath = download_archive(config, source)
         with tempfile.TemporaryDirectory() as temp_dir:
             shutil.unpack_archive(archive_filepath, temp_dir)
@@ -90,8 +101,10 @@ def pull_sheets(config, source, source_name):
                 jsons[sheet_id] = convert_to_json([csv_folder], source.subformat)
     else:
         for sheet_name in source.files_list:
-            if source.subformat != 'google_sheets':
-                raise NotImplementedError(f"files_list only supported for sheets of subformat google_sheets.")
+            if source.subformat != "google_sheets":
+                raise NotImplementedError(
+                    "files_list only supported for sheets of subformat google_sheets."
+                )
             sheet_id = get_sheet_id(config, sheet_name)
             jsons[sheet_name] = convert_to_json(sheet_id, source.subformat)
     for new_name, sheet_id in source.files_dict.items():

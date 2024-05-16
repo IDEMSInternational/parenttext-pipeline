@@ -4,16 +4,15 @@ import runpy
 
 from packaging.version import Version
 
-from parenttext_pipeline import pipeline_version
-from parenttext_pipeline.configs import Config
-from parenttext_pipeline.config_converter import convert_config
 import parenttext_pipeline.compile_flows
 import parenttext_pipeline.pull_data
-
+from parenttext_pipeline import pipeline_version
+from parenttext_pipeline.config_converter import convert_config
+from parenttext_pipeline.configs import Config
 
 OPERATIONS_MAP = {
-    "pull_data" : parenttext_pipeline.pull_data.run,
-    "compile_flows" : parenttext_pipeline.compile_flows.run,
+    "pull_data": parenttext_pipeline.pull_data.run,
+    "compile_flows": parenttext_pipeline.compile_flows.run,
 }
 
 
@@ -22,14 +21,13 @@ class ConfigError(Exception):
 
 
 def init():
-    parser = argparse.ArgumentParser(
-        description="Run a pipeline of operations."
-    )
+    parser = argparse.ArgumentParser(description="Run a pipeline of operations.")
     parser.add_argument(
         "operations",
         nargs="+",
         help=(
-            "Sequence of operations to perform. Valid choices: pull_data, compile_flows."
+            "Sequence of operations to perform. "
+            "Valid choices: pull_data, compile_flows."
         ),
     )
     args = parser.parse_args()
@@ -39,9 +37,15 @@ def init():
     config_pipeline_version = Version(config.meta["pipeline_version"])
     real_pipeline_version = Version(pipeline_version())
     if config_pipeline_version > real_pipeline_version:
-        raise ValueError(f"Pipeline version of the config {config_pipeline_version} is newer than actual pipeline version {real_pipeline_version}")
+        raise ValueError(
+            f"Pipeline version of the config {config_pipeline_version} is newer "
+            f"than actual pipeline version {real_pipeline_version}"
+        )
     if config_pipeline_version.major != real_pipeline_version.major:
-        raise ValueError(f"Major of config pipeline version {config_pipeline_version} does not match major of actual pipeline version {real_pipeline_version}")
+        raise ValueError(
+            f"Major of config pipeline version {config_pipeline_version} does not "
+            f"match major of actual pipeline version {real_pipeline_version}"
+        )
 
     for operation in args.operations:
         OPERATIONS_MAP[operation](config)
@@ -49,14 +53,14 @@ def init():
 
 def load_config():
     try:
-        with open('config.json') as f:
+        with open("config.json") as f:
             config = json.load(f)
             return Config(**config)
     except FileNotFoundError:
         pass
 
     try:
-        create_config = runpy.run_path('config.py').get("create_config")
+        create_config = runpy.run_path("config.py").get("create_config")
     except FileNotFoundError:
         raise ConfigError("Could not find 'config.json' nor 'config.py'")
 
@@ -70,5 +74,5 @@ def load_config():
         raise ConfigError("Could not find 'create_config' function in 'config.py'")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     init()

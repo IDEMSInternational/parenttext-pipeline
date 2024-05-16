@@ -1,9 +1,9 @@
 import itertools
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
+from pathlib import Path
 
 from parenttext_pipeline import pipeline_version
 
@@ -44,10 +44,15 @@ def get_files_from_source(config, source_name, step_name):
     files_by_id = []
     source_config = get_source_config(config, source_name, step_name)
     if source_config.format not in ["sheets", "json"]:
-        raise ValueError(f"Source {source_name} referenced by step {step_name} should be of format sheets or json but is not.")
+        raise ValueError(
+            f"Source {source_name} referenced by step {step_name} should be "
+            "of format sheets or json but is not."
+        )
     step_input_path = get_input_subfolder(config, source_name)
     # JSON input format currently doesn't support files_list
-    for file_id in itertools.chain(getattr(source_config, "files_list", []), source_config.files_dict.keys()):
+    for file_id in itertools.chain(
+        getattr(source_config, "files_list", []), source_config.files_dict.keys()
+    ):
         files_by_id.append((file_id, os.path.join(step_input_path, f"{file_id}.json")))
     return files_by_id
 
@@ -89,8 +94,8 @@ def make_output_filepath(config, suffix):
 
 def write_meta(config, field_dict, path):
     meta = {
-        "pipeline_version" : pipeline_version(),
-        "config_version" : config.meta.get("version") or "legacy",
+        "pipeline_version": pipeline_version(),
+        "config_version": config.meta.get("version") or "legacy",
     } | field_dict
 
     with open(Path(path) / "meta.json", "w") as outfile:

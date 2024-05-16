@@ -1,5 +1,5 @@
-from parenttext_pipeline.common import clear_or_create_folder, read_meta, write_meta
 from parenttext_pipeline import steps
+from parenttext_pipeline.common import clear_or_create_folder, read_meta, write_meta
 
 
 def run(config):
@@ -7,7 +7,7 @@ def run(config):
     clear_or_create_folder(config.temppath)
 
     data = read_meta(config.inputpath)
-    meta = {"pull_timestamp" : data["pull_timestamp"]}
+    meta = {"pull_timestamp": data["pull_timestamp"]}
     write_meta(config, meta, config.outputpath)
 
     input_file = None
@@ -23,18 +23,18 @@ def run(config):
 
 
 STEP_MAPPING = {
-        "create_flows": steps.create_flows,
-        "load_flows": steps.load_flows,
-        "edits": steps.apply_edits, 
-        "extract_texts_for_translators": steps.apply_extract_texts_for_translators, 
-        "fix_arg_qr_translation": steps.apply_fix_arg_qr_translation, 
-        "has_any_word_check": steps.apply_has_any_word_check, 
-        "overall_integrity_check": steps.apply_overall_integrity_check, 
-        "qr_treatment": steps.apply_qr_treatment, 
-        "safeguarding": steps.apply_safeguarding, 
-        "translation": steps.apply_translations, 
-        "update_expiration_times": steps.update_expiration_times,
-    }
+    "create_flows": steps.create_flows,
+    "load_flows": steps.load_flows,
+    "edits": steps.apply_edits,
+    "extract_texts_for_translators": steps.apply_extract_texts_for_translators,
+    "fix_arg_qr_translation": steps.apply_fix_arg_qr_translation,
+    "has_any_word_check": steps.apply_has_any_word_check,
+    "overall_integrity_check": steps.apply_overall_integrity_check,
+    "qr_treatment": steps.apply_qr_treatment,
+    "safeguarding": steps.apply_safeguarding,
+    "translation": steps.apply_translations,
+    "update_expiration_times": steps.update_expiration_times,
+}
 
 
 def apply_step(config, step_config, step_number, step_input_file):

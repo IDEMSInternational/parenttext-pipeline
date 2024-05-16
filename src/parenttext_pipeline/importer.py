@@ -75,10 +75,7 @@ def logout(session, host):
 
 
 def extract_csrf_token(session, url):
-    return BeautifulSoup(
-        session.get(url).text,
-        features="html.parser",
-    ).select_one(
+    return BeautifulSoup(session.get(url).text, features="html.parser",).select_one(
         "input[name=csrfmiddlewaretoken]"
     )["value"]
 

@@ -1,8 +1,9 @@
 from parenttext_pipeline import pipeline_version
 
+
 def convert_config(config):
     return {
-        # I am assuming that the list of sources contains only one entry, 
+        # I am assuming that the list of sources contains only one entry,
         # as that is what I have observed in practice.
         # In the original config, config["sources"][0]["crowdin_name"]
         # specifies the output filename of the .pot file that is produced to
@@ -48,23 +49,23 @@ def convert_config(config):
                 "format": "json",
                 "files_dict": {
                     "special_expiration_file": config.get("special_expiration"),
-                }
+                },
             },
             "qr_treatment": {
                 "format": "json",
                 "files_dict": {
                     "select_phrases_file": config.get("select_phrases"),
                     "special_words_file": config.get("special_words"),
-                }
+                },
             },
             "safeguarding": {
                 "format": "safeguarding",
                 "filepath": config.get("sg_path"),
-                "sources" : config.get("sg_sources"),
+                "sources": config.get("sg_sources"),
             },
         },
         "steps": [
-            {   
+            {
                 "id": "create_flows",
                 "type": "create_flows",
                 "sources": ["flow_definitions"],
@@ -77,7 +78,7 @@ def convert_config(config):
                 "sources": ["expiration_times"],
                 "default_expiration_time": config.get("default_expiration"),
             },
-            {   
+            {
                 "id": "edits_pretranslation",
                 "type": "edits",
                 "sources": ["edits_pretranslation"],
@@ -94,16 +95,16 @@ def convert_config(config):
                 "id": "extract_texts_for_translators",
                 "type": "extract_texts_for_translators",
             },
-            {   
+            {
                 "id": "translation",
                 "type": "translation",
                 "sources": ["translation"],
                 "languages": config.get("languages"),
             },
-            {   
+            {
                 "id": "edits_posttranslation",
                 "type": "edits",
-                "sources": ["edits_posttranslation"]
+                "sources": ["edits_posttranslation"],
             },
             {
                 "id": "hasanyword_posttranslation",
@@ -126,13 +127,13 @@ def convert_config(config):
                 "length_threshold": config.get("length_threshold"),
                 "add_selectors": config.get("add_selectors"),
             },
-            {   
+            {
                 "id": "safeguarding",
                 "type": "safeguarding",
                 "sources": ["safeguarding"],
                 "flow_uuid": config.get("sg_flow_id"),
                 "flow_name": config.get("sg_flow_name"),
                 "redirect_flow_names": config.get("redirect_flow_names"),
-            }
-        ]
+            },
+        ],
     }

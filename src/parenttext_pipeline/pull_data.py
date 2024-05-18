@@ -85,7 +85,9 @@ def pull_translations(config, source, source_name):
 
 def pull_sheets(config, source, source_name):
     # Download all sheets used for flow creation and edits and store as json
-    source_input_path = get_input_subfolder(config, source_name, makedirs=True)
+    source_input_path = get_input_subfolder(
+        config, source_name, makedirs=True, in_temp=False
+    )
 
     jsons = {}
     if source.files_archive is not None:
@@ -93,7 +95,8 @@ def pull_sheets(config, source, source_name):
             raise NotImplementedError(
                 "files_archive only supported for sheets of subformat csv."
             )
-        archive_filepath = download_archive(config, source)
+        location = source.archive
+        archive_filepath = download_archive(config.temppath, location)
         with tempfile.TemporaryDirectory() as temp_dir:
             shutil.unpack_archive(archive_filepath, temp_dir)
             for sheet_id in source.files_list:
@@ -117,7 +120,9 @@ def pull_sheets(config, source, source_name):
 
 def pull_json(config, source, source_name):
     # Postprocessing files
-    source_input_path = get_input_subfolder(config, source_name, makedirs=True)
+    source_input_path = get_input_subfolder(
+        config, source_name, makedirs=True, in_temp=False
+    )
 
     for new_name, filepath in source.files_dict.items():
         shutil.copyfile(filepath, source_input_path / f"{new_name}.json")
@@ -125,7 +130,9 @@ def pull_json(config, source, source_name):
 
 def pull_safeguarding(config, source, source_name):
     # Safeguarding files
-    source_input_path = get_input_subfolder(config, source_name, makedirs=True)
+    source_input_path = get_input_subfolder(
+        config, source_name, makedirs=True, in_temp=False
+    )
     safeguarding_file_path = source_input_path / "safeguarding_words.json"
     if source.sources:
         process_keywords_to_file(source.sources, safeguarding_file_path)
@@ -133,14 +140,18 @@ def pull_safeguarding(config, source, source_name):
         shutil.copyfile(source.filepath, safeguarding_file_path)
 
 
-def download_archive(config, source):
-    location = source.archive
+def unpack_archive(destination, location):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        location = download_archive(temp_dir, location)
+        shutil.unpack_archive(location, destination)
 
+
+def download_archive(destination, location):
     if location and location.startswith("http"):
         response = requests.get(location)
 
         if response.ok:
-            archive_destinationpath = os.path.join(config.temppath, location + ".zip")
+            archive_destinationpath = os.path.join(destination, "archive.zip")
             with open(archive_destinationpath, "wb") as archive:
                 archive.write(response.content)
             print(f"Archive downloaded, url={location}, file={archive_destinationpath}")

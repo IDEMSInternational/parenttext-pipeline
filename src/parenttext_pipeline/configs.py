@@ -1,4 +1,11 @@
 from dataclasses import dataclass, field
+import json
+from pathlib import Path
+import contextlib
+import os
+import runpy
+
+from parenttext_pipeline.config_converter import convert_config
 
 
 @dataclass(kw_only=True)
@@ -106,9 +113,22 @@ STEP_CONFIGS = {
 
 
 @dataclass(kw_only=True)
+class ParentReference:
+    # URL of the repo/zip of the parent
+    location: str
+
+
+@dataclass(kw_only=True)
 class SourceConfig:
     # Format of the source data
     format: str
+    # References to parents sources to include in this source
+    parent_sources: list[str] = field(default_factory=list)
+    # For each `(name, filepath)` entry in `{files_dict}`, the processed version
+    # of `{filepath}` is stored as `{name}.json`.
+    files_dict: dict[str, str] = field(default_factory=dict)
+    # List of
+    files_list: list[str] = field(default_factory=list)
 
 
 @dataclass(kw_only=True)
@@ -116,9 +136,6 @@ class SheetsSourceConfig(SourceConfig):
     # Input format of the sheets.
     # Either google_sheets, csv, json or xlsx
     subformat: str
-    # For each `(name, filepath)` entry in `{files_dict}`, the processed version
-    # of `{filepath}` is stored as `{name}.json`.
-    files_dict: dict[str, str] = field(default_factory=dict)
 
     # If files_archive is None: List of Google Sheet IDs to read from
     # If files_archive is not None: List of folder names within archive
@@ -132,6 +149,7 @@ class SheetsSourceConfig(SourceConfig):
 class JSONSourceConfig(SourceConfig):
     # For each `(name, filepath)` entry in `{files_dict}`, the processed version
     # of `{filepath}` is stored as `{name}.json`.
+    # Redefined to make this required
     files_dict: dict[str, str]
 
 
@@ -185,10 +203,10 @@ SOURCE_CONFIGS = {
 @dataclass(kw_only=True)
 class Config:
     meta: dict
-    parents: list[dict] = None
+    parents: dict[str, ParentReference] = field(default_factory=dict)
     sheet_names: dict = field(default_factory=dict)
     sources: dict[str, SourceConfig]
-    steps: list[StepConfig]
+    steps: list[StepConfig] = field(default_factory=list)
     temppath: str = "temp"
     outputpath: str = "output"
     inputpath: str = "input"
@@ -214,3 +232,47 @@ class Config:
                 raise ValueError(f"Unknown source type: {source_format}")
             sources[source_name] = source_config_class(**source_config)
         self.sources = sources
+
+        parents = {}
+        for parent_name, parent_config in self.parents.items():
+            parents[parent_name] = ParentReference(**parent_config)
+        self.parents = parents
+
+
+class ConfigError(Exception):
+    pass
+
+
+@contextlib.contextmanager
+def change_cwd(new_cwd):
+    cwd = os.getcwd()
+    os.chdir(new_cwd)
+
+    try:
+        yield
+    finally:
+        os.chdir(cwd)
+
+
+def load_config(path="."):
+    try:
+        with open(Path(path) / "config.json") as f:
+            config = json.load(f)
+            return Config(**config)
+    except FileNotFoundError:
+        pass
+
+    try:
+        with change_cwd(path):
+            create_config = runpy.run_path("config.py").get("create_config")
+    except FileNotFoundError:
+        raise ConfigError("Could not find 'config.json' nor 'config.py'")
+
+    if create_config and callable(create_config):
+        config = create_config()
+        if "meta" not in config:
+            # Legacy version of config detected. Converting to new config format.
+            config = convert_config(config)
+        return Config(**config)
+    else:
+        raise ConfigError("Could not find 'create_config' function in 'config.py'")

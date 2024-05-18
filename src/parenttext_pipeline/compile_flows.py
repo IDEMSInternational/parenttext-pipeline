@@ -1,10 +1,19 @@
 from parenttext_pipeline import steps
-from parenttext_pipeline.common import clear_or_create_folder, read_meta, write_meta
+from parenttext_pipeline.common import (
+    clear_or_create_folder,
+    get_input_folder,
+    read_meta,
+    write_meta,
+)
+from parenttext_pipeline.compile_sources import compile_sources
 
 
 def run(config):
     clear_or_create_folder(config.outputpath)
     clear_or_create_folder(config.temppath)
+
+    print("Compiling sources...")
+    config.sources = compile_sources(".", get_input_folder(config))
 
     data = read_meta(config.inputpath)
     meta = {"pull_timestamp": data["pull_timestamp"]}

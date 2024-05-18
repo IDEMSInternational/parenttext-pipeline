@@ -1,23 +1,16 @@
 import argparse
-import json
-import runpy
 
 from packaging.version import Version
 
 import parenttext_pipeline.compile_flows
 import parenttext_pipeline.pull_data
 from parenttext_pipeline import pipeline_version
-from parenttext_pipeline.config_converter import convert_config
-from parenttext_pipeline.configs import Config
+from parenttext_pipeline.configs import load_config
 
 OPERATIONS_MAP = {
     "pull_data": parenttext_pipeline.pull_data.run,
     "compile_flows": parenttext_pipeline.compile_flows.run,
 }
-
-
-class ConfigError(Exception):
-    pass
 
 
 def init():
@@ -49,29 +42,6 @@ def init():
 
     for operation in args.operations:
         OPERATIONS_MAP[operation](config)
-
-
-def load_config():
-    try:
-        with open("config.json") as f:
-            config = json.load(f)
-            return Config(**config)
-    except FileNotFoundError:
-        pass
-
-    try:
-        create_config = runpy.run_path("config.py").get("create_config")
-    except FileNotFoundError:
-        raise ConfigError("Could not find 'config.json' nor 'config.py'")
-
-    if create_config and callable(create_config):
-        config = create_config()
-        if "meta" not in config:
-            # Legacy version of config detected. Converting to new config format.
-            config = convert_config(config)
-        return Config(**config)
-    else:
-        raise ConfigError("Could not find 'create_config' function in 'config.py'")
 
 
 if __name__ == "__main__":

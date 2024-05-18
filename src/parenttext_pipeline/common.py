@@ -14,10 +14,20 @@ def clear_or_create_folder(path):
     os.makedirs(path)
 
 
-def get_input_subfolder(config, name, makedirs=False):
-    source_input_path = Path(config.inputpath) / name
+def get_input_folder(config, makedirs=False, in_temp=True):
+    if in_temp:
+        input_path = Path(config.temppath) / "input"
+    else:
+        input_path = Path(config.inputpath)
     if makedirs:
-        os.makedirs(source_input_path)
+        os.makedirs(input_path, exist_ok=True)
+    return input_path
+
+
+def get_input_subfolder(config, name, makedirs=False, in_temp=True):
+    source_input_path = get_input_folder(config, makedirs, in_temp) / name
+    if makedirs:
+        os.makedirs(source_input_path, exist_ok=True)
     return source_input_path
 
 

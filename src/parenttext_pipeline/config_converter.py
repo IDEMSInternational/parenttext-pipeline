@@ -11,7 +11,7 @@ def convert_config(config):
         "meta": {
             "pipeline_version": pipeline_version(),
         },
-        "parents": [],
+        "parents": {},
         "flows_outputbasename": config["sources"][0].get("filename"),
         "output_split_number": config["sources"][0].get("split_no"),
         "sources": {

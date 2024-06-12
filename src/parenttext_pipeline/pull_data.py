@@ -114,7 +114,7 @@ def pull_sheets(config, source, source_name):
         jsons[new_name] = convert_to_json(sheet_id, source.subformat)
 
     for sheet_name, content in jsons.items():
-        with open(source_input_path / f"{sheet_name}.json", "w") as export:
+        with open(source_input_path / f"{sheet_name}.json", "w", encoding='utf-8') as export:
             export.write(content)
 
 

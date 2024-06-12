@@ -19,7 +19,7 @@ Two [operations] are currently available:
 To start the pipeline performing both operations in sequence:
 
 ```
-python -m parenttext_pipeline.cli pull_data create_flows
+python -m parenttext_pipeline.cli pull_data compile_flows
 ```
 
 You will need to create a file called 'config.py', in the current working directory, and define a callable called 'create_config' that returns the pipeline settings as a dict. More details can be in the [configuration page][config].

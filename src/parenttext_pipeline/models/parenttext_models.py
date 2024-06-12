@@ -19,6 +19,7 @@ class IntroductionBlockModel(ParserModel):
 
 class ImportanceBlockModel(ParserModel):
 	msg_list: List[str] = []
+	image: str = ''
 
 class QuizContentModel(ParserModel):
 	question: List[str] = []
@@ -106,6 +107,7 @@ class TrackerInfoModel(ParserModel):
 
 class FlowStructureModel(DataRowModel):
 	block: List[TrackerInfoModel] = []
+	review: str = ''
 
 
 class BlockMetadataModel(DataRowModel):
@@ -177,6 +179,7 @@ class OnboardingStepsModel(DataRowModel):
 	flow: str = ''
 	variable: str = ''
 	filter_list:  List[str] = ""
+	expiration_message: str = ""
 
 class OnboardingQuestionOptionModel(ParserModel):
 	text: str = ''
@@ -397,7 +400,9 @@ class TimedProgrammeModel(DataRowModel):
 	incomplete_name: str = ''
 	interaction_flow: str = ''
 	interaction_proceed_value: str = ''
+	interaction_expiration_message: str = ''
 	flow: str = ''
+	expiration_message: str = ''
 
 
 class ActivityTypeModel(DataRowModel):
@@ -550,10 +555,14 @@ class Language(ParserModel):
 class GoalDataModel(DataRowModel):
     priority_c: str = ""
     priority_t: str = ""
+    priority2_c: str = ""
+    priority2_t: str = ""
     priority_p: str = ""
     relationship: List[str] = []
+    parent_gender: List[str] = []
     checkin_c: str = ""
     checkin_t: str = ""
+    checkin_p: str = ""
     name_c: Language = Language()
     name_t: Language = Language()
 
@@ -574,3 +583,16 @@ class GoalTopicLinkModel(DataRowModel):
     priority_in_goal_c: str = ""
     priority_in_goal_p: str = ""
     priority_in_goal_t: str = ""
+
+
+### rct
+class StrataDataModel(DataRowModel):
+	split_variable: str = ""
+	values: List[str] = []
+
+class GlobalVariableModel(DataRowModel):
+	var_key: str = ''
+	var_value: str = '' 
+
+class IncentiveModel(DataRowModel):
+	amount: str = ''

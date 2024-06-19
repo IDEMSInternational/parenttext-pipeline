@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "parenttext_pipeline"
 version = "0.2.2"
 authors = [
-    {name = "IDEMS International", email = "communications@idems.international"},
+    {name = "IDEMS International", email = "contact@idems.international"},
 ]
 readme = "README.md"
 requires-python = ">=3.8"

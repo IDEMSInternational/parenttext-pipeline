@@ -509,6 +509,7 @@ class SettingsProfileModel(DataRowModel):
 class ReferralsModel(DataRowModel):
 	referrals: str = ''
 	option_name: str = ''
+	intro: str = ''
 
 
 class SafeguardingRedirectModel(DataRowModel):

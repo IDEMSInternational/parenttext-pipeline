@@ -1,7 +1,33 @@
 # Pipeline steps
 
-Each step has an identifier (name), a type, and (depending on the type) may have a list of [sources] referencing input files relevant for the step.
-Depending on the type, the config of each step may have various additional fields, see [configs] for details. The idenfier (name) and no further purpose and only serves for reporting and affects temp file names. Input file locations are determined by the sources.
+The main configuration include a *list* of steps that are to be executed in order. Each step has an identifier (name), a type, and (depending on the type) may have a list of [sources] referencing input files relevant for the step (in addition to using the output of the previous step as input). Some steps require a *list* of inputs, while others may require a *specific set* of inputs; thus referenced source have to provide a list/dict of files matching the requirements of the step type.
+
+Example of a step referencing a source:
+
+```
+"sources": {
+    "edits_pretranslation": {
+        "format": "sheets",
+        "subformat": "google_sheets",
+        "files_list": [
+            "ab_testing_sheet_ID",
+            "localisation_sheet_ID"
+        ]
+    },
+    ...
+},
+"steps": [
+    ...,
+    {   
+        "id": "edits_pretranslation",
+        "type": "edits",
+        "sources": ["edits_pretranslation"]
+    },
+    ...
+]
+```
+
+Depending on the type, the config of each step may have various additional fields, see [configuration] for details. The idenfier (name) has no further purpose and only serves for reporting and affects temp file names. Input file locations are determined by the sources.
 
 We have the following types of steps.
 
@@ -51,4 +77,5 @@ We want to have the functionality to pull Goals API data from a spreadsheet and 
 This does not require a step, but can be implemented by only specifying a `goals_api` source which is not referenced by any step.
 
 [configs]: ../src/parenttext_pipeline/configs.py
+[configuration]: configuration.md
 [sources]: sources.md

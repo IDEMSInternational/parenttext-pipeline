@@ -607,5 +607,5 @@ class GlobalVariableModel(DataRowModel):
 
 class IncentiveModel(DataRowModel):
 	amount: str = ''
-  currency: str = ''
+	currency: str = ''
 

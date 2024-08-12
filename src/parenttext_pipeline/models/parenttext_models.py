@@ -419,6 +419,8 @@ class ActivityOfferModel(DataRowModel):
 	accept: AgeGroupModel = AgeGroupModel()
 	refuse: str = ''
 	refuse_msg: str = ''
+	other_option: str = ''
+	other_flow: str = ''
 	next_offer_msg: str = ''
 	next_accept: str = ''
 	next_refuse: str = ''
@@ -450,6 +452,12 @@ class MetadataModel(ParserModel):
 
 class SingleMessageModel(DataRowModel):
 	msg: str = ''
+	next_button_option: str = ''
+	attachment: AttachmentModel = AttachmentModel()
+	metadata: MetadataModel = MetadataModel()
+
+class MessageListModel(DataRowModel):
+	msg: List[str] = []
 	next_button_option: str = ''
 	attachment: AttachmentModel = AttachmentModel()
 	metadata: MetadataModel = MetadataModel()
@@ -508,6 +516,7 @@ class SettingsProfileModel(DataRowModel):
 
 class ReferralsModel(DataRowModel):
 	referrals: str = ''
+	intro: str = ''
 	option_name: str = ''
 
 
@@ -551,6 +560,7 @@ class Language(ParserModel):
     afr: str = ""
     xho: str = ""
     zul: str = ""
+    hau: str = ""
 
 class GoalDataModel(DataRowModel):
     priority_c: str = ""
@@ -596,3 +606,4 @@ class GlobalVariableModel(DataRowModel):
 
 class IncentiveModel(DataRowModel):
 	amount: str = ''
+	currency: str = ''

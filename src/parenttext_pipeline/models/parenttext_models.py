@@ -518,6 +518,7 @@ class ReferralsModel(DataRowModel):
 	referrals: str = ''
 	intro: str = ''
 	option_name: str = ''
+	intro: str = ''
 
 
 class SafeguardingRedirectModel(DataRowModel):
@@ -606,4 +607,5 @@ class GlobalVariableModel(DataRowModel):
 
 class IncentiveModel(DataRowModel):
 	amount: str = ''
-	currency: str = ''
+  currency: str = ''
+

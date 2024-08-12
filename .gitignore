@@ -1,6 +1,6 @@
 # Intermediary output files
 temp/
-output/
+src/parenttext_pipeline/_version.py
 
 #credentials files
 credentials.json

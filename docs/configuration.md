@@ -1,6 +1,14 @@
 # Configuration
 
-The pipeline is configured via a user-defined callable named `create_config` in a file called 'config.py'.
+A pipeline configuration allows us to specify what steps to run, with which parameters and with which input data.
+
+## `config.json`
+
+The pipeline is configured via a user-defined `config.json` file. This file is expected to be in the current working directory. If no such file is present, for backward-compatibility we also support configs via a `config.py` file.
+
+## `config.py`
+
+If no `config.json` was found, the pipeline will look for this file in the current working directory, load it, then attempt to call `create_config` to generate the configuration settings.
 
 ```python
 def create_config():
@@ -9,166 +17,36 @@ def create_config():
     }
 ```
 
-On initialisation, the pipeline will look for this file in the current working directory, load it, then attempt to call `create_config` to generate the configuration settings.
-
 The `create_config` callable must return a `dict` of configuration settings.
 
 # Available settings
 
-## sources
-
-### sources.filename
-
-The name prefix that will be used in filenames during processing.
-
-### sources.spreadsheet\_ids
-
-IDs of Google Sheets where the ParentText flows are defined.
-
-### sources.crowdin\_name
-
-Name of the file that is produced to send to translators.
-
-### sources.tags
-
-Used to identify flows to be process. Possible values for tag 1:
-
-- onboarding
-- dev\_assess
-- ltp_activity
-- home\_activity\_checkin
-- module
-- goal\_checkin
-- safeguarding
-- menu
-- delivery
-
-### sources.split\_no
-
-The number of files into which the final flow definition will be split.
-
-Used to divide the file at the final step to get it to a manageable size that can be uploaded to RapidPro.
-
-## special\_expiration
-
-Used to modify expiration times.
-
-## default\_expiration
-
-Used to modify expiration times.
-
-## model
-
-Name of the Python module containing data models to use as part of the process of converting data extracted from sheets.
-
-## languages
-
-A list of language definitions that will be looked for to localize back into the flows. Each language definition consists of:
-
-- `language`: 3-letter language code used in RapidPro
-- `code`: 2-letter code used in CrowdIn
-
-## translation\_repo
-
-Location of a git repository where translations are stored.
-
-## folder\_within\_repo
-
-The location within `tranlsation_repo` where translations are stored.
-
-Used in conjuction with `translation_repo`, above.
-
-## outputpath
-
-Destination path for all files (including intermediary files and log files).
-
-Default is 'output' within the current workin directory.
-
-## qr\_treatment
-
-How to process "quick replies". Valid values are:
-
-- move: Remove quick replies and add equivalents to them to the message text, and give numerical prompts to allow basic phone users to use the app.
-- move_and_mod: As above but has additional functionality allowing you to replace phrases
-- reformat: Reformat quick replies so that long ones are added to the message text, as above.
-- reformat_whatsapp: Reformat quick replies to meet the whatsapp format
-- reformat_china: Reformat quick replies to the standard as requested by China
-- wechat: All quick replies moved to links in message text as can be used in WeChat
-- none: Do nothing.
-
-## select\_phrases
-
-The default phrase we want to add if quick replies are being moved to message text.
-
-## add\_selectors
-
-If `qr_treatment` is 'move', add some basic numerical quick replies back in. Valid values are 'yes' or 'no'.
-
-## special\_words
-
-Path to a file containing words we always want to keep as full quick replies.
-
-## count\_threshold
-
-When `qr_treatment` is 'reformat', set limits on the number of quick replies that are processed.
-
-If the number of quick replies is below or equal to count\_threshold then the quick replies are left in place.
-
-## length\_threshold
-
-When `qr_treatment` is 'reformat', set limits on the number of quick replies that are processed.
-
-If the character-length of the longest quick reply is below or equal to length\_threshold then the quick replies are left in place.
-
-## ab\_testing\_sheet\_id
-
-Google Sheets ID for Sheet containing AB testing data.
-
-## localisation\_sheet\_id
-
-Google Sheets ID.
-
-## eng\_edits\_sheet\_id
-
-Google Sheets ID for Sheet containing dict edits data.
-
-## transl\_edits\_sheet\_id
-
-Google Sheets ID.
-
-## sg\_flow\_id
-
-Sheets ID for Sheet containing safeguarding data.
-
-## sg\_flow\_name
-
-The name of the RapidPro flow for safeguarding.
-
-## sg\_path
-
-Path to file containing translated safeguarding words in JSON format.
-
-## sg\_sources
-
-Defines a list of sources containing safeguarding keywords. Each entry is a `dict` containing the following keys:
-
-- `key`: three letter language code of the translated words
-- `path`: file path on the local file system to the XLSX file containing the words
-
-For example:
-```python
-{
-    "sg_sources": [
-        {
-            "key": "spa",
-            "path": "excel_files/safeguarding mexico.xlsx",
-        },
-    ],
-}
-```
-
-The referenced XLSX files will be converted to a single file called _safeguarding\_words.json_, in the output directory. The `sg_path` setting will be overridden to point to this JSON file, for further processing. If `sg_sources` is not set, `sg_path` will remain unchanged.
-
-## redirect\_flow\_names
-
-Names of redirect flows to be modified as part of safeguarding process.
+The main features of the config are a list of [steps] of the pipeline, and a list of [sources] to pull data from.
+Steps are executed in order, the first step producing a temporary flow output file, and subsequent steps generally operating on the output of the previous step and most of the time (but not always) producing a new (temporary) flow output files. Some steps may also produce different output artefacts than flows, such as a list of translatable strings, or logs or reports for QA. Subsequent steps cannot read such outputs, however. For more details about steps, see [steps].
+There are different types of steps, and some types of steps may need additional input data that is used to create or operate on the input flows. Such data is defined in data sources, which may reference local files or files off the internet, in various formats. Steps then may reference one or multiple such data sources. For more details about steps, see [sources].
+
+The *pull_data* operation takes data referenced by all sources and saves it in the local file system (folder `{inputpath}`) converted to json. It is agnostic of the actual steps.
+
+The *compile_flows* operation executes the sequence of steps and writes the output to `{flows_outputbasename}.json` in `{outputpath}`.
+
+The config has the following fields:
+
+- `sources`: A dictionary of data sources. For more details, see [sources]
+- `steps`: A list of steps, often using data from the sources as input. For more details, see [steps]
+- `sheet_names`: A dictionary of from sheet names to sheet_ids (**for Google sheets only**). 
+   Sources can reference sheets by their ID or their sheet names.
+- `parents`: One or multiple parent repos whose data can be referenced by the sources, see [hierarchy].
+- `flows_outputbasename`: Base filename of the output file and intermediate temp files.
+- `meta`: meta information such as the pipeline version the config needs to be run with
+- `output_split_number` (optional): Number of files to split the pipeline output (final flow definition) into.
+    - Used to divide the file at the final step to get it to a manageable size that can be uploaded to RapidPro.
+- `inputpath`, `temppath` and `outputpath` (optional): Path to store/read input files, temp files, and output files.
+
+An example of a configuration can be found in [hierarchy].
+
+The python definition of the configuration model is available in [configs].
+
+[sources]: sources.md
+[steps]: steps.md
+[hierarchy]: hierarchy.md
+[configs]: ../src/parenttext_pipeline/configs.py

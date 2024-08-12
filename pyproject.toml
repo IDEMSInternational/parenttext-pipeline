@@ -28,7 +28,7 @@ classifiers = [
 dependencies = [
     "beautifulsoup4~=4.12",
     "packaging~=21.3",
-    "rapidpro-abtesting@https://github.com/IDEMSInternational/rapidpro_abtesting/archive/refs/tags/0.1.2.tar.gz",
+    "rapidpro-abtesting@https://github.com/IDEMSInternational/rapidpro_abtesting/archive/refs/heads/master.zip",
     "requests~=2.31",
     "rpft@https://github.com/IDEMSInternational/rapidpro-flow-toolkit/archive/refs/tags/1.2.1.tar.gz",
 ]

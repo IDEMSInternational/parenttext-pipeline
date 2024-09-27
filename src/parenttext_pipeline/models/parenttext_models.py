@@ -174,9 +174,16 @@ class SurveyBehaveModel(DataRowModel):
 	attached_single_doc: str = ''
 ###########################################################
 # onboarding
+class RelevantModel(ParserModel):
+	expression: str = ''
+	value: str = ''
+	condition_type: str = ''
 
 class OnboardingStepsModel(DataRowModel):
 	flow: str = ''
+	survey_id: str = ''
+	question_type: str = ''
+	question_id: str = ''
 	variable: str = ''
 	filter_list:  List[str] = ""
 	expiration_message: str = ""
@@ -187,6 +194,7 @@ class OnboardingQuestionOptionModel(ParserModel):
 	alias: str = ''
 
 class OnboardingQuestionWithOptionsModel(DataRowModel):
+	filter_list:  List[str] = ""
 	question: str = ''
 	image: str = ''
 	variable: str = ''
@@ -200,6 +208,8 @@ class OnboardingQuestionWithOptionsModel(DataRowModel):
 	go_back_opt: str = ''
 	stop_opt: str = ''
 	stop_message: str = ''
+	update_flow: str = ''
+	relevant: List[RelevantModel] = []
 
 class OnboardingQuestionInputTestModel(ParserModel):
 	expression: str = ''
@@ -213,7 +223,10 @@ class OnboardingQuestionInputModel(DataRowModel):
 	skip_value: str = ''
 	test: OnboardingQuestionInputTestModel = OnboardingQuestionInputTestModel()
 	error_message: str = ''
+	capitalise: str = ''
 	attached_single_doc: str = ''
+	relevant: List[RelevantModel] = []
+	update_flow: str = ''
 
 class OnboardingRangeModel(ParserModel):
 	limit: str = ''
@@ -237,6 +250,9 @@ class OnboardingQuestionRangeModel(DataRowModel):
 	up_stop_message: str = ''
 	general_error_msg: str = ''
 	ranges: List[OnboardingRangeModel] = []
+	relevant: List[RelevantModel] = []
+	update_flow: str = ''
+
 
 class OnboardingQuestionConfirmModel(DataRowModel):
 	confirm_question: str = ''

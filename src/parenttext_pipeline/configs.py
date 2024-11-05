@@ -143,6 +143,9 @@ class SheetsSourceConfig(SourceConfig):
     # Path or URL to a zip archive containing folders
     # each with sheets in CSV format (no nesting)
     files_archive: str = None
+    # Path relative to which other paths in the files_list/dict are,
+    # assuming no files_archive is provided
+    basepath: str = None
 
 
 @dataclass(kw_only=True)

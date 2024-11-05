@@ -53,13 +53,13 @@ Example dictionary of files:
 }
 ```
 
-Sources may have both.
+Sources may have both. In this case, dict entries will overwrite list entries of the same name.
 
 ## Local storage locations
 
 The source config fully determines the storage location of the data in its *storage format*. All data is stored inside of `{config.inputpath}`. When *pulling data*, each source gets its own local subfolder: For each source, a subfolder `{source.id}` is created. The list entries (str) and dict keys determine the filenames of the locally stored files.
 
-Remark: For Google sheets, the sheet_ids are non-descript. Thus the [configuration] has an (optional) global field `sheet_names` in which a mapping from names to sheet_ids can be provided. When a source references an input file, it first looks up whether it's in the `sheet_names` map and in that case uses the respective values.
+Remark: The [configuration] has an (optional) global field `sheet_names` in which a mapping from names to sheet_ids can be provided. When a source references an input file, it first looks up whether it's in the `sheet_names` map and in that case uses the respective key as storage file path (while pulling the file in accordance to the `sheet_names` dict value). This is useful for Google sheets because their sheet_ids are non-descript, but potentially also for local file references to abbreviate them and avoid `/`.
 
 
 ### `json` and `sheets`
@@ -70,9 +70,83 @@ Within the source's subfolder, for each `(name, filepath)` entry in `{source.fil
 
 For the input format `sheets`, we can additionally use `files_list`.
 
-- A special case here is if `files_archive` is provided and `source.subformat` is `csv`, then for each `sheet_id` entry in `source.files_list`, we process the folder `sheet_id` as a csv workbook and store the converted result as `{sheet_id}.json`. 
-- Otherwise, for each `sheet_id` entry in `source.files_list`, the processed version of `sheet_id` is stored as `{sheet_id}.json`. Note that this currently only works if `source.subformat` is `google_sheets`, because we have not made a decision on how to turn full file paths into filenames. 
+- For each `sheet_name` entry in `source.files_list`, the processed version of `sheet_name` is stored as `{sheet_name}.json`. Note that the `sheet_name` may not contain certain special characters such as `/`.
+- If the subformat is not `google_sheets`, i.e. we're referencing local files, the local file path is relative to the current working directory of the pipeline.
+- It is possible to provide a `basepath` (relative or absolute) to the source config; then all file paths are relative to the `basepath`.
+- It is also possible to provide a `files_archive` URL to a zip file. In that case, all file paths are relative to the archive root.
+
 - Remark: Do we still need `files_archive` (`.zip` archive) support? I'd be keen to deprecate it.
+
+Example: Assume that, relative to the current working directory, we have a folder `csv/safeguarding` containing `.csv` files, and we have a file `excel_files/safeguarding crisis.xlsx`. Then the following stores three copies of the `csv` data and three copies of the `xlsx` data, each in json format.
+
+```
+{
+    "meta": {
+        "version": "1.0.0",
+        "pipeline_version": "1.0.0"
+    },
+    "parents": {},
+    "flows_outputbasename": "parenttext_all",
+    "output_split_number": 1,
+    "sheet_names" : {
+        "csv_safeguarding" : "csv/safeguarding",
+        "xlsx_safeguarding" : "excel_files/safeguarding crisis.xlsx"
+    },
+    "sources": {
+        "safeguarding_csv_dict": {
+            "parent_sources": [],
+            "format": "sheets",
+            "subformat": "csv",
+            "files_dict": {
+                "safeguarding": "csv/safeguarding"
+            }
+        },
+        "safeguarding_csv_list": {
+            "parent_sources": [],
+            "format": "sheets",
+            "subformat": "csv",
+            "files_list": [
+                "csv_safeguarding"
+            ]
+        },
+        "safeguarding_csv_list_remap": {
+            "parent_sources": [],
+            "format": "sheets",
+            "subformat": "csv",
+            "basepath": "csv",
+            "files_list": [
+                "safeguarding"
+            ]
+        },
+        "safeguarding_xlsx_dict": {
+            "parent_sources": [],
+            "format": "sheets",
+            "subformat": "xlsx",
+            "files_dict": {
+                "safeguarding": "excel_files/safeguarding crisis.xlsx"
+            }
+        },
+        "safeguarding_xlsx_list_remap": {
+            "parent_sources": [],
+            "format": "sheets",
+            "subformat": "xlsx",
+            "files_list": [
+                "xlsx_safeguarding"
+            ]
+        },
+        "safeguarding_xlsx_list": {
+            "parent_sources": [],
+            "basepath": "excel_files",
+            "format": "sheets",
+            "subformat": "xlsx",
+            "files_list": [
+                "safeguarding crisis.xlsx"
+            ]
+        }
+    },
+    "steps": []
+}
+```
 
 [configs]: ../src/parenttext_pipeline/configs.py
 [configuration]: configuration.md

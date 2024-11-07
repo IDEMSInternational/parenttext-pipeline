@@ -12,7 +12,9 @@ class VariableModel(DataRowModel):
 class AttachmentModel(ParserModel):
 	file_type: str = ''
 	url: str = ''
-
+	
+class MetadataModel(ParserModel):
+    description: str = ''
 ###################################################################
 class IntroductionBlockModel(ParserModel):
 	msg_list: List[str] = []
@@ -179,6 +181,16 @@ class RelevantModel(ParserModel):
 	value: str = ''
 	condition_type: str = ''
 
+
+class IntroModel(DataRowModel):
+	filter_list:  List[str] = ""
+	relevant: List[RelevantModel] = []
+	msg: List[str] = []
+	next_button_option: str = ''
+	attachment: AttachmentModel = AttachmentModel()
+	metadata: MetadataModel = MetadataModel()
+
+
 class OnboardingStepsModel(DataRowModel):
 	flow: str = ''
 	survey_id: str = ''
@@ -215,13 +227,16 @@ class OnboardingQuestionInputTestModel(ParserModel):
 	expression: str = ''
 	value: str = ''
 	condition_type: str = ''
+	error_message: str = ''
 
 class OnboardingQuestionInputModel(DataRowModel):
+	filter_list:  List[str] = ""
 	question: str = ''
 	variable: str = ''
 	skip_option: str = ''
 	skip_value: str = ''
 	test: OnboardingQuestionInputTestModel = OnboardingQuestionInputTestModel()
+	tests: List[OnboardingQuestionInputTestModel] = []
 	error_message: str = ''
 	capitalise: str = ''
 	attached_single_doc: str = ''
@@ -463,8 +478,7 @@ class CongratsDataModel(DataRowModel):
 	msg: str = ''
 	extra_msg: str = ''
 
-class MetadataModel(ParserModel):
-    description: str = ''
+
 
 class SingleMessageModel(DataRowModel):
 	msg: str = ''

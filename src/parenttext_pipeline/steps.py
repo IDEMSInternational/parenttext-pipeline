@@ -217,6 +217,9 @@ def apply_translations(config, step_config, step_number, step_input_file):
 
     merge_translation_jsons(config, step_config)
 
+    if not step_config.languages:  # Check if languages is empty
+        return step_output_file
+
     for lang in step_config.languages:
         json_translation_path = os.path.join(
             config.temppath, step_name, lang["code"], "merged_translations.json"

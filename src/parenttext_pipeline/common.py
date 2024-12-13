@@ -31,10 +31,6 @@ def get_input_subfolder(config, name, makedirs=False, in_temp=True):
     return source_input_path
 
 
-def get_sheet_id(config, sheet_name):
-    return config.sheet_names.get(sheet_name, sheet_name)
-
-
 def input_files_from_ids(step_input_path, spreadsheet_ids):
     sheets = [
         os.path.join(step_input_path, f"{sheet_id}.json")

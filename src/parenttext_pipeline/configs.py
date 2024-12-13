@@ -131,6 +131,15 @@ class SourceConfig:
     files_list: list[str] = field(default_factory=list)
 
 
+@dataclass()
+class SourceReference:
+    name: str
+    """Display name"""
+
+    location: str
+    """Google Sheets ID or a local file path"""
+
+
 @dataclass(kw_only=True)
 class SheetsSourceConfig(SourceConfig):
     # Input format of the sheets.
@@ -139,7 +148,7 @@ class SheetsSourceConfig(SourceConfig):
 
     # If files_archive is None: List of Google Sheet IDs to read from
     # If files_archive is not None: List of folder names within archive
-    files_list: list[str] = field(default_factory=list)
+    files_list: list[SourceReference] = field(default_factory=list)
     # Path or URL to a zip archive containing folders
     # each with sheets in CSV format (no nesting)
     files_archive: str = None
@@ -147,13 +156,8 @@ class SheetsSourceConfig(SourceConfig):
     # assuming no files_archive is provided
     basepath: str = None
 
-
-@dataclass(kw_only=True)
-class JSONSourceConfig(SourceConfig):
-    # For each `(name, filepath)` entry in `{files_dict}`, the processed version
-    # of `{filepath}` is stored as `{name}.json`.
-    # Redefined to make this required
-    files_dict: dict[str, str]
+    def __post_init__(self):
+        self.files_list = [SourceReference(**ref) for ref in self.files_list]
 
 
 @dataclass(kw_only=True)
@@ -197,7 +201,7 @@ class TranslationSourceConfig(SourceConfig):
 
 SOURCE_CONFIGS = {
     "sheets": SheetsSourceConfig,
-    "json": JSONSourceConfig,
+    "json": SourceConfig,
     "translation_repo": TranslationSourceConfig,
     "safeguarding": SafeguardingSourceConfig,
 }
@@ -207,7 +211,6 @@ SOURCE_CONFIGS = {
 class Config:
     meta: dict
     parents: dict[str, ParentReference] = field(default_factory=dict)
-    sheet_names: dict = field(default_factory=dict)
     sources: dict[str, SourceConfig]
     steps: list[StepConfig] = field(default_factory=list)
     temppath: str = "temp"
@@ -250,11 +253,8 @@ class ConfigError(Exception):
 def change_cwd(new_cwd):
     cwd = os.getcwd()
     os.chdir(new_cwd)
-
-    try:
-        yield
-    finally:
-        os.chdir(cwd)
+    yield
+    os.chdir(cwd)
 
 
 def load_config(path="."):

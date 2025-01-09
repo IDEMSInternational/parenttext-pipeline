@@ -31,7 +31,10 @@ def compile_sources(repo_folder, destination_folder):
     for parent_id, parent in config.parents.items():
         parent_destination_folder = destination_folder / parent_id
         with tempfile.TemporaryDirectory() as temp_dir:
-            unpack_archive(temp_dir, parent.location)
+            if parent.location.endswith(".zip"):
+                unpack_archive(temp_dir, parent.location)
+            else:
+                shutil.copytree(parent.location, Path(temp_dir) / "archive")
             # after extracting, all the stuff is inside a subfolder
             # which we need to identify.
             folder_contents = os.listdir(temp_dir)

@@ -83,6 +83,14 @@ def pull_translations(config, source, source_name):
                 )
 
 
+def get_json_from_sheet_id(source, temp_dir, sheet_id):
+    if source.subformat == "google_sheets":
+        return convert_to_json(sheet_id, source.subformat)
+    else:
+        sheet_path = os.path.join(temp_dir, sheet_id)
+        return convert_to_json(sheet_path, source.subformat)
+
+
 def pull_sheets(config, source, source_name):
     # Download all sheets used for flow creation and edits and store as json
     source_input_path = get_input_subfolder(
@@ -91,30 +99,33 @@ def pull_sheets(config, source, source_name):
 
     jsons = {}
     if source.files_archive is not None:
-        if source.subformat != "csv":
-            raise NotImplementedError(
-                "files_archive only supported for sheets of subformat csv."
+        if source.subformat == "google_sheets":
+            raise ValueError(
+                "files_archive not supported for sheets of subformat google_sheets."
             )
         location = source.archive
         archive_filepath = download_archive(config.temppath, location)
-        with tempfile.TemporaryDirectory() as temp_dir:
-            shutil.unpack_archive(archive_filepath, temp_dir)
-            for sheet_id in source.files_list:
-                csv_folder = os.path.join(temp_dir, sheet_id)
-                jsons[sheet_id] = convert_to_json([csv_folder], source.subformat)
+        temp_dir = tempfile.TemporaryDirectory()
+        shutil.unpack_archive(archive_filepath, temp_dir)
     else:
-        for sheet_name in source.files_list:
-            if source.subformat != "google_sheets":
-                raise NotImplementedError(
-                    "files_list only supported for sheets of subformat google_sheets."
-                )
-            sheet_id = get_sheet_id(config, sheet_name)
-            jsons[sheet_name] = convert_to_json(sheet_id, source.subformat)
-    for new_name, sheet_id in source.files_dict.items():
-        jsons[new_name] = convert_to_json(sheet_id, source.subformat)
+        temp_dir = Path(source.basepath or ".")
+
+    for sheet_name in source.files_list:
+        sheet_id = get_sheet_id(config, sheet_name)
+        jsons[sheet_name] = get_json_from_sheet_id(source, temp_dir, sheet_id)
+    for new_name, sheet_name in source.files_dict.items():
+        sheet_id = get_sheet_id(config, sheet_name)
+        jsons[new_name] = get_json_from_sheet_id(source, temp_dir, sheet_id)
+
+    if source.files_archive is not None:
+        temp_dir.cleanup()
 
     for sheet_name, content in jsons.items():
-        with open(source_input_path / f"{sheet_name}.json", "w", encoding='utf-8') as export:
+        with open(
+            source_input_path / f"{sheet_name}.json",
+            "w",
+            encoding="utf-8",
+        ) as export:
             export.write(content)
 
 

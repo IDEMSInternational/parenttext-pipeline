@@ -17,24 +17,14 @@ class TestUpdateExpirationTime(TestCase):
 
     def test_must_set_metadata_expires_if_exists(self):
         default = 360
-        flow = {
-            "name": "flow_1",
-            "expire_after_minutes": 0,
-            "metadata": {
-                "expires": 0
-            }
-        }
+        flow = {"name": "flow_1", "expire_after_minutes": 0, "metadata": {"expires": 0}}
         updated = set_expiration(flow, default)
         self.assertEqual(updated["metadata"]["expires"], 360)
         self.assertEqual(updated["expire_after_minutes"], 360)
 
     def test_must_not_create_metadata_expires(self):
         default = 480
-        flow = {
-            "name": "flow_1",
-            "expire_after_minutes": 0,
-            "metadata": {}
-        }
+        flow = {"name": "flow_1", "expire_after_minutes": 0, "metadata": {}}
         updated = set_expiration(flow, default)
         self.assertFalse("expires" in updated["metadata"])
         self.assertEqual(updated["expire_after_minutes"], 480)
@@ -47,9 +37,7 @@ class TestUpdateExpirationTime(TestCase):
         flow = {
             "name": "flow_1",
             "expire_after_minutes": 0,
-            "metadata": {
-                "expires": 0
-            },
+            "metadata": {"expires": 0},
         }
         updated = set_expiration(flow, default, specifics)
         self.assertEqual(updated["expire_after_minutes"], 240)

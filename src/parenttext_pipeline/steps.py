@@ -140,7 +140,7 @@ def apply_qr_treatment(config, step_config, step_number, step_input_file):
             str(step_config.qr_limit),
             special_words_file,
         )
-        print("Step 8 complete, reformatted quick replies")    
+        print("Step 8 complete, reformatted quick replies")
     elif step_config.qr_treatment == "reformat_china":
         run_node(
             "idems_translation_chatbot/index.js",

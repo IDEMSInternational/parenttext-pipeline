@@ -22,15 +22,17 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Text Processing :: General",
     "Topic :: Utilities",
 ]
 dependencies = [
     "beautifulsoup4~=4.12",
     "packaging~=21.3",
-    "rapidpro-abtesting@https://github.com/IDEMSInternational/rapidpro_abtesting/archive/refs/heads/master.zip",
+    "rapidpro-abtesting @ git+https://github.com/IDEMSInternational/rapidpro_abtesting.git@master",
     "requests~=2.31",
-    "rpft@https://github.com/IDEMSInternational/rapidpro-flow-toolkit/archive/refs/tags/1.2.1.tar.gz",
+    "rpft @ git+https://github.com/IDEMSInternational/rapidpro-flow-toolkit.git@1.6.0",
 ]
 
 [project.scripts]

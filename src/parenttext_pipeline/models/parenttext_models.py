@@ -233,6 +233,7 @@ class OnboardingQuestionWithOptionsModel(DataRowModel):
     excluded_values: List[str] = []
     confirm_question: str = ""
     go_back_opt: str = ""
+    proceed_opt: str = ""
     stop_opt: str = ""
     stop_message: str = ""
     update_flow: str = ""

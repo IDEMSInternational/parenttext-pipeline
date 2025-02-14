@@ -16,9 +16,9 @@ def process_keywords(sources):
 
 
 def process_source(source):
-    input_file = source["path"]
+    input_file = source.get("location") or source["path"]
     language = source["key"]
-    book = openpyxl.load_workbook(input_file)
+    book = openpyxl.load_workbook(input_file, read_only=True)
     all_tables = {}
 
     for sheet in book.worksheets:

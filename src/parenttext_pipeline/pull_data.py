@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import tempfile
 from datetime import datetime, timezone
@@ -6,6 +7,7 @@ from pathlib import Path
 
 import requests
 from rpft.converters import convert_to_json
+from rpft.google import Drive
 
 from parenttext_pipeline.common import (
     clear_or_create_folder,
@@ -139,16 +141,33 @@ def pull_json(config, source, source_name):
         shutil.copyfile(filepath, source_input_path / f"{new_name}.json")
 
 
+def is_google_drive_file_id(location):
+    return bool(re.fullmatch(r"[a-z0-9_-]{33}", location, re.IGNORECASE))
+
+
 def pull_safeguarding(config, source, source_name):
-    # Safeguarding files
-    source_input_path = get_input_subfolder(
-        config, source_name, makedirs=True, in_temp=False
+    keywords_file_path = (
+        get_input_subfolder(config, source_name, makedirs=True, in_temp=False)
+        / "safeguarding_words.json"
     )
-    safeguarding_file_path = source_input_path / "safeguarding_words.json"
+
     if source.sources:
-        process_keywords_to_file(source.sources, safeguarding_file_path)
+
+        with tempfile.TemporaryDirectory() as dest:
+
+            for s in source.sources:
+                location = s.get("location") or s["path"]
+
+                if is_google_drive_file_id(location):
+                    name, content = Drive.fetch(location)
+                    s["location"] = Path(dest) / (location + Path(name).suffix)
+
+                    with open(s["location"], "wb") as f:
+                        f.write(content)
+
+            process_keywords_to_file(source.sources, keywords_file_path)
     else:
-        shutil.copyfile(source.filepath, safeguarding_file_path)
+        shutil.copyfile(source.filepath, keywords_file_path)
 
 
 def unpack_archive(destination, location):

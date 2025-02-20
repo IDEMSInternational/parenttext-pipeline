@@ -141,6 +141,18 @@ def apply_qr_treatment(config, step_config, step_number, step_input_file):
             special_words_file,
         )
         print("Step 8 complete, reformatted quick replies")
+    elif step_config.qr_treatment == "reformat_palestine":
+        run_node(
+            "idems_translation_chatbot/index.js",
+            "reformat_quick_replies_palestine",
+            step_input_file,
+            select_phrases_file,
+            step_output_basename,
+            config.temppath,
+            str(step_config.qr_limit),
+            special_words_file,
+        )
+        print("Step 8 complete, reformatted quick replies palestine")
     elif step_config.qr_treatment == "reformat_china":
         run_node(
             "idems_translation_chatbot/index.js",

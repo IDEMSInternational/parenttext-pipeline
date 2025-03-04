@@ -9,12 +9,14 @@ class VariableModel(DataRowModel):
 
 
 class AttachmentModel(ParserModel):
-	file_type: str = ''
-	url: str = ''
-	
+    file_type: str = ""
+    url: str = ""
+
+
 class MetadataModel(ParserModel):
-    description: str = ''
-###################################################################
+    description: str = ""
+
+
 class IntroductionBlockModel(ParserModel):
     msg_list: List[str] = []
 
@@ -194,14 +196,13 @@ class RelevantModel(ParserModel):
     condition_type: str = ""
 
 
-
 class IntroModel(DataRowModel):
-	filter_list:  List[str] = ""
-	relevant: List[RelevantModel] = []
-	msg: List[str] = []
-	next_button_option: str = ''
-	attachment: AttachmentModel = AttachmentModel()
-	metadata: MetadataModel = MetadataModel()
+    filter_list: List[str] = ""
+    relevant: List[RelevantModel] = []
+    msg: List[str] = []
+    next_button_option: str = ""
+    attachment: AttachmentModel = AttachmentModel()
+    metadata: MetadataModel = MetadataModel()
 
 
 class OnboardingStepsModel(DataRowModel):
@@ -241,24 +242,26 @@ class OnboardingQuestionWithOptionsModel(DataRowModel):
 
 
 class OnboardingQuestionInputTestModel(ParserModel):
-	expression: str = ''
-	value: str = ''
-	condition_type: str = ''
-	error_message: str = ''
+    expression: str = ""
+    value: str = ""
+    condition_type: str = ""
+    error_message: str = ""
+
 
 class OnboardingQuestionInputModel(DataRowModel):
-	filter_list:  List[str] = ""
-	question: str = ''
-	variable: str = ''
-	skip_option: str = ''
-	skip_value: str = ''
-	test: OnboardingQuestionInputTestModel = OnboardingQuestionInputTestModel()
-	tests: List[OnboardingQuestionInputTestModel] = []
-	error_message: str = ''
-	capitalise: str = ''
-	attached_single_doc: str = ''
-	relevant: List[RelevantModel] = []
-	update_flow: str = ''
+    filter_list: List[str] = ""
+    question: str = ""
+    variable: str = ""
+    skip_option: str = ""
+    skip_value: str = ""
+    test: OnboardingQuestionInputTestModel = OnboardingQuestionInputTestModel()
+    tests: List[OnboardingQuestionInputTestModel] = []
+    error_message: str = ""
+    capitalise: str = ""
+    attached_single_doc: str = ""
+    relevant: List[RelevantModel] = []
+    update_flow: str = ""
+
 
 class OnboardingRangeModel(ParserModel):
     limit: str = ""
@@ -508,8 +511,6 @@ class UseDictionaryModel(DataRowModel):
 class CongratsDataModel(DataRowModel):
     msg: str = ""
     extra_msg: str = ""
-
-
 
 
 class SingleMessageModel(DataRowModel):

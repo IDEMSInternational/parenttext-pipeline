@@ -59,7 +59,8 @@ class QRTreatmentStepConfig(StepConfig):
     #     to replace phrases
     # reformat: Reformat quick replies so that long ones are added to the message text,
     #     as above.
-    # reformat_whatsapp: Reformat quick replies to meet the length and message restrictions of whatsapp
+    # reformat_whatsapp: Reformat quick replies to meet the length and message
+    #                    restrictions of whatsapp
     # reformat_palestine: Reformat quick replies to the standard as needed by Palestine
     # reformat_china: Reformat quick replies to the standard as requested by China
     # wechat: All quick replies moved to links in message text as can be used in WeChat
@@ -70,23 +71,24 @@ class QRTreatmentStepConfig(StepConfig):
     # If the number of quick replies is below or equal to count_threshold
     # then the quick replies are left in place.
     count_threshold: str = None
-    
+
     # When qr_treatment is 'reformat', set limits on the number of quick replies
     # that are processed. If the character-length of the longest quick reply is
     # below or equal to length_threshold then the quick replies are left in place.
     length_threshold: str = None
 
     # When qr_treatment is 'reformat', assuming that we are moving quick replies to
-    # message text. Normally we add numerical quick replies back in, but if the number of 
-    # quick replies is above the qr_limit then numerical quick replies are not added.
-    # Should be used where platforms have limits on the number of quick replies they can send
-    # Default is set at 10 as that is the limit on whatsapp 
+    # message text. Normally we add numerical quick replies back in, but if the number
+    # of quick replies is above the qr_limit then numerical quick replies are not added.
+    # Should be used where platforms have limits on the number of quick replies they can
+    # send.
+    # Default is set at 10 as that is the limit on whatsapp
     qr_limit: int = 10
-    
+
     # If qr_treatment is 'move', add some basic numerical quick replies back in.
     # Valid values are 'yes' or 'no'.
     add_selectors: str = None
-    
+
     # Path to file with the default phrase (including translations) we want to add
     # if quick replies are being moved to message text.
     replace_phrases: str = ""

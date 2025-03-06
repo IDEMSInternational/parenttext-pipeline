@@ -1,6 +1,5 @@
 from rpft.parsers.creation.datarowmodel import DataRowModel
 from rpft.parsers.common.rowparser import ParserModel
-from typing import List
 
 
 class VariableModel(DataRowModel):
@@ -18,37 +17,37 @@ class MetadataModel(ParserModel):
 
 
 class IntroductionBlockModel(ParserModel):
-    msg_list: List[str] = []
+    msg_list: list[str] = []
 
 
 class ImportanceBlockModel(ParserModel):
-    msg_list: List[str] = []
+    msg_list: list[str] = []
     image: str = ""
 
 
 class QuizContentModel(ParserModel):
-    question: List[str] = []
+    question: list[str] = []
     image: str = ""
-    values: List[str] = []
+    values: list[str] = []
     answer: str = ""
-    feedback_correct: List[str] = []
-    feedback_incorrect: List[str] = []
+    feedback_correct: list[str] = []
+    feedback_incorrect: list[str] = []
 
 
 class QuizBlockModel(ParserModel):
     intro: str = ""
-    content: List[QuizContentModel] = []
+    content: list[QuizContentModel] = []
 
 
 class TipModel(ParserModel):
-    text: List[str] = []
+    text: list[str] = []
     image: str = ""
 
 
 class TipsBlockModel(ParserModel):
     intro: str = ""
     next_button: str = ""
-    message: List[TipModel] = []
+    message: list[TipModel] = []
 
 
 class ComicBlockModel(ParserModel):
@@ -56,18 +55,18 @@ class ComicBlockModel(ParserModel):
     file_name: str = ""
     n_attachments: str = ""
     next_button: str = ""
-    text: List[str] = []
+    text: list[str] = []
 
 
 class HomeActivityBlockModel(ParserModel):
-    intro: List[str] = []
+    intro: list[str] = []
     activity: str = ""
     positive_msg: str = ""
     negative_msg: str = ""
 
 
 class CongratulationsBlockModel(ParserModel):
-    msg_list: List[str] = []
+    msg_list: list[str] = []
 
 
 class VideoBlockModel(ParserModel):
@@ -121,7 +120,7 @@ class TrackerInfoModel(ParserModel):
 
 
 class FlowStructureModel(DataRowModel):
-    block: List[TrackerInfoModel] = []
+    block: list[TrackerInfoModel] = []
     review: str = ""
 
 
@@ -131,17 +130,17 @@ class BlockMetadataModel(DataRowModel):
 
 
 class ShortDemoModel(DataRowModel):
-    onb_qst: List[str] = []
+    onb_qst: list[str] = []
 
 
 class TroubleModel(ParserModel):
     pb: str = ""
-    tip: List[str] = []
+    tip: list[str] = []
 
 
 class TroubleshootingModel(DataRowModel):
     question: str = ""
-    problems: List[TroubleModel] = []
+    problems: list[TroubleModel] = []
 
 
 class GoalCheckInResponseModel(DataRowModel):
@@ -160,17 +159,17 @@ class GoalCheckInModel(DataRowModel):
     intro_post_goal: str = ""
     pre_question: str = ""
     question: str = ""
-    options: List[str] = []
+    options: list[str] = []
     skip_option: str = ""
     add_qr: str = ""
-    negative: List[str] = []
-    positive: List[str] = []
+    negative: list[str] = []
+    positive: list[str] = []
     improvement: str = ""
     response: GoalCheckInResponseModel = GoalCheckInResponseModel()
     post_goal_positive_follow_up_question: str = ""
-    post_goal_positive_follow_up_options: List[str] = []
-    follow_up_positive_options: List[str] = []
-    follow_up_negative_options: List[str] = []
+    post_goal_positive_follow_up_options: list[str] = []
+    follow_up_positive_options: list[str] = []
+    follow_up_negative_options: list[str] = []
     follow_up_positive_message: str = ""
     follow_up_negative_message: str = ""
     troubleshooting: TroubleshootingModel = TroubleshootingModel()
@@ -186,7 +185,7 @@ class PbSurveyBehaveModel(ParserModel):
 class SurveyBehaveModel(DataRowModel):
     intro: str = ""
     select_instructions: str = ""
-    pb: List[PbSurveyBehaveModel] = []
+    pb: list[PbSurveyBehaveModel] = []
     attached_single_doc: str = ""
 
 
@@ -197,9 +196,9 @@ class RelevantModel(ParserModel):
 
 
 class IntroModel(DataRowModel):
-    filter_list: List[str] = ""
-    relevant: List[RelevantModel] = []
-    msg: List[str] = []
+    filter_list: list[str] = ""
+    relevant: list[RelevantModel] = []
+    msg: list[str] = []
     next_button_option: str = ""
     attachment: AttachmentModel = AttachmentModel()
     metadata: MetadataModel = MetadataModel()
@@ -211,7 +210,7 @@ class OnboardingStepsModel(DataRowModel):
     question_type: str = ""
     question_id: str = ""
     variable: str = ""
-    filter_list: List[str] = ""
+    filter_list: list[str] = ""
     expiration_message: str = ""
 
 
@@ -222,23 +221,23 @@ class OnboardingQuestionOptionModel(ParserModel):
 
 
 class OnboardingQuestionWithOptionsModel(DataRowModel):
-    filter_list: List[str] = ""
+    filter_list: list[str] = ""
     question: str = ""
     image: str = ""
     variable: str = ""
     completion_variable: str = ""
     back_option: str = ""
     back_flow: str = ""
-    options: List[OnboardingQuestionOptionModel] = []
+    options: list[OnboardingQuestionOptionModel] = []
     attached_single_doc: str = ""
-    excluded_values: List[str] = []
+    excluded_values: list[str] = []
     confirm_question: str = ""
     go_back_opt: str = ""
     proceed_opt: str = ""
     stop_opt: str = ""
     stop_message: str = ""
     update_flow: str = ""
-    relevant: List[RelevantModel] = []
+    relevant: list[RelevantModel] = []
 
 
 class OnboardingQuestionInputTestModel(ParserModel):
@@ -249,17 +248,17 @@ class OnboardingQuestionInputTestModel(ParserModel):
 
 
 class OnboardingQuestionInputModel(DataRowModel):
-    filter_list: List[str] = ""
+    filter_list: list[str] = ""
     question: str = ""
     variable: str = ""
     skip_option: str = ""
     skip_value: str = ""
     test: OnboardingQuestionInputTestModel = OnboardingQuestionInputTestModel()
-    tests: List[OnboardingQuestionInputTestModel] = []
+    tests: list[OnboardingQuestionInputTestModel] = []
     error_message: str = ""
     capitalise: str = ""
     attached_single_doc: str = ""
-    relevant: List[RelevantModel] = []
+    relevant: list[RelevantModel] = []
     update_flow: str = ""
 
 
@@ -285,8 +284,8 @@ class OnboardingQuestionRangeModel(DataRowModel):
     up_go_back_opt: str = ""
     up_stop_message: str = ""
     general_error_msg: str = ""
-    ranges: List[OnboardingRangeModel] = []
-    relevant: List[RelevantModel] = []
+    ranges: list[OnboardingRangeModel] = []
+    relevant: list[RelevantModel] = []
     update_flow: str = ""
 
 
@@ -299,14 +298,14 @@ class OnboardingQuestionConfirmModel(DataRowModel):
     confirm_stop_proceed_opt: str = ""
     confirm_stop_stop_opt: str = ""
     farewell_message: str = ""
-    yes_variables: List[VariableModel] = []
+    yes_variables: list[VariableModel] = []
 
 
 class LtpActivityModel(DataRowModel):
     name: str = ""
     text: str = ""
-    act_type: List[str] = ["Active"]  # ???
-    act_age: List[int] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    act_type: list[str] = ["Active"]  # ???
+    act_age: list[int] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
     use_in_demo: str = ""
     attached_single_doc: str = ""
 
@@ -326,29 +325,29 @@ class WhatsappTemplateModel(DataRowModel):
 
 class WgUnicefModel(DataRowModel):
     intro: str = ""
-    end_message_concerning: List[str] = []
-    end_message_not_concerning: List[str] = []
-    questions_ids: List[str] = []
+    end_message_concerning: list[str] = []
+    end_message_not_concerning: list[str] = []
+    questions_ids: list[str] = []
     attached_single_doc: str = ""
 
 
 class WgUnicefQuestionModel(DataRowModel):
     qst: str = ""
-    options: List[str] = []
-    concerning_options: List[str] = []
+    options: list[str] = []
+    concerning_options: list[str] = []
     concerning_feedback: str = ""
     attached_single_doc: str = ""
 
 
 class SwycModel(DataRowModel):
-    intro: List[str] = []
-    options: List[str] = []
-    scores: List[int] = []
-    threshold_age: List[int] = []
-    threshold_score: List[int] = []
-    end_message_concerning: List[str] = []
-    end_message_not_concerning: List[str] = []
-    questions: List[str] = []
+    intro: list[str] = []
+    options: list[str] = []
+    scores: list[int] = []
+    threshold_age: list[int] = []
+    threshold_score: list[int] = []
+    end_message_concerning: list[str] = []
+    end_message_not_concerning: list[str] = []
+    questions: list[str] = []
     attached_single_doc: str = ""
 
 
@@ -372,7 +371,7 @@ class RangeProgDataModel(ParserModel):
 
 
 class ProgDataModel(DataRowModel):
-    ranges: List[RangeProgDataModel] = []
+    ranges: list[RangeProgDataModel] = []
 
 
 class SplitModel(DataRowModel):
@@ -446,11 +445,11 @@ class InteractionOptionModel(ParserModel):
 
 class InteractionModel(DataRowModel):
     question: str = ""
-    options: List[InteractionOptionModel] = []
+    options: list[InteractionOptionModel] = []
     webhook_template_name: str = ""
     webhook_template_args: str = ""
     wa_template_ID: str = ""
-    wa_template_vars: List[str] = []
+    wa_template_vars: list[str] = []
 
 
 class TimedProgrammeModel(DataRowModel):
@@ -494,11 +493,11 @@ class ActivityOfferModel(DataRowModel):
 
 
 class ComicNamesModel(DataRowModel):
-    names: List[str] = []
+    names: list[str] = []
 
 
 class DictionaryModel(DataRowModel):
-    languages: List[str] = []
+    languages: list[str] = []
     attached_single_doc: str = ""
 
 
@@ -521,7 +520,7 @@ class SingleMessageModel(DataRowModel):
 
 
 class MessageListModel(DataRowModel):
-    msg: List[str] = []
+    msg: list[str] = []
     next_button_option: str = ""
     attachment: AttachmentModel = AttachmentModel()
     metadata: MetadataModel = MetadataModel()
@@ -541,7 +540,7 @@ class MenuModel(DataRowModel):
     message: MessageMenuModel = MessageMenuModel()
     return_option: MenuOptionModel = MenuOptionModel()
     exit_option: MenuOptionModel = MenuOptionModel()
-    options: List[MenuOptionModel] = []
+    options: list[MenuOptionModel] = []
     error_message: str = ""
 
 
@@ -578,7 +577,7 @@ class SettingsProfileModel(DataRowModel):
     confirmation_msg: str = ""
     update_prog_var_flow: str = ""
     variable: str = ""
-    var: List[VarProfileModel] = []
+    var: list[VarProfileModel] = []
     attached_single_doc: str = ""
 
 
@@ -640,8 +639,8 @@ class GoalDataModel(DataRowModel):
     priority2_c: str = ""
     priority2_t: str = ""
     priority_p: str = ""
-    relationship: List[str] = []
-    parent_gender: List[str] = []
+    relationship: list[str] = []
+    parent_gender: list[str] = []
     checkin_c: str = ""
     checkin_t: str = ""
     checkin_p: str = ""
@@ -652,8 +651,8 @@ class GoalDataModel(DataRowModel):
 class ModuleDataModel(DataRowModel):
     topic_ID: str = ""
     priority_in_topic: str = ""
-    age: List[int] = []
-    child_gender: List[str] = []
+    age: list[int] = []
+    child_gender: list[str] = []
     name_c: Language = Language()
     name: Language = Language()
 
@@ -669,7 +668,7 @@ class GoalTopicLinkModel(DataRowModel):
 
 class StrataDataModel(DataRowModel):
     split_variable: str = ""
-    values: List[str] = []
+    values: list[str] = []
 
 
 class GlobalVariableModel(DataRowModel):

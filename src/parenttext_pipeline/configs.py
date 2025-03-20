@@ -21,10 +21,14 @@ class StepConfig:
 
 @dataclass(kw_only=True)
 class CreateFlowsStepConfig(StepConfig):
-    # Name of the Python module containing data models describing the data sheets
     models_module: str = None
-    # Tags for RPFT create_flows operation
+    """Name of the Python module containing data models describing the data sheets"""
+
     tags: list
+    """Tags for RPFT create_flows operation"""
+
+    fmt: str = "json"
+    """Format of the input data. Can be 'json' (JSON sheets) or 'uni' (nested JSON)."""
 
 
 @dataclass(kw_only=True)

@@ -305,9 +305,9 @@ class OnboardingQuestionConfirmModel(DataRowModel):
 
 class LtpActivityModel(DataRowModel):
     name: str = ""
-    text: str = ""
-    act_type: list[str] = ["Active"]  # ???
-    act_age: list[int] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    text: list[str] = []
+    act_type: list[str] = ["Active"]
+    act_age: list[int] = list(range(0, 18))
     use_in_demo: str = ""
     attached_single_doc: str = ""
 

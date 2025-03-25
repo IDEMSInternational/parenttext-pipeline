@@ -99,6 +99,8 @@ class AudioTipBlockModel(ParserModel):
 class PlhContentModel(DataRowModel):
     module_name: str = ""
     pause_id: str = ""
+    survey_start_id: str = ""
+    survey_end_id: str = ""    
     introduction: IntroductionBlockModel = IntroductionBlockModel()
     importance: ImportanceBlockModel = ImportanceBlockModel()
     quiz: QuizBlockModel = QuizBlockModel()

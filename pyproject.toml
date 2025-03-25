@@ -32,7 +32,7 @@ dependencies = [
     "packaging~=21.3",
     "rapidpro-abtesting @ git+https://github.com/IDEMSInternational/rapidpro_abtesting.git@master",
     "requests~=2.31",
-    "rpft @ git+https://github.com/IDEMSInternational/rapidpro-flow-toolkit.git@1.7.0",
+    "rpft @ git+https://github.com/IDEMSInternational/rapidpro-flow-toolkit.git@1.8.0",
 ]
 
 [project.scripts]

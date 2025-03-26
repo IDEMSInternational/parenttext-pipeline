@@ -1,0 +1,1 @@
+s/proud of yourself; you are truly great/proud of yourself\\\\; you are truly great/

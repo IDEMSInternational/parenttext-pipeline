@@ -153,19 +153,19 @@ def pull_safeguarding(config, source, source_name):
 
     if source.sources:
 
-        with tempfile.TemporaryDirectory() as dest:
+        dest = get_input_subfolder(config, source_name, makedirs=True, in_temp=True)
 
-            for s in source.sources:
-                location = s.get("location") or s["path"]
+        for s in source.sources:
+            location = s.get("location") or s["path"]
 
-                if is_google_drive_file_id(location):
-                    name, content = Drive.fetch(location)
-                    s["location"] = Path(dest) / (location + Path(name).suffix)
+            if is_google_drive_file_id(location):
+                name, content = Drive.fetch(location)
+                s["location"] = Path(dest) / (location + Path(name).suffix)
 
-                    with open(s["location"], "wb") as f:
-                        f.write(content)
+                with open(s["location"], "wb") as f:
+                    f.write(content)
 
-            process_keywords_to_file(source.sources, keywords_file_path)
+        process_keywords_to_file(source.sources, keywords_file_path)
     else:
         shutil.copyfile(source.filepath, keywords_file_path)
 

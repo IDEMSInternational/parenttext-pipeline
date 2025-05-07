@@ -681,3 +681,4 @@ class GlobalVariableModel(DataRowModel):
 class IncentiveModel(DataRowModel):
     amount: str = ""
     currency: str = ""
+    excluded_group: str = ""

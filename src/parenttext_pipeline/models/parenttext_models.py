@@ -544,6 +544,8 @@ class MenuModel(DataRowModel):
     exit_option: MenuOptionModel = MenuOptionModel()
     options: list[MenuOptionModel] = []
     error_message: str = ""
+    wa_template_ID: str = ""
+    wa_template_vars: list[str] = []
 
 
 class MenuBlocksModel(ParserModel):

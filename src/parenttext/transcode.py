@@ -73,6 +73,34 @@ def transcode(src, dst, fmt="video"):
             },
         )
 
+def transcode_audio_only(src, dst):
+    """
+    Transcodes all audio files in the source directory to MP3 format using
+    the same settings as `to_audio`, preserving folder structure.
+    """
+    src_root = Path(src)
+    dst_root = Path(dst)
+
+    audio_extensions = [".wav", ".m4a", ".aac", ".flac", ".ogg", ".mp3"]
+    sources = [p for ext in audio_extensions for p in src_root.rglob(f"*{ext}")]
+    count = len(sources)
+
+    print("Audio source files found,", {"count": count})
+
+    for i, audio_src in enumerate(sources, start=1):
+        rel_path = audio_src.relative_to(src_root)
+        file_dst = dst_root / rel_path
+        prepare(file_dst.parent)
+        final_dst = to_audio(audio_src, file_dst)
+        print(
+            "Audio transcoding completed,",
+            {
+                "source": str(audio_src),
+                "dest": str(final_dst),
+                "progress": f"{i}/{count}",
+            },
+        )
+
 
 def to_video(src: Path, dst: Path):
     first_pass(src)

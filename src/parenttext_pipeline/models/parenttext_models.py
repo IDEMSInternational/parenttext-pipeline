@@ -577,6 +577,8 @@ class SettingsProfileModel(DataRowModel):
     current_info_msg: str = ""
     missing: MissingProfileModel = MissingProfileModel()
     update_inquiry: str = ""
+    update_inquiry_yes: str = ""
+    update_inquiry_no: str = ""
     update_var_flow: str = ""
     confirmation_msg: str = ""
     update_prog_var_flow: str = ""
@@ -684,3 +686,5 @@ class IncentiveModel(DataRowModel):
     amount: str = ""
     currency: str = ""
     excluded_group: str = ""
+
+

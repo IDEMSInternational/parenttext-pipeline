@@ -4,6 +4,24 @@ import shutil
 from pathlib import Path
 
 
+AUDIO_EXTS = [
+    "aac",
+    "flac",
+    "m4a",
+    "mp3",
+    "ogg",
+    "wav",
+]
+VIDEO_EXTS = [
+    "avi",
+    "mp4",
+]
+INPUT_EXTS = {
+    "audio": AUDIO_EXTS + VIDEO_EXTS,
+    "video": VIDEO_EXTS,
+}
+
+
 def start():
     args = parse_args()
     transcode(args.source, prepare(args.destination, wipe=True), args.format)
@@ -11,16 +29,16 @@ def start():
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description=("Transcode videos to ParentText specification"),
+        description=("Transcode audio/video to ParentText specification"),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         "source",
-        help=("directory containing source video files"),
+        help=("directory containing source files"),
     )
     parser.add_argument(
         "destination",
-        help=("directory where transcoded videos will be saved"),
+        help=("directory where transcoded files will be saved"),
     )
     parser.add_argument(
         "-f",
@@ -53,49 +71,22 @@ def prepare(dst, wipe=False):
 def transcode(src, dst, fmt="video"):
     src_root = Path(src)
     dst_root = Path(dst)
-    op = {"video": to_video, "audio": to_audio}[fmt]
-    sources = list(src_root.glob("**/*.mp4"))
+    exts = INPUT_EXTS[fmt]
+    sources = [p for ext in exts for p in src_root.rglob(f"*.{ext}")]
     count = len(sources)
+    op = OPS[fmt]
 
     print("Source files found,", {"count": count})
 
-    for i, video_src in enumerate(sources, start=1):
-        file_dst = dst_root / video_src.relative_to(src_root)
+    for i, source in enumerate(sources, start=1):
+        file_dst = dst_root / source.relative_to(src_root)
         prepare(file_dst.parent)
-        final_dst = op(video_src, file_dst)
+        final_dst = op(source, file_dst)
         print(
             "Operation completed,",
             {
                 "op": op.__name__,
-                "source": str(video_src),
-                "dest": str(final_dst),
-                "progress": f"{i}/{count}",
-            },
-        )
-
-def transcode_audio_only(src, dst):
-    """
-    Transcodes all audio files in the source directory to MP3 format using
-    the same settings as `to_audio`, preserving folder structure.
-    """
-    src_root = Path(src)
-    dst_root = Path(dst)
-
-    audio_extensions = [".wav", ".m4a", ".aac", ".flac", ".ogg", ".mp3"]
-    sources = [p for ext in audio_extensions for p in src_root.rglob(f"*{ext}")]
-    count = len(sources)
-
-    print("Audio source files found,", {"count": count})
-
-    for i, audio_src in enumerate(sources, start=1):
-        rel_path = audio_src.relative_to(src_root)
-        file_dst = dst_root / rel_path
-        prepare(file_dst.parent)
-        final_dst = to_audio(audio_src, file_dst)
-        print(
-            "Audio transcoding completed,",
-            {
-                "source": str(audio_src),
+                "source": str(source),
                 "dest": str(final_dst),
                 "progress": f"{i}/{count}",
             },
@@ -103,14 +94,15 @@ def transcode_audio_only(src, dst):
 
 
 def to_video(src: Path, dst: Path):
+    out = dst.with_suffix(".mp4")
     first_pass(src)
-    second_pass(src, dst)
+    second_pass(src, out)
 
     return dst
 
 
 def to_audio(src: Path, dst: Path):
-    final_dst = dst.with_suffix(".mp3")
+    out = dst.with_suffix(".mp3")
     subprocess.run(
         ["ffmpeg"]
         + ["-y"]
@@ -121,10 +113,10 @@ def to_audio(src: Path, dst: Path):
         + ["-ar", "48k"]
         + ["-ac", "1"]
         + ["-f", "mp3"]
-        + [str(final_dst)],
+        + [str(out)],
     )
 
-    return final_dst
+    return out
 
 
 def first_pass(src):
@@ -164,6 +156,12 @@ def second_pass(src, dst):
         + ["-f", "mp4"]
         + [str(dst)],
     )
+
+
+OPS = {
+    "video": to_video,
+    "audio": to_audio,
+}
 
 
 if __name__ == "__main__":

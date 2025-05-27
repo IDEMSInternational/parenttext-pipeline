@@ -482,6 +482,7 @@ class ActivityOfferModel(DataRowModel):
     accept: AgeGroupModel = AgeGroupModel()
     refuse: str = ""
     refuse_msg: str = ""
+    refuse_flow: str = ""
     other_option: str = ""
     other_flow: str = ""
     next_offer_msg: str = ""

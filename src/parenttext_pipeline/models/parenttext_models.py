@@ -639,6 +639,12 @@ class Language(ParserModel):
     hau: str = ""
     ara: str = ""
 
+class JoiningTriggerModel(DataRowModel):
+    triggers: str = ""
+    groups: list[str] = []
+    cap: str = ""
+    location: str = ""
+    variables: list[VariableModel] = []
 
 class GoalDataModel(DataRowModel):
     priority_c: str = ""

@@ -2,6 +2,11 @@
 
 ## Command line interface
 
+Ensure that:
+
+- there is a [JSON configuration file](#JSON) in the current working directory
+- the necessary [environment variables](#environment-variables) are set
+
 ```
 python -m parenttext.canto destination_dir
 ```
@@ -10,6 +15,8 @@ Where `destination_dir` is the root directory under which all assets will be dow
 
 
 ## Configuration
+
+### JSON
 
 Create a configuration file called 'config.json' in the root directory of the deployment repository. If 'config.json' already exists, the following JSON should be merged into it.
 ```json
@@ -59,8 +66,18 @@ The `storage` property describes the system holding the assets and the location 
 
 - `site_base_url`: location of the Canto server
 
+### Environment variables
+
 Secret information needs to be passed to the Canto server in order to log in, these are passed into the app via environment variables:
 
 - `CANTO_APP_ID`: ID generated when an API key is created in Canto
 - `CANTO_APP_SECRET`: secret generated when an API key is created in Canto
 - `CANTO_USER_ID`: user account that will be impersonated; should be the least privileged account able to download assets
+
+When running the CLI tool, these environment variables can be automatically read from a file called '.env' in the current working directory. The file should contain a single key value pair on each line, for example:
+
+```
+CANTO_APP_ID=app_id
+CANTO_APP_SECRET=secret
+CANTO_USER_ID=user_id
+```

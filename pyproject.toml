@@ -30,6 +30,7 @@ classifiers = [
 dependencies = [
     "beautifulsoup4~=4.12",
     "packaging~=21.3",
+    "python-dotenv",
     "rapidpro-abtesting @ git+https://github.com/IDEMSInternational/rapidpro_abtesting.git@master",
     "requests~=2.31",
     "rpft @ git+https://github.com/IDEMSInternational/rapidpro-flow-toolkit.git@1.11.0",

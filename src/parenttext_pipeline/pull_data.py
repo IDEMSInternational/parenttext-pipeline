@@ -32,6 +32,8 @@ def run(config):
             pull_translations(config, source, name)
         elif source.format == "safeguarding":
             pull_safeguarding(config, source, name)
+        elif source.format == "media_assets":
+            continue
         else:
             raise ValueError(f"Invalid source format {source.format}")
 

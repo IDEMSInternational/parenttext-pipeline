@@ -209,11 +209,39 @@ class TranslationSourceConfig(SourceConfig):
     commit_tag: str = None
 
 
+@dataclass
+class MediaStorage:
+    system: str
+    """Name of the storage system; currently, only 'canto' is supported."""
+
+    location: str
+    """Location of assets within the storage system."""
+
+    annotations: dict[str, str] = field(default_factory=dict)
+    """System-specific configuration settings."""
+
+
+@dataclass
+class MediaAssetSourceConfig(SourceConfig):
+    path_template: list[str]
+    """
+    List of templates that describes the local filesystem path where assets will be
+    saved.
+    """
+
+    storage: MediaStorage
+    """Information about the media storage system to download assets from."""
+
+    mappings: dict[str, dict[str, str]] = field(default_factory=dict)
+    """Maps values in asset metadata to values used by the Pipeline."""
+
+
 SOURCE_CONFIGS = {
-    "sheets": SheetsSourceConfig,
     "json": JSONSourceConfig,
-    "translation_repo": TranslationSourceConfig,
+    "media_assets": MediaAssetSourceConfig,
     "safeguarding": SafeguardingSourceConfig,
+    "sheets": SheetsSourceConfig,
+    "translation_repo": TranslationSourceConfig,
 }
 
 

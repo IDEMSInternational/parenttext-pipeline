@@ -12,7 +12,8 @@ data_dir=$1
 sed_dir=`dirname $0`
 
 echo "Migration started"
-sed -i -E -f ${sed_dir}/uni-migration.sed ${data_dir}/*.json
+# TODO: Make these template substitutions optional
+#sed -i -E -f ${sed_dir}/uni-migration.sed ${data_dir}/*.json
 
 if test -f ${data_dir}/C_modules_all_ages.json
 then

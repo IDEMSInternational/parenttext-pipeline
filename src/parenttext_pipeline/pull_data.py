@@ -147,6 +147,10 @@ def is_google_drive_file_id(location):
     return bool(re.fullmatch(r"[a-z0-9_-]{33}", location, re.IGNORECASE))
 
 
+def is_google_sheets_id(location):
+    return bool(re.fullmatch(r"[a-z0-9_-]{44}", location, re.IGNORECASE))
+
+
 def pull_safeguarding(config, source, source_name):
     keywords_file_path = (
         get_input_subfolder(config, source_name, makedirs=True, in_temp=False)
@@ -159,11 +163,17 @@ def pull_safeguarding(config, source, source_name):
 
         for s in source.sources:
             location = s.get("location") or s["path"]
+            content = None
 
             if is_google_drive_file_id(location):
                 name, content = Drive.fetch(location)
                 s["location"] = Path(dest) / (location + Path(name).suffix)
+            elif is_google_sheets_id(location):
+                ext = ".xlsx"
+                name, content = Drive.export(location, ext=ext)
+                s["location"] = (Path(dest) / location).with_suffix(ext)
 
+            if content:
                 with open(s["location"], "wb") as f:
                     f.write(content)
 

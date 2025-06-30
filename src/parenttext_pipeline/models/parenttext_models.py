@@ -638,6 +638,7 @@ class Language(ParserModel):
     zul: str = ""
     hau: str = ""
     ara: str = ""
+    sin: str = ""
 
 class JoiningTriggerModel(DataRowModel):
     triggers: str = ""
@@ -657,8 +658,10 @@ class GoalDataModel(DataRowModel):
     checkin_c: str = ""
     checkin_t: str = ""
     checkin_p: str = ""
-    name_c: Language = Language()
-    name_t: Language = Language()
+    name_c: dict = {}
+    name_t: dict = {}
+    #name_c: Language = Language()
+    #name_t: Language = Language()
 
 
 class ModuleDataModel(DataRowModel):

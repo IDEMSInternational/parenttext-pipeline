@@ -660,8 +660,6 @@ class GoalDataModel(DataRowModel):
     checkin_p: str = ""
     name_c: dict = {}
     name_t: dict = {}
-    #name_c: Language = Language()
-    #name_t: Language = Language()
 
 
 class ModuleDataModel(DataRowModel):

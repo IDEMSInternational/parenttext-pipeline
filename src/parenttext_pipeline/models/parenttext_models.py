@@ -638,6 +638,9 @@ class Language(ParserModel):
     zul: str = ""
     hau: str = ""
     ara: str = ""
+    prs: str = ""
+    ron: str = ""
+    ukr: str = ""
 
 class JoiningTriggerModel(DataRowModel):
     triggers: str = ""

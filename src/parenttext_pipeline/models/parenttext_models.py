@@ -641,6 +641,7 @@ class Language(ParserModel):
     prs: str = ""
     ron: str = ""
     ukr: str = ""
+    lan: str = ""
 
 class JoiningTriggerModel(DataRowModel):
     triggers: str = ""

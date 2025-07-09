@@ -3,6 +3,7 @@ import argparse
 from packaging.version import Version
 
 import parenttext_pipeline.compile_flows
+import parenttext_pipeline.pot_output
 import parenttext_pipeline.pull_data
 from parenttext_pipeline import pipeline_version
 from parenttext_pipeline.configs import load_config
@@ -10,6 +11,7 @@ from parenttext_pipeline.configs import load_config
 OPERATIONS_MAP = {
     "pull_data": parenttext_pipeline.pull_data.run,
     "compile_flows": parenttext_pipeline.compile_flows.run,
+    "pot_output": parenttext_pipeline.pot_output.run,
 }
 
 

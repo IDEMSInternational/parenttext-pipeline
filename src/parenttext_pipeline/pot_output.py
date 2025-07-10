@@ -1,4 +1,5 @@
 import os
+import traceback
 from parenttext_pipeline import steps
 from parenttext_pipeline.common import (
     clear_or_create_folder,
@@ -39,7 +40,7 @@ def run(config):
         # Apply new step
         config.steps[0] = CreateFlowsStepConfig(**step)
 
-        # Run steps
+        # Run steps using code from compile_flows.py
         try:
             input_file = None
             for step_num, step_config in enumerate(config.steps):
@@ -53,6 +54,8 @@ def run(config):
             print("Diffable written to output folder")
         except Exception as e:
             print(e)
+            # store traceback string
+            traceback_string = traceback.format_exc()
         
         try:
             # Move to the correct file
@@ -66,6 +69,8 @@ def run(config):
             os.rename(current_file, new_file)
         except FileNotFoundError:
             failed_groups.append(group_name)
+            # If the translate files were not produced, print out the error for why
+            print(traceback_string)
 
     print(f'Failed Groups: {failed_groups}')
 

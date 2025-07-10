@@ -1,3 +1,15 @@
+"""Adds a CLI option `pot_output`.
+This duplicates the base functionality of `compile_flows`, but runs a
+new version for each 'group' (e.g. "navigation") by overwriting the
+first step, then moves the output `.pot` file to the PLH preferred
+naming convention. Each tag group is processed in a `try...except`
+statement, so failures in one do not halt the flow.
+If the `.pot` file is produced, exception messages later in the pipeline
+are suppressed to simplify printout, if the renaming fails (due to the
+`.pot` file not being produced) the full traceback is printed for
+debugging of the sheets.
+"""
+
 import os
 import traceback
 from parenttext_pipeline import steps
@@ -24,7 +36,9 @@ def run(config):
     write_meta(config, meta, config.outputpath)
 
     failed_groups = []
-    
+
+    # --- Iterate through the groups, running the pipeline for each ---
+
     for group_name, group_tags in po_output_groups.items():
 
         # Generate Override Steps Input Dict
@@ -33,9 +47,9 @@ def run(config):
             "type": "create_flows",
             "models_module": "models.parenttext_models",
             "sources": ["flow_definitions"],
-            "tags": []
+            "tags": [],
         }
-        step['tags'] = group_tags
+        step["tags"] = group_tags
 
         # Apply new step
         config.steps[0] = CreateFlowsStepConfig(**step)
@@ -45,7 +59,9 @@ def run(config):
             input_file = None
             for step_num, step_config in enumerate(config.steps):
                 output_file = apply_step(config, step_config, step_num + 1, input_file)
-                print(f"Applied step {step_config.type}, result stored at {output_file}")
+                print(
+                    f"Applied step {step_config.type}, result stored at {output_file}"
+                )
                 input_file = output_file
 
             steps.split_rapidpro_json(config, output_file)
@@ -56,15 +72,18 @@ def run(config):
             print(e)
             # store traceback string
             traceback_string = traceback.format_exc()
-        
+
         try:
             # Move to the correct file
-            translator_output_folder = os.path.join(config.outputpath, "send_to_translators")
+            translator_output_folder = os.path.join(
+                config.outputpath, "send_to_translators"
+            )
             current_file = os.path.join(
                 translator_output_folder, f"{config.flows_outputbasename}_crowdin.pot"
             )
             new_file = os.path.join(
-                translator_output_folder, f"{config.sources['translation'].languages[0]['language']}_{group_name}.pot"
+                translator_output_folder,
+                f"{config.sources['translation'].languages[0]['language']}_{group_name}.pot",
             )
             os.rename(current_file, new_file)
         except FileNotFoundError:
@@ -72,13 +91,13 @@ def run(config):
             # If the translate files were not produced, print out the error for why
             print(traceback_string)
 
-    print(f'Failed Groups: {failed_groups}')
+    print(f"Failed Groups: {failed_groups}")
 
 
 po_output_groups = {
-    "modules":  [1, "module"],
+    "modules": [1, "module"],
     "activities": [1, "ltp_activity"],
     "onboarding": [1, "onboarding"],
     "survey": [1, "survey"],
-    "navigation": [1, "delivery", 1,"menu", 1, "safeguarding"],
+    "navigation": [1, "delivery", 1, "menu", 1, "safeguarding"],
 }

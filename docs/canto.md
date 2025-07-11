@@ -23,6 +23,7 @@ Create a configuration file called 'config.json' in the root directory of the de
 {
     "sources": {
         "media_assets": {
+            "format": "media_assets",
             "mappings": {
                 "Language": {
                     "Arabic": "ara"

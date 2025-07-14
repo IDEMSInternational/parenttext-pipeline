@@ -19,9 +19,9 @@ def main(
     with open(config_file or "config.json", "r") as fh:
         config = json.load(fh)["sources"]["media_assets"]
 
-    gcs_base_path = gcs_base_path or config['storage_server']['location']
-    project_id = project_id or config['storage_server']['annotations']['project_id']
-    bucket_name = bucket_name or config['storage_server']['annotations']['bucket_name']
+    gcs_base_path = gcs_base_path or config["server_storage"]["location"]
+    project_id = project_id or config["server_storage"]["annotations"]["project_id"]
+    bucket_name = bucket_name or config["server_storage"]["annotations"]["bucket_name"]
 
     """Main function to orchestrate the entire workflow."""
     print("=" * 50)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     # 2. Define Command-Line Arguments
     parser.add_argument(
-        "gcs_base_path",
+        "--gcs_base_path",
         type=str,
         help="The base path in Google Cloud Storage for the upload (e.g., 'v1/en').",
     )

@@ -90,8 +90,8 @@ class Canto:
             headers={"Authorization": f"Bearer {self.token}"},
         ).content
 
-    def list_assets(self, folder_id: str):
-        for item in self.tree(folder_id):
+    def list_assets(self, tree):
+        for item in tree:
 
             if item["scheme"] == "album":
 
@@ -110,7 +110,7 @@ class Canto:
                     yield asset
 
             if item["scheme"] == "folder":
-                self.list_assets(item["id"])
+                yield from self.list_assets(item["children"])
 
 
 def transform_values(mappings: dict, d: dict) -> dict:
@@ -132,7 +132,9 @@ def asset_path(path_template, asset: MediaAsset):
 
 
 def download_all(client, path_template, location: str, destination: str):
-    for asset in client.list_assets(location):
+    tree = client.tree(location)
+
+    for asset in client.list_assets(tree):
         download(client, path_template, asset, destination)
 
 
@@ -155,7 +157,7 @@ if __name__ == "__main__":
         config = json.load(fh)["sources"]["media_assets"]
 
     _env = Environment(undefined=ChainableUndefined)
-    load_dotenv()
+    load_dotenv(".env")
 
     download_all(
         client=Canto(

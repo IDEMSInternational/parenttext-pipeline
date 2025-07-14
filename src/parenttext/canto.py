@@ -155,7 +155,7 @@ if __name__ == "__main__":
         config = json.load(fh)["sources"]["media_assets"]
 
     _env = Environment(undefined=ChainableUndefined)
-    load_dotenv()
+    load_dotenv(".env")
 
     download_all(
         client=Canto(

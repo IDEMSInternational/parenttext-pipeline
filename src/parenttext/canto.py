@@ -65,12 +65,12 @@ class Canto:
 
     def tree(self, folder_id: str):
         req = requests.request(
-                method="GET",
-                url=f"{self.site_base_url}/api/v1/tree/{folder_id}",
-                headers={"Authorization": f"Bearer {self.token}"},
-            )
+            method="GET",
+            url=f"{self.site_base_url}/api/v1/tree/{folder_id}",
+            headers={"Authorization": f"Bearer {self.token}"},
+        )
         if req.status_code == 401:
-            print('401 Unauthorized: Ensure environment variables are loaded')
+            print("401 Unauthorized: Ensure environment variables are loaded")
             raise
         return req.json().get("results", [])
 
@@ -152,15 +152,17 @@ def download(client, path_template, asset: MediaAsset, destination):
     print(f"Download completed, path={dst}")
 
 
-def main(destination:str, config_file: str | None = None):
+def main(destination: str, config_file: str | None = None):
     with open(config_file or "config.json", "r") as fh:
         config = json.load(fh)["sources"]["media_assets"]
 
     _env = Environment(undefined=ChainableUndefined)
     if not load_dotenv():
-        raise FileNotFoundError("Must have a .env file in current working directory or parent directories")
-    
-    download_dest = destination.rstrip('/')+'_temp'
+        raise FileNotFoundError(
+            "Must have a .env file in current working directory or parent directories"
+        )
+
+    download_dest = destination.rstrip("/") + "_temp"
 
     download_all(
         client=Canto(

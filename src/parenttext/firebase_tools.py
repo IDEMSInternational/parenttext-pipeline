@@ -67,6 +67,7 @@ class Firebase:
 
 
     def upload_new_version(self, source_directory, bucket_name, remote_directory, version_level: int = 1, dry_run: bool = False):
+        remote_directory = remote_directory.lstrip('gs://idems-media-recorder.appspot.com/') #allow direct pasting
         current_versions = {}
         base_path = Path(source_directory)
 

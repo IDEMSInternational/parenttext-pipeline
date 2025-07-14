@@ -1,11 +1,6 @@
-import os
+import argparse
 import shutil
-import json
 from pathlib import Path
-
-from dotenv import load_dotenv
-from google.cloud import storage
-from jinja2 import ChainableUndefined, Environment
 
 # Import the actual functions from your provided scripts
 from parenttext.canto import main as canto_main
@@ -60,6 +55,42 @@ def main(gcs_base_path, project_id: str | None = None, bucket_name: str | None =
 
 
 if __name__ == "__main__":
-    gcs_base_path = "project/PLH/subproject/ParentText_v2/deployment/CrisisPalestineTest/resourceGroup"
+    # 1. Initialize the Argument Parser
+    parser = argparse.ArgumentParser(
+        description="A script to download assets from Canto, transcode them, and upload to Google Cloud Storage."
+    )
 
-    main(gcs_base_path=gcs_base_path, dry_run=True)
+    # 2. Define Command-Line Arguments
+    parser.add_argument(
+        "gcs_base_path",
+        type=str,
+        help="The base path in Google Cloud Storage for the upload (e.g., 'v1/en')."
+    )
+    parser.add_argument(
+        "--project-id",
+        type=str,
+        default='idems-media-recorder',
+        help="The target Firebase project ID."
+    )
+    parser.add_argument(
+        "--bucket-name",
+        type=str,
+        default='idems-media-recorder.appspot.com',
+        help="The target Firebase Storage bucket name."
+    )
+    parser.add_argument(
+        "-d", "--dry-run",
+        action="store_true",
+        help="Perform a dry run. Files will be processed, but not uploaded."
+    )
+
+    # 3. Parse the arguments from the command line
+    args = parser.parse_args()
+
+    # 4. Call the main function with the parsed arguments
+    main(
+        gcs_base_path=args.gcs_base_path,
+        project_id=args.project_id,
+        bucket_name=args.bucket_name,
+        dry_run=args.dry_run
+    )

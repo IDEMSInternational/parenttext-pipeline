@@ -1,5 +1,6 @@
 import argparse
 import shutil
+import json
 from pathlib import Path
 
 # Import the actual functions from your provided scripts
@@ -9,13 +10,18 @@ from parenttext.firebase_tools import Firebase
 
 
 def main(
-    gcs_base_path,
+    config_file: str | None = None,
+    gcs_base_path: str | None = None,
     project_id: str | None = None,
     bucket_name: str | None = None,
     dry_run: bool = False,
 ):
-    project_id = project_id or "idems-media-recorder"
-    bucket_name = bucket_name or "idems-media-recorder.appspot.com"
+    with open(config_file or "config.json", "r") as fh:
+        config = json.load(fh)["sources"]["media_assets"]
+
+    gcs_base_path = gcs_base_path or config['storage_server']['location']
+    project_id = project_id or config['storage_server']['annotations']['project_id']
+    bucket_name = bucket_name or config['storage_server']['annotations']['bucket_name']
 
     """Main function to orchestrate the entire workflow."""
     print("=" * 50)

@@ -62,7 +62,7 @@ class Firebase:
         # Iterate through unique captures
         for v in list(set(capture_list)):
             if v == "" and remote_version_number == -1:
-                remote_version_number = 0
+                remote_version_number = 1
             # Save the highest number
             elif int(v) > remote_version_number:
                 remote_version_number = int(v)
@@ -77,10 +77,7 @@ class Firebase:
         version_level: int = 1,
         dry_run: bool = False,
     ):
-        # allow direct pasting
-        remote_directory = remote_directory.lstrip(
-            "gs://idems-media-recorder.appspot.com/"
-        )
+
         current_versions = {}
         base_path = Path(source_directory)
 
@@ -94,6 +91,7 @@ class Firebase:
                 print(f"Warning, skipping file {version_folder}")
                 continue
             vfp = "/".join(version_folder.parts[1:])
+            print(f"Comparing hashes in {vfp}")
 
             remote_folder_path = "/".join([remote_directory.rstrip("/"), vfp])
             # Get latest version
@@ -101,11 +99,13 @@ class Firebase:
                 bucket_name, remote_folder_path
             )
             match remote_version_number:
-                case 0:
+                case 1:
                     remote_version_str = ""
                 case -1:
                     raise NotImplementedError(
-                        "Figure out how to handle if remote folder doesn't exist"
+                        "Remote version-level folder doesn't exist. " \
+                        "Should only happen during new upload. " \
+                        "TODO: Figure out how to handle new uploads"
                     )
                 case _:
                     remote_version_str = str(remote_version_number)
@@ -147,9 +147,13 @@ class Firebase:
                     gcs_base_path=(remote_directory / remote_version_folder).as_posix(),
                     dry_run=dry_run,
                 )
+            else:
+                print(f"Hashes Matched for {version_folder.relative_to(source_directory).as_posix()}")
             current_versions[
                 version_folder.relative_to(source_directory).as_posix()
             ] = remote_version_number
+        print("Current Versions")
+        print(current_versions)
 
     def compare_hashes(self, local_filepath, bucket_name, file_path_in_storage):
         """Compares the MD5 hash of a local file with a Firebase Storage file."""

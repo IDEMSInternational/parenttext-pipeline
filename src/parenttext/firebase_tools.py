@@ -202,6 +202,8 @@ class Firebase:
                 if not dry_run:
                     blob = bucket.blob(destination_blob_name)
                     blob.upload_from_filename(str(file_path))
+                    # Make the blob publicly readable
+                    blob.make_public()
                 else:
                     print("Dry Run")
                 print(

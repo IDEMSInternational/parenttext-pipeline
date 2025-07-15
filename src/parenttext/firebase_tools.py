@@ -10,27 +10,20 @@ from rpft.google import get_credentials
 class Firebase:
     gcs_client: storage.Client  # Get the typing right
 
-    def __init__(
-        self,
-        project_id: str,
-        key_path: str | None = None,
-        credentials_file: str | None = None,
-        token_file: str | None = None,
-    ) -> None:
+    def __init__(self, project_id: str) -> None:
         """
         Initializes the Firebase tool.
 
         Args:
             project_id (str): Your Google Cloud project ID.
-            key_path (str | None): Path to the service account JSON key file.
-            credentials_file (str | None): Path to the OAuth 2.0 client_secrets.json file.
-            token_file (str | None): Path to the authorized user token.json file.
         """
 
         gcs_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
         self.project_id = project_id
         self.creds = get_credentials(scopes=gcs_scopes)
-        self.gcs_client = storage.Client(project=self.project_id, credentials=self.creds)
+        self.gcs_client = storage.Client(
+            project=self.project_id, credentials=self.creds
+        )
 
     def get_latest_folder_version(self, bucket_name, gcs_base_path) -> int:
         """Get latest folder version, if folder doesn't exist, return -1.
@@ -99,8 +92,8 @@ class Firebase:
                     remote_version_str = ""
                 case -1:
                     raise NotImplementedError(
-                        "Remote version-level folder doesn't exist. " \
-                        "Should only happen during new upload. " \
+                        "Remote version-level folder doesn't exist. "
+                        "Should only happen during new upload. "
                         "TODO: Figure out how to handle new uploads"
                     )
                 case _:
@@ -144,7 +137,9 @@ class Firebase:
                     dry_run=dry_run,
                 )
             else:
-                print(f"Hashes Matched for {version_folder.relative_to(source_directory).as_posix()}")
+                print(
+                    f"Hashes Matched for {version_folder.relative_to(source_directory).as_posix()}"
+                )
             current_versions[
                 version_folder.relative_to(source_directory).as_posix()
             ] = remote_version_number
@@ -203,7 +198,7 @@ class Firebase:
                     # Generate Token to allow access to the file
                     access_token = uuid.uuid4()
                     # Update metadata with the new token
-                    metadata = {'firebaseStorageDownloadTokens': access_token}
+                    metadata = {"firebaseStorageDownloadTokens": access_token}
                     blob.metadata = metadata
                     # Use patch() to update the metadata on the object
                     blob.patch()

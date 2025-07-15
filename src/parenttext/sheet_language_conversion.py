@@ -64,7 +64,9 @@ translation_substitutions = {
     },
     "text": {
         "tu {teen}": "{tu adolescente}",
-        "tu {child}": "{tu nino}",
+        "tu {child}": "{tu niño}",
+        "Tu {teen}": "{Tu adolescente}",
+        "Tu {child}": "{Tu niño}",
     }
 }
 

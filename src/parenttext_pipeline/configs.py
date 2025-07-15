@@ -238,10 +238,23 @@ class MediaAssetSourceConfig(SourceConfig):
     mappings: dict[str, dict[str, str]] = field(default_factory=dict)
     """Maps values in asset metadata to values used by the Pipeline."""
 
+@dataclass
+class MediaAssetDeplymentConfig(SourceConfig):
+    """Information about the media storage system to upload assets to for RapidPro to access."""
+
+    system: str
+    """Name of the storage system; currently, only 'firebase' is supported."""
+
+    location: str
+    """Location of assets within the storage system."""
+
+    annotations: dict[str, str] = field(default_factory=dict)
+    """System-specific configuration settings."""
 
 SOURCE_CONFIGS = {
     "json": JSONSourceConfig,
     "media_assets": MediaAssetSourceConfig,
+    "deployment_storage": MediaAssetDeplymentConfig,
     "safeguarding": SafeguardingSourceConfig,
     "sheets": SheetsSourceConfig,
     "translation_repo": TranslationSourceConfig,

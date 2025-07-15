@@ -4,7 +4,7 @@ import base64
 import re
 import uuid
 from google.cloud import storage
-from parenttext.auth_tool import GoogleAPIAuthenticator
+from rpft.google import get_credentials
 
 
 class Firebase:
@@ -28,14 +28,9 @@ class Firebase:
         """
 
         gcs_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
-        auth_gcs = GoogleAPIAuthenticator(
-            scopes=gcs_scopes,
-            key_path=key_path,
-            credentials_file=credentials_file,
-            token_file=token_file,
-            project_id=project_id,
-        )
-        self.gcs_client = auth_gcs.get_storage_client()
+        self.project_id = project_id
+        self.creds = get_credentials(scopes=gcs_scopes)
+        self.gcs_client = storage.Client(project=self.project_id, credentials=self.creds)
 
     def get_latest_folder_version(self, bucket_name, gcs_base_path) -> int:
         """Get latest folder version, if folder doesn't exist, return -1.

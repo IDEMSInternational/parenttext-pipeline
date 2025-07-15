@@ -2,6 +2,7 @@ from pathlib import Path
 import hashlib
 import base64
 import re
+import uuid
 from google.cloud import storage
 from parenttext.auth_tool import GoogleAPIAuthenticator
 
@@ -201,7 +202,16 @@ class Firebase:
                 ).as_posix()
                 if not dry_run:
                     blob = bucket.blob(destination_blob_name)
+
+                    # Upload File
                     blob.upload_from_filename(str(file_path))
+                    # Generate Token to allow access to the file
+                    access_token = uuid.uuid4()
+                    # Update metadata with the new token
+                    metadata = {'firebaseStorageDownloadTokens': access_token}
+                    blob.metadata = metadata
+                    # Use patch() to update the metadata on the object
+                    blob.patch()
                     # Make the blob publicly readable
                     blob.make_public()
                 else:

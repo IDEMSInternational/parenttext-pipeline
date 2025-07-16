@@ -46,9 +46,12 @@ def main(
     for fmt in ["video", "audio"]:
         print(f"  -> Transcoding {fmt} folder...")
         raw_dir = f"canto/voiceover/resourceType/{fmt}/"
-        video_dir = f"transcoded/voiceover/resourceType/{fmt}/"
-        prepare_dir(video_dir, wipe=True)
-        transcode_media(raw_dir, video_dir, fmt)
+        if not Path(raw_dir).exists() and fmt == "audio":
+            print("  Transcoding audio from video files.")
+            raw_dir = f"canto/voiceover/resourceType/video/"
+        transcoded_dir = f"transcoded/voiceover/resourceType/{fmt}/"
+        prepare_dir(transcoded_dir, wipe=True)
+        transcode_media(raw_dir, transcoded_dir, fmt)
 
     print("✅ Step 2: Transcoding complete.")
 

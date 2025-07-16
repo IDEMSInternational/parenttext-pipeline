@@ -3,11 +3,8 @@ import re
 import difflib
 
 import os
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+from rpft.google import get_credentials
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 
 
 # --- Configuration ---
@@ -180,25 +177,7 @@ def replace_messages(cell_value, cell_loc):
 ## -- Google Auth --
 def get_service(service_name, service_version):
     """Authenticates using OAuth 2.0 Client ID and returns a Google Sheets service object."""
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists(TOKEN_FILE):
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-    
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            # If this fails, there's probably a valid token.json, but is readonly scope, delete and rerun
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open(TOKEN_FILE, 'w') as token:
-            token.write(creds.to_json())
-    
+    creds = get_credentials()    
     service = build(service_name, service_version, credentials=creds)
     return service
 
@@ -355,8 +334,8 @@ def main(spreadsheet_ranges, as_copy = True, dry_run = False):
             sheets_apply(spreadsheet_id, range_name, replace_messages, dry_run)
 
 if __name__ == "__main__":
-    # main(spreadsheet_ranges, as_copy=False, dry_run=True) # Dry Run
-    main(spreadsheet_ranges, as_copy=True, dry_run=False) # Hot Run
+    main(spreadsheet_ranges, as_copy=False, dry_run=True) # Dry Run
+    # main(spreadsheet_ranges, as_copy=True, dry_run=False) # Hot Run
     with open("language_conversion_errors.json", "w") as f:
         json.dump(untranslated_message_locations, f, indent=4) # indent for pretty-printing
     print(f'Total untranslated messages: {len(untranslated_message_locations.keys())}')

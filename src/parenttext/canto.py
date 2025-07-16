@@ -8,8 +8,6 @@ import requests
 from dotenv import load_dotenv
 from jinja2 import ChainableUndefined, Environment
 
-from parenttext.rearrange_folders import rearrange_folders
-
 
 @dataclass
 class MediaAsset:
@@ -164,8 +162,6 @@ def main(destination: str, config_file: str | None = None):
             "Must have a .env file in current working directory or parent directories"
         )
 
-    download_dest = destination.rstrip("/") + "_temp"
-
     download_all(
         client=Canto(
             app_id=os.getenv("CANTO_APP_ID"),
@@ -176,12 +172,8 @@ def main(destination: str, config_file: str | None = None):
         ),
         path_template=_env.from_string(os.path.join(*config["path_template"])),
         location=config["storage"]["location"],
-        destination=download_dest,
+        destination=destination,
     )
-
-    # Temp method for rearranging the folders into the standard filestructure
-    # TODO: implement this into the config folder structure scaffold
-    rearrange_folders(download_dest, destination)
 
 
 if __name__ == "__main__":

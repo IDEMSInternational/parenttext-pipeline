@@ -15,6 +15,7 @@ class MediaAsset:
     id: str
     language: str
     name: str
+    folder: str
     annotations: dict = field(default_factory=dict)
 
 
@@ -106,6 +107,7 @@ class Canto:
                         id=content["id"],
                         language=annotations.get("Language", [""])[0],
                         name=content["name"],
+                        folder=item["name"],
                     )
                     yield asset
 

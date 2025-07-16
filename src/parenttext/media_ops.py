@@ -17,11 +17,11 @@ def main(
     dry_run: bool = False,
 ):
     with open(config_file or "config.json", "r") as fh:
-        config = json.load(fh)["sources"]["media_assets"]
+        config = json.load(fh)["sources"]["deployment_storage"]
 
-    gcs_base_path = gcs_base_path or config["server_storage"]["location"]
-    project_id = project_id or config["server_storage"]["annotations"]["project_id"]
-    bucket_name = bucket_name or config["server_storage"]["annotations"]["bucket_name"]
+    gcs_base_path = gcs_base_path or config["location"]
+    project_id = project_id or config["annotations"]["project_id"]
+    bucket_name = bucket_name or config["annotations"]["bucket_name"]
 
     """Main function to orchestrate the entire workflow."""
     print("=" * 50)

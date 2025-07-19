@@ -11,7 +11,11 @@ from googleapiclient.discovery import build
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 CREDENTIALS_FILE = 'credentials.json' # Your OAuth 2.0 Client ID JSON
 TOKEN_FILE = 'token.json' # File to store the user's token after first authorization
-spreadsheet_ranges = { # dictionary with keys as spreadsheet IDs and values as lists of range names to apply function to
+
+# dictionary with keys as spreadsheet IDs and values as lists of range names to apply function to
+# Intended use: Find the ranges for a given spreadsheet type (e.g. LTP activities) and locally change the ID
+# or add new ranges for file type and commit
+spreadsheet_ranges = {
     # '17JvNuwr3yzX2ErwSnV0I4WUU2ERc32lxqGHVudrDhyA': [ # Testing MX Modules - All ages
     #     'Being a More Responsible and Involved Caregiver!C2:ZZ'
     # ],
@@ -29,23 +33,91 @@ spreadsheet_ranges = { # dictionary with keys as spreadsheet IDs and values as l
     #     'Manage My Teen’s Behaviour!C2:ZZ',
     #     'Understanding My Teen!C2:ZZ'
     # ],
-    '1-0Kj3N2F6MU15Vl53vDF8HT0TQWWTHQ5GSm8XqYGonU': [ # Testing MX LTP activities
-        'ltp_activity_teen_data!B2:C',
-        'ltp_activity_child_data!B2:C',
+    # '1-0Kj3N2F6MU15Vl53vDF8HT0TQWWTHQ5GSm8XqYGonU': [ # Testing MX LTP activities
+    #     'ltp_activity_teen_data!B2:C',
+    #     'ltp_activity_child_data!B2:C',
+    # ],
+    # '1HERSo5By7fuOhLWQmrSIrT89fWcR8T-AhEy48oqjkj0': [ # Testing MX Troubleshooting
+    #     'goal_checkin_teen_data!B2:C',
+    #     'goal_checkin_teen_data!E2:I',
+    #     'goal_checkin_teen_data!K2:ZZ',
+    #     'goal_checkin_all_ages_data!B2:C',
+    #     'goal_checkin_all_ages_data!E2:I',
+    #     'goal_checkin_all_ages_data!K2:ZZ',
+    #     'goal_checkin_child_data!B2:C',
+    #     'goal_checkin_child_data!E2:I',
+    #     'goal_checkin_child_data!K2:ZZ',
+    #     'survey_behave_teen_data!B2:ZZ',
+    #     'survey_behave_child_data!B2:ZZ'
+    # ],
+    '1qwL_l1RJsuuJHGz16J6u63jdLESoc7P0o4Ka1aLhHGE': [ # Delivery Data
+        'congrats_data!B2:C',
+        'delivery_messages!B2:D',
+        'make_options_wrapper_data!C2:ZZ',
+        'show_options_wrapper_data!E2:G',
+        'description_data!B2:C',
+        'interaction_data!B2:ZZ',
+        'activity_offer_data!C2:ZZ',
+        'activity_type_data!B2:C',
+        'pre_post_goal_checkin_messages!B2:C',
+        'certificate_name_data!C2:ZZ',
     ],
-    '1HERSo5By7fuOhLWQmrSIrT89fWcR8T-AhEy48oqjkj0': [ # Testing MX Troubleshooting
-        'goal_checkin_teen_data!B2:C',
-        'goal_checkin_teen_data!E2:I',
-        'goal_checkin_teen_data!K2:ZZ',
-        'goal_checkin_all_ages_data!B2:C',
-        'goal_checkin_all_ages_data!E2:I',
-        'goal_checkin_all_ages_data!K2:ZZ',
-        'goal_checkin_child_data!B2:C',
-        'goal_checkin_child_data!E2:I',
-        'goal_checkin_child_data!K2:ZZ',
-        'survey_behave_teen_data!B2:ZZ',
-        'survey_behave_child_data!B2:ZZ'
+    '1uhv_AKkGz6fn6JjTCSt5vUKQBpc46mzG8n98zkAsd9c': [ # menu data
+        'menu_data!B2:ZZ',
+        'menu_blocks_data!B2:ZZ',
+        'menu_blocks_data!B2:D',
+        'menu_blocks_data!F2:F',
+        'menu_blocks_data!H2:H',
+        'menu_blocks_data!J2:J',
+        'menu_blocks_data!L2:L',
+        'menu_blocks_data!N2:N',
+        'menu_blocks_data!P2:P',
+        'review_skills_menu_data!B2:B',
+        'troubleshooting_menu_data!B2:B',
+        'menu_progress_main_data!B2:C',
+        'menu_messages!B2:D',
+        'settings_profile_data!B2:F',
+        'settings_profile_data!I2:I',
+        'settings_profile_data!K2:K',
+        'settings_profile_data!M2:M',
+        'settings_profile_data!O2:O',
+        'settings_profile_data!Q2:Q',
+        'settings_profile_data!S2:S',
+        'settings_profile_data!U2:U',
+        'make_options_wrapper_menu_data!E2:M',
+        'settings_certificate_data!B2:F',
+    ],
+    '11oSH7YbRXpXSvEK4dWntZPF-r2RF7MsbYsToRHFHcW8': [ # onboarding data
+        'onboarding_messages!B2:C',
+        'onboarding_survey!C2:C',
+        'onboarding_survey!H2:H',
+        'onboarding_survey!K2:K',
+        'onboarding_survey!N2:N',
+        'onboarding_survey!Q2:Q',
+        'onboarding_survey!T2:T',
+        'onboarding_survey!W2:W',
+        'onboarding_survey!Z2:Z',
+        'onboarding_survey!AC2:AC',
+        'onboarding_survey!AS2:AS',
+        'onboarding_survey!AX2:AX',
+        'onboarding_survey!BD2:BD',
+        'survey_defaults!B2:B',
+    ],
+    '1I9UnAGc9eA7k-9miJty0kyj0mYYuVEz-4Q99ll4-qk0': [ # safeguarding data
+        'safeguarding_leave_programme_data!B2:C',
+        'safeguarding_start_programme_data!B2:C',
+        'referrals!B2:C',
+        'safeguarding_entry_data!B2:C',
+        'safeguarding_entry_data!E2:E',
+        'safeguarding_entry_data!G2:H',
+        'safeguarding_trigger_wrapper_data!B2:G',
+        'id_generator_data!B2:B',
+        'safeguarding_wfr_interaction_data!B2:B',
+        'safeguarding_help_data!B2:B',
+        'uncaught_message_flow_data!B2:B',
+        'book_trigger_data!B2:B',
     ]
+        
 }
 file_prefix = 'Translated'
 

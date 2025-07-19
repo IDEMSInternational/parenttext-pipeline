@@ -2,6 +2,7 @@ import argparse
 import subprocess
 import shutil
 from pathlib import Path
+import hashlib
 
 
 AUDIO_EXTS = [
@@ -68,9 +69,10 @@ def prepare(dst, wipe=False):
     return dst
 
 
-def transcode(src, dst, fmt="video"):
+def transcode(src, dst, old_src=None, fmt="video"):
     src_root = Path(src)
     dst_root = Path(dst)
+    old_src_root = Path(old_src)
     exts = INPUT_EXTS[fmt]
     sources = [p for ext in exts for p in src_root.rglob(f"*.{ext}")]
     count = len(sources)
@@ -81,6 +83,18 @@ def transcode(src, dst, fmt="video"):
     for i, source in enumerate(sources, start=1):
         file_dst = dst_root / source.relative_to(src_root)
         prepare(file_dst.parent)
+        # Compare if file has changed from old source to avoid retranscoding
+        if old_src_root and file_dst.exists():
+            old_file = old_src_root / source.relative_to(src_root)
+            if old_file.exists():
+                with open(source, "rb") as f:
+                    new_hash = hashlib.md5(f.read()).hexdigest()
+                with open(old_file, "rb") as f:
+                    old_hash = hashlib.md5(f.read()).hexdigest()
+                if new_hash == old_hash:
+                    print(f"Skipping unchanged file: {source}")
+                    continue
+
         final_dst = op(source, file_dst)
         print(
             "Operation completed,",

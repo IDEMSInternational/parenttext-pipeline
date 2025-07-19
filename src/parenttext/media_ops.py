@@ -31,6 +31,8 @@ def main(
     print("🚀 Step 1: Starting Canto download...")
 
     if Path("canto").exists():
+        # Copy all files into transcoded folder for images & comics
+        shutil.copytree("canto", "old_canto")
         print(f"  INFO: Removing existing directory '{Path('canto')}' for a clean run.")
         shutil.rmtree(Path("canto"))
 
@@ -40,19 +42,28 @@ def main(
     print("\n🚀 Step 2: Starting media transcoding...")
 
     # Copy all files into transcoded folder for images & comics
-    shutil.copytree("canto", "transcoded")
+    # TODO: Handle compression of these folders in below loop with transcode
+    try:
+        shutil.copytree("canto/image", "transcoded/image", dirs_exist_ok=True)
+        shutil.copytree("canto/comic", "transcoded/comic", dirs_exist_ok=True)
+    except FileNotFoundError:
+        print("  Warning: Image/Comic split not found, skipping")
 
     # transcode video & audio
     for fmt in ["video", "audio"]:
         print(f"  -> Transcoding {fmt} folder...")
         raw_dir = f"canto/voiceover/resourceType/{fmt}/"
+        # Handle case where audio is transcoded from video source
         if not Path(raw_dir).exists() and fmt == "audio":
             print("  Transcoding audio from video files.")
             raw_dir = f"canto/voiceover/resourceType/video/"
+        old_dir = f"old_{raw_dir}"
         transcoded_dir = f"transcoded/voiceover/resourceType/{fmt}/"
-        prepare_dir(transcoded_dir, wipe=True)
-        transcode_media(raw_dir, transcoded_dir, fmt)
+        prepare_dir(transcoded_dir, wipe=False)  # make dir if doesn't exist
+        transcode_media(raw_dir, transcoded_dir, old_src=old_dir, fmt=fmt)
 
+    # remove old canto directory once it's no longer needed for change detection
+    shutil.rmtree(Path("old_canto"))
     print("✅ Step 2: Transcoding complete.")
 
     print("\n🚀 Step 3: Starting upload to Firebase Storage...")

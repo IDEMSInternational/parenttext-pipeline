@@ -179,6 +179,16 @@ placeholder_substitutions_without_brackets = {
     "GIRLFRIEND": "NOVIA",
     "TEACHER_1": "PROFESOR_1",
     "PREVENT": "PREVENIR",
+    "HELP": "AYUDA",
+    "MENU": "MENÚ",
+    "PLAY": "JUGAR",
+    "GROW": "CRECER",
+    "STOP": "DETENER",
+    "BOOK": "LIBRO",
+    "REVIEW": "RESEÑA",
+    "PAUSE": "PAUSAR",
+    "RESET": "FACREANUDAR",
+    "FACSTART": "FORMANDO",
 }
 
 placeholder_substitutions = {"{"+key+"}": "{"+value+"}" for key, value in placeholder_substitutions_without_brackets.items()}
@@ -294,7 +304,11 @@ def replace_messages(cell_value, cell_loc):
 ## -- Google Auth --
 def get_service(service_name, service_version):
     """Authenticates using OAuth 2.0 Client ID and returns a Google Sheets service object."""
-    creds = get_credentials()    
+    scopes = [
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/spreadsheets.readonly"
+    ]
+    creds = get_credentials(scopes)    
     service = build(service_name, service_version, credentials=creds)
     return service
 

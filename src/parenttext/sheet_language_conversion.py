@@ -53,18 +53,30 @@ spreadsheet_ranges = {
     '1qwL_l1RJsuuJHGz16J6u63jdLESoc7P0o4Ka1aLhHGE': [ # Delivery Data
         'congrats_data!B2:C',
         'delivery_messages!B2:D',
-        'make_options_wrapper_data!C2:ZZ',
+        'make_options_wrapper_data!E2:M',
         'show_options_wrapper_data!E2:G',
         'description_data!B2:C',
-        'interaction_data!B2:ZZ',
-        'activity_offer_data!C2:ZZ',
+        'interaction_data!E2:E',
+        'interaction_data!H2:H',
+        'interaction_data!J2:J',
+        'activity_offer_data!C2:L',
+        'activity_offer_data!N2:N',
         'activity_type_data!B2:C',
-        'pre_post_goal_checkin_messages!B2:C',
-        'certificate_name_data!C2:ZZ',
+        'pre_post_goal_checkin_messages!B2:B',
+        'certificate_name_data!C2:C',
+        'certificate_name_data!I2:I',
+        'certificate_name_data!M2:O',
     ],
     '1uhv_AKkGz6fn6JjTCSt5vUKQBpc46mzG8n98zkAsd9c': [ # menu data
-        'menu_data!B2:ZZ',
-        'menu_blocks_data!B2:ZZ',
+        'menu_data!B2:B',
+        'menu_data!D2:D',
+        'menu_data!F2:F',
+        'menu_data!H2:H',
+        'menu_data!J2:J',
+        'menu_data!L2:L',
+        'menu_data!N2:N',
+        'menu_data!P2:P',
+        'menu_data!R2:R',
         'menu_blocks_data!B2:D',
         'menu_blocks_data!F2:F',
         'menu_blocks_data!H2:H',
@@ -100,7 +112,7 @@ spreadsheet_ranges = {
         'onboarding_survey!AC2:AC',
         'onboarding_survey!AS2:AS',
         'onboarding_survey!AX2:AX',
-        'onboarding_survey!BD2:BD',
+        'onboarding_survey!BC2:BC',
         'survey_defaults!B2:B',
     ],
     '1I9UnAGc9eA7k-9miJty0kyj0mYYuVEz-4Q99ll4-qk0': [ # safeguarding data
@@ -138,6 +150,38 @@ translation_substitutions = {
         "Tu {child}": "{Tu niño}",
     }
 }
+
+placeholder_substitutions_without_brackets = {
+    "F1_MOTHER": "F1_MADRE",
+    "F1_FATHER": "F1_PADRE",
+    "F1_SON_17": "F1_HIJO_17",
+    "F1_DAUGHTER_16": "F1_HIJA_16",
+    "F1_DAUGHTER_13": "F1_HIJA_13",
+    "F1_DAUGHTER_6": "F1_HIJA_6",
+    "F1_DAUGHTER_2": "F1_HIJA_2",
+    "F1_SON_5": "F1_HIJO_5",
+    "F2_GRANDMOTHER": "F2_ABUELA",
+    "F2_GRANDFATHER": "F2_ABUELO",
+    "F2_DAUGHTER_17": "F2_HIJA_17",
+    "F2_SON_15": "F2_HIJO_15",
+    "F2_SON_8": "F2_HIJO_8",
+    "F2_DAUGHTER_3": "F2_HIJA_3",
+    "F3_MOTHER": "F3_MADRE",
+    "F3_UNCLE": "F3_TÍO",
+    "F3_DAUGHTER_12": "F3_HIJA_12",
+    "F3_DAUGHTER_7": "F3_HIJA_7",
+    "F3_SON_4": "F3_HIJO_4",
+    "FRIEND_FEMALE_1": "AMIGA_MUJER_1",
+    "FRIEND_FEMALE_2": "AMIGA_MUJER_2",
+    "MAN_IN_CAR": "HOMBRE_EN_COCHE",
+    "BOYFRIEND": "NOVIO",
+    "MAN_THREAT": "HOMBRE_AMENAZANTE",
+    "GIRLFRIEND": "NOVIA",
+    "TEACHER_1": "PROFESOR_1",
+}
+
+placeholder_substitutions = {"{"+key+"}": "{"+value+"}" for key, value in placeholder_substitutions_without_brackets.items()}
+translation_substitutions["text"].update(placeholder_substitutions) # Add the placeholder substitutions to the text substitutions   
 
 # Patterns like WhatsApp Tailoring to be removed at time of translation attempt, capture group the stuff to keep
 tailoring_patterns = [

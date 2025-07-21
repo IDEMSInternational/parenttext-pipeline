@@ -68,9 +68,10 @@ def prepare(dst, wipe=False):
 
     return dst
 
+
 def source_has_changed(file_dst, source, old_file=None):
-    """ Compare the MD5 hashes of a file with its old version if it exists. """
-    if file_dst.exists() and not old_file is None:
+    """Compare the MD5 hashes of a file with its old version if it exists."""
+    if file_dst.exists() and old_file is not None:
         if old_file.exists():
             with open(source, "rb") as f:
                 new_hash = hashlib.md5(f.read()).hexdigest()
@@ -79,6 +80,7 @@ def source_has_changed(file_dst, source, old_file=None):
             if new_hash == old_hash:
                 print(f"Skipping unchanged file: {source}")
                 return True
+
 
 def transcode(src, dst, old_src=None, fmt="video"):
     src_root = Path(src)

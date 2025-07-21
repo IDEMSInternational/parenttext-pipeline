@@ -33,7 +33,8 @@ class Firebase:
         bucket_name : str
             The name of the GCS bucket. e.g., "idems-media-recorder.appspot.com"
         gcs_base_path : str
-            The base path in GCS where the versioned folders are stored. Typically ends in "...resourceGroup/"
+            The base path in GCS where the versioned folders are stored.
+            Typically ends in "...resourceGroup/"
 
         Returns
         -------
@@ -48,8 +49,8 @@ class Firebase:
         # Get v out as a capture group
         capture_list = [re.findall(search_pattern, blob.name)[0] for blob in blob_list]
 
-        # Iterate through unique captures, as the capture list will contain a duplicate for each file in the folder
-        for v in list(set(capture_list)):
+        # capture_list will contain duplicate entry for each file in a folder
+        for v in list(set(capture_list)):  # iterate only unique captures
             if v == "" and remote_version_number == -1:
                 remote_version_number = 1
             # Save the highest number
@@ -120,15 +121,15 @@ class Firebase:
                     up_to_date = False
                     break
 
+            vrs_posix = version_folder.relative_to(source_directory).as_posix()
+
             if not up_to_date:
                 remote_version_number += 1
                 print(
-                    f"Bumping {version_folder.relative_to(source_directory).as_posix()} to {remote_version_number}"
+                    f"Bumping {vrs_posix} to {remote_version_number}"
                 )
                 # Bump the remote version number
-                remote_version_folder = Path(
-                    f"{version_folder.relative_to(source_directory).as_posix()}{remote_version_number}"
-                )
+                remote_version_folder = Path(f"{vrs_posix}{remote_version_number}")
                 self.upload_folder(
                     bucket_name,
                     local_base_path=(version_folder),
@@ -137,11 +138,9 @@ class Firebase:
                 )
             else:
                 print(
-                    f"Hashes Matched for {version_folder.relative_to(source_directory).as_posix()}"
+                    f"Hashes Matched for {vrs_posix}"
                 )
-            current_versions[
-                version_folder.relative_to(source_directory).as_posix()
-            ] = remote_version_number
+            current_versions[vrs_posix] = remote_version_number
         print("Current Versions")
         print(current_versions)
 
@@ -169,7 +168,7 @@ class Firebase:
             remote_hash = decoded_md5.hex()
         else:
             print(
-                f"MD5 hash not available for object {blob_name} in bucket {bucket_name}."
+                f"MD5 hash unavailable for object {blob_name} in bucket {bucket_name}."
             )
             return False
 
@@ -206,6 +205,5 @@ class Firebase:
                 else:
                     print("Dry Run")
                 print(
-                    f"Uploaded {file_path} to gs://{bucket_name}/{destination_blob_name}"
+                    f"{file_path} -> gs://{bucket_name}/{destination_blob_name}"
                 )
-

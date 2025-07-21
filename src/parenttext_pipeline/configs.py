@@ -235,9 +235,12 @@ class MediaAssetSourceConfig(SourceConfig):
     mappings: dict[str, dict[str, str]] = field(default_factory=dict)
     """Maps values in asset metadata to values used by the Pipeline."""
 
+
 @dataclass
 class MediaAssetDeploymentConfig(SourceConfig):
-    """Information about the media storage system to upload assets to for RapidPro to access."""
+    """Information about the media storage system to upload assets to for access from
+        RapidPro URLs.
+    """
 
     system: str
     """Name of the storage system; currently, only 'firebase' is supported."""
@@ -247,6 +250,7 @@ class MediaAssetDeploymentConfig(SourceConfig):
 
     annotations: dict[str, str] = field(default_factory=dict)
     """System-specific configuration settings."""
+
 
 SOURCE_CONFIGS = {
     "json": JSONSourceConfig,

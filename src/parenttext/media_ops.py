@@ -56,7 +56,7 @@ def main(
         # Handle case where audio is transcoded from video source
         if not Path(raw_dir).exists() and fmt == "audio":
             print("  Transcoding audio from video files.")
-            raw_dir = f"canto/voiceover/resourceType/video/"
+            raw_dir = "canto/voiceover/resourceType/video/"
         old_dir = f"old_{raw_dir}"
         transcoded_dir = f"transcoded/voiceover/resourceType/{fmt}/"
         prepare_dir(transcoded_dir, wipe=False)  # make dir if doesn't exist
@@ -81,7 +81,10 @@ def main(
 if __name__ == "__main__":
     # 1. Initialize the Argument Parser
     parser = argparse.ArgumentParser(
-        description="A script to download assets from Canto, transcode them, and upload to Google Cloud Storage."
+        description=(
+            "A script to download assets from Canto, transcode them,"
+            " and upload to Google Cloud Storage."
+        )
     )
 
     # 2. Define Command-Line Arguments

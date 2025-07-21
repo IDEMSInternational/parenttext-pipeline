@@ -69,8 +69,7 @@ class Canto:
             headers={"Authorization": f"Bearer {self.token}"},
         )
         if req.status_code == 401:
-            print("401 Unauthorized: Ensure environment variables are loaded")
-            raise
+            raise Exception("401 Unauthorized: Ensure environment variables are loaded")
         return req.json().get("results", [])
 
     def album(self, album_id: str):
@@ -160,9 +159,7 @@ def main(destination: str, config_file: str | None = None):
 
     _env = Environment(undefined=ChainableUndefined)
     if not load_dotenv(".env"):
-        raise FileNotFoundError(
-            "Must have a .env file in current working directory or parent directories"
-        )
+        raise FileNotFoundError("Must have a .env file in current working directory")
 
     download_all(
         client=Canto(

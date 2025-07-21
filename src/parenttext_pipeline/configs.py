@@ -232,14 +232,11 @@ class MediaAssetSourceConfig(SourceConfig):
     storage: MediaStorage
     """Information about the media storage system to download assets from."""
 
-    server_storage: MediaStorage
-    """Information about the media storage system to upload assets to for RapidPro to access."""
-
     mappings: dict[str, dict[str, str]] = field(default_factory=dict)
     """Maps values in asset metadata to values used by the Pipeline."""
 
 @dataclass
-class MediaAssetDeplymentConfig(SourceConfig):
+class MediaAssetDeploymentConfig(SourceConfig):
     """Information about the media storage system to upload assets to for RapidPro to access."""
 
     system: str
@@ -254,7 +251,7 @@ class MediaAssetDeplymentConfig(SourceConfig):
 SOURCE_CONFIGS = {
     "json": JSONSourceConfig,
     "media_assets": MediaAssetSourceConfig,
-    "deployment_storage": MediaAssetDeplymentConfig,
+    "deployment_storage": MediaAssetDeploymentConfig,
     "safeguarding": SafeguardingSourceConfig,
     "sheets": SheetsSourceConfig,
     "translation_repo": TranslationSourceConfig,

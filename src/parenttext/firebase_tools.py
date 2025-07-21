@@ -30,15 +30,15 @@ class Firebase:
 
         Parameters
         ----------
-        bucket_name : _type_
-            _description_
-        gcs_base_path : _type_
-            _description_
+        bucket_name : str
+            The name of the GCS bucket. e.g., "idems-media-recorder.appspot.com"
+        gcs_base_path : str
+            The base path in GCS where the versioned folders are stored. Typically ends in "...resourceGroup/"
 
         Returns
         -------
         int
-            _description_
+            folder version number, or -1 if the folder doesn't exist.
         """
         # --- Find latest matching directory on the remote ---
         blob_list = list(self.gcs_client.list_blobs(bucket_name, prefix=gcs_base_path))
@@ -48,7 +48,7 @@ class Firebase:
         # Get v out as a capture group
         capture_list = [re.findall(search_pattern, blob.name)[0] for blob in blob_list]
 
-        # Iterate through unique captures
+        # Iterate through unique captures, as the capture list will contain a duplicate for each file in the folder
         for v in list(set(capture_list)):
             if v == "" and remote_version_number == -1:
                 remote_version_number = 1
@@ -94,7 +94,6 @@ class Firebase:
                     raise NotImplementedError(
                         "Remote version-level folder doesn't exist. "
                         "Should only happen during new upload. "
-                        "TODO: Figure out how to handle new uploads"
                     )
                 case _:
                     remote_version_str = str(remote_version_number)
@@ -157,7 +156,7 @@ class Firebase:
         local_hash = hasher.hexdigest()
 
         bucket = self.gcs_client.bucket(bucket_name)
-        blob_name = file_path_in_storage  # TODO conversion
+        blob_name = file_path_in_storage
         blob = bucket.blob(blob_name)
 
         # Fetch the blob's metadata
@@ -210,13 +209,3 @@ class Firebase:
                     f"Uploaded {file_path} to gs://{bucket_name}/{destination_blob_name}"
                 )
 
-
-if __name__ == "__main__":
-    bucket_name = "idems-media-recorder.appspot.com"
-
-    prefix = (
-        "project/PLH/subproject/ParentText_v2/deployment/CrisisPalestine/resourceGroup/"
-    )
-
-    fb = Firebase(project_id="idems-media-recorder")
-    blobs = fb.gcs_client.list_blobs(bucket_name, prefix=prefix)

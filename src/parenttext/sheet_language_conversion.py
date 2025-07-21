@@ -178,6 +178,7 @@ placeholder_substitutions_without_brackets = {
     "MAN_THREAT": "HOMBRE_AMENAZANTE",
     "GIRLFRIEND": "NOVIA",
     "TEACHER_1": "PROFESOR_1",
+    "PREVENT": "PREVENIR",
 }
 
 placeholder_substitutions = {"{"+key+"}": "{"+value+"}" for key, value in placeholder_substitutions_without_brackets.items()}

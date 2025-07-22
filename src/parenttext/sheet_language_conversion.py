@@ -19,40 +19,41 @@ TOKEN_FILE = "token.json"  # File to store the user's token after first authoriz
 # Intended use: Find the ranges for a given spreadsheet type (e.g. LTP activities) and locally change the ID
 # or add new ranges for file type and commit
 spreadsheet_ranges = {
-    # '17JvNuwr3yzX2ErwSnV0I4WUU2ERc32lxqGHVudrDhyA': [ # Testing MX Modules - All ages
-    #     'Being a More Responsible and Involved Caregiver!C2:ZZ'
-    # ],
-    # '1YTkeeZvnI2Uil6cirBCaEcRAfqsZHnplBwIA64tNJH4': [ # Testing MX Modules - Child
-    #     'Improve My Relationship with My Child!C2:ZZ',
-    #     'Keep My Girl or Boy Safe and Healthy!C2:ZZ',
-    #     'Manage My Girl or Boy Behaviour!C2:ZZ',
-    #     'Prepare My Child for Success in School!C2:ZZ',
-    #     'Understand My Girl or Boy Development!C2:ZZ'
-    # ],
-    # '1ys3ctng5sJLnFMQ8M6TWVEk2RQFL-xe_PzR8z73RC6A': [ # Testing MX Modules - Teen
-    #     'Improve My Relationship with My Teen!C2:ZZ',
-    #     'Teen Health and Safety!C2:ZZ',
-    #     'Support My Teen’s Education!C2:ZZ',
-    #     'Manage My Teen’s Behaviour!C2:ZZ',
-    #     'Understanding My Teen!C2:ZZ'
-    # ],
-    # '1-0Kj3N2F6MU15Vl53vDF8HT0TQWWTHQ5GSm8XqYGonU': [ # Testing MX LTP activities
-    #     'ltp_activity_teen_data!B2:C',
-    #     'ltp_activity_child_data!B2:C',
-    # ],
-    # '1HERSo5By7fuOhLWQmrSIrT89fWcR8T-AhEy48oqjkj0': [ # Testing MX Troubleshooting
-    #     'goal_checkin_teen_data!B2:C',
-    #     'goal_checkin_teen_data!E2:I',
-    #     'goal_checkin_teen_data!K2:ZZ',
-    #     'goal_checkin_all_ages_data!B2:C',
-    #     'goal_checkin_all_ages_data!E2:I',
-    #     'goal_checkin_all_ages_data!K2:ZZ',
-    #     'goal_checkin_child_data!B2:C',
-    #     'goal_checkin_child_data!E2:I',
-    #     'goal_checkin_child_data!K2:ZZ',
-    #     'survey_behave_teen_data!B2:ZZ',
-    #     'survey_behave_child_data!B2:ZZ'
-    # ],
+    '17JvNuwr3yzX2ErwSnV0I4WUU2ERc32lxqGHVudrDhyA': [ # Testing MX Modules - All ages
+        'Being a More Responsible and Involved Caregiver!B2:ZZ',
+        'Onboarding!B2:ZZ'
+    ],
+    '1YTkeeZvnI2Uil6cirBCaEcRAfqsZHnplBwIA64tNJH4': [ # Testing MX Modules - Child
+        'Improve My Relationship with My Child!B2:ZZ',
+        'Keep My Girl or Boy Safe and Healthy!B2:ZZ',
+        'Manage My Girl or Boy Behaviour!B2:ZZ',
+        'Prepare My Child for Success in School!B2:ZZ',
+        'Understand My Girl or Boy Development!B2:ZZ'
+    ],
+    '1ys3ctng5sJLnFMQ8M6TWVEk2RQFL-xe_PzR8z73RC6A': [ # Testing MX Modules - Teen
+        'Improve My Relationship with My Teen!B2:ZZ',
+        'Teen Health and Safety!B2:ZZ',
+        'Support My Teen’s Education!B2:ZZ',
+        'Manage My Teen’s Behaviour!B2:ZZ',
+        'Understanding My Teen!B2:ZZ'
+    ],
+    '1-0Kj3N2F6MU15Vl53vDF8HT0TQWWTHQ5GSm8XqYGonU': [ # Testing MX LTP activities
+        'ltp_activity_teen_data!B2:C',
+        'ltp_activity_child_data!B2:C',
+    ],
+    '1HERSo5By7fuOhLWQmrSIrT89fWcR8T-AhEy48oqjkj0': [ # Testing MX Troubleshooting
+        'goal_checkin_teen_data!B2:C',
+        'goal_checkin_teen_data!E2:I',
+        'goal_checkin_teen_data!K2:ZZ',
+        'goal_checkin_all_ages_data!B2:C',
+        'goal_checkin_all_ages_data!E2:I',
+        'goal_checkin_all_ages_data!K2:ZZ',
+        'goal_checkin_child_data!B2:C',
+        'goal_checkin_child_data!E2:I',
+        'goal_checkin_child_data!K2:ZZ',
+        'survey_behave_teen_data!B2:ZZ',
+        'survey_behave_child_data!B2:ZZ'
+    ],
     "1qwL_l1RJsuuJHGz16J6u63jdLESoc7P0o4Ka1aLhHGE": [  # Delivery Data
         "congrats_data!B2:C",
         "delivery_messages!B2:D",

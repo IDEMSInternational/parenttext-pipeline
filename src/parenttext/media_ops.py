@@ -77,6 +77,13 @@ def main(
     print("🎉 Pipeline execution finished successfully!")
     print("=" * 50)
 
+def test():
+    print(
+        "Now to change the version in RapidPro flows the user must:\n"
+        "Update variables: RapidPro -> flows -> @ Globals\n"
+        "Push those updates to users: RapidPro -> flows -> update_attachment_path_version"
+        " -> Start -> select group 'enrolled' -> click start button"
+    )
 
 if __name__ == "__main__":
     # 1. Initialize the Argument Parser

@@ -33,7 +33,7 @@ dependencies = [
     "rapidpro-abtesting @ git+https://github.com/IDEMSInternational/rapidpro_abtesting.git@master",
     "requests~=2.31",
     "google-cloud-storage~=3.2",
-    "rpft @ git+https://github.com/IDEMSInternational/rapidpro-flow-toolkit.git@1.14.0",
+    "rpft @ git+https://github.com/GabeBolton/rapidpro-flow-toolkit.git@google-auth-scopes",
 ]
 
 [project.scripts]

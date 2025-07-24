@@ -148,6 +148,29 @@ Example: Assume that, relative to the current working directory, we have a folde
 }
 ```
 
+## Media Assets
+
+To enable the automated download of new files from the server deployers store their assets on, the `media_assets` object in the `sources` must be defined. Detailed information on this can be found in [Canto](canto.md).
+
+
+## Deployment Storage
+
+To enable the automated upload of new files to the server the chatbot requests files from, the `deployment_storage` object in the `sources` must be defined. Currently only firebase is implemented, and requires the annotations `project_id` and `bucket_name`.
+The `location` specifies the base path files will live, typically for the IDEMS Firebase this ends in `/resourceGroup`.
+The only thing that should need to be changed from this example is replacing `Malaysia` in the `location` with the relavant project folder.
+
+### Example
+```
+"deployment_storage": {
+    "system": "firebase",
+    "location": "project/PLH/subproject/ParentText_v2/deployment/Malaysia/resourceGroup",
+    "annotations": {
+        "project_id": "idems-media-recorder",
+        "bucket_name": "idems-media-recorder.appspot.com"
+    }
+}
+```
+
 [configs]: ../src/parenttext_pipeline/configs.py
 [configuration]: configuration.md
 [steps]: steps.md

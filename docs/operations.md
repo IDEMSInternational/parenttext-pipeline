@@ -28,3 +28,10 @@ Compiling flows involves multiple processing steps that are defined in the confi
 [config]: configuration.md
 [steps]: steps.md
 [sources]: sources.md
+
+# Non-pipeline tools
+
+## `parenttext.media_ops`
+Runs the automated media operations, downloads from canto, transcodes files, and uploads to Firebase.
+Has a dry run option `-d` to dry run without performing upload.
+Typically pulls all needed inputs from `config.json`, but inputs can be manually set as described by the `--help`.

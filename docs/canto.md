@@ -34,10 +34,7 @@ Create a configuration file called 'config.json' in the root directory of the de
                 }
             },
             "path_template": [
-                "{{ format | title }}",
-                "{{ (annotations['Caregiver Gender'] or '') | title }}",
-                "{{ (language or '') | title }}",
-                "{{ name }}"
+                "{% if format == 'image' %}{% if folder == 'Comics' %}comic/{{ name }}{% else %}image/universal/{{ name }}{% endif %}{% else %}voiceover/resourceType/{{ format }}/gender/{{ (annotations['Caregiver Gender'] or 'unknown') }}/language/{{ (language or 'unknown') }}/{{ name }}{% endif %}"
             ],
             "storage": {
                 "system": "canto",
@@ -60,6 +57,7 @@ The `path_template` property determines the directory structure of the downloade
 - `id`: Canto content id
 - `language`: three-letter language code
 - `name`: asset file name
+- `folder`: asset's parent folder (or album in the case of Canto)
 
 If any path element resolves to the empty string, that element will be ignored and the asset will be stored one level higher in the hierarchy. For example, if an asset would be stored under `audio/ara/name.m4a`, but the language metadata is not set, it would, instead, be stored under `audio/name.m4a`.
 
@@ -82,3 +80,36 @@ CANTO_APP_ID=app_id
 CANTO_APP_SECRET=secret
 CANTO_USER_ID=user_id
 ```
+
+### Compatibility with other media automation steps
+The path template must download the files into the file structure used in the deployment asset server.
+
+For the IDEMS Firebase this is (without loss of generality re the specific language codes):
+```
+📂 PATH/resourceGroup/
+ ├── 📂 image
+ │    └── 📂 universal
+ ├── 📂 comic
+ ├── 📂 voiceover
+ │    └── 📂 resourceType
+ │         ├── 📂 video
+ │         │    └── 📂 gender
+ │         │         ├── 📂 male
+ │         │         │    └── 📂 language
+ │         │         │         ├── 📂 eng
+ │         │         │         └── 📂 spa
+ │         │         └── 📂 female
+ │         │              └── 📂 language
+ │         │                   ├── 📂 eng
+ │         │                   └── 📂 spa
+ │         ├── 📂 audio
+ │              └── 📂 gender
+ │                   ├── 📂 male
+ │                   │    └── 📂 language
+ │                   │         ├── 📂 eng
+ │                   │         └── 📂 spa
+ │                   └── 📂 female
+ │                        └── 📂 language
+ │                             ├── 📂 eng
+ │                             └── 📂 spa
+ ```

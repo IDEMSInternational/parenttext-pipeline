@@ -67,6 +67,26 @@ class Firebase:
         version_level: int = 1,
         dry_run: bool = False,
     ):
+        """Uploads a new version of files from a local directory to Firebase Storage.
+        Checks existing files and increments the version number if upload is necessary.
+
+        Parameters
+        ----------
+        source_directory : str
+            The local directory containing the files to upload.
+        bucket_name : str
+            The name of the GCS bucket where files will be uploaded.
+        remote_directory : str
+            The base path in GCS where files will be uploaded.
+        version_level : int, optional
+            The depth of the versioning structure in the directory. Default is 1.
+        dry_run : bool, optional
+            If True, only prints the actions without uploading files. Default is False.
+
+        Returns
+        -------
+        None
+        """
 
         current_versions = {}
         base_path = Path(source_directory)
@@ -145,7 +165,21 @@ class Firebase:
         print(current_versions)
 
     def compare_hashes(self, local_filepath, bucket_name, file_path_in_storage):
-        """Compares the MD5 hash of a local file with a Firebase Storage file."""
+        """Compares the MD5 hash of a local file with a Firebase Storage file.
+        
+        Parameters
+        ----------
+        local_filepath : str
+            The path to the local file.
+        bucket_name : str
+            The name of the GCS bucket.
+        file_path_in_storage : str
+            The path to the file in Firebase Storage.
+        
+        Returns
+        -------
+        bool
+            True if the hashes match, False otherwise."""
 
         # Calculate local hash
         hasher = hashlib.md5()
@@ -175,7 +209,24 @@ class Firebase:
         return local_hash == remote_hash
 
     def upload_folder(self, bucket_name, local_base_path, gcs_base_path, dry_run=False):
-        """Recursively uploads files from a local folder to a GCS bucket."""
+        """Recursively uploads files from a local folder to a GCS bucket.
+        
+        Parameters
+        ----------
+        bucket_name : str
+            The name of the GCS bucket.
+        local_base_path : str
+            The local directory to upload.
+        gcs_base_path : str
+            The base path in GCS where files will be uploaded.
+        dry_run : bool, optional
+            If True, only prints the actions without uploading files.
+            Defaults to False.
+        
+        Returns
+        -------
+        None
+            This function does not return anything, but uploads files to GCS."""
         bucket = self.gcs_client.bucket(bucket_name)
 
         local_folder_as_path = Path(local_base_path)

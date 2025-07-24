@@ -1,3 +1,13 @@
+"""
+# media_ops.py
+This script orchestrates the media processing pipeline, including downloading assets from Canto,
+transcoding them, and uploading to Google Cloud Storage.
+It integrates with the Firebase tools for managing media versions in the cloud.
+It is designed to be run as a standalone script, with command-line arguments for configuration.
+For help, run:
+    python -m parenttext.media_ops --help
+"""
+
 import argparse
 import shutil
 import json

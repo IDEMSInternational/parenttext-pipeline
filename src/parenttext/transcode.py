@@ -79,13 +79,14 @@ def source_has_changed(file_dst, source, old_file=None):
                 old_hash = hashlib.md5(f.read()).hexdigest()
             if new_hash == old_hash:
                 print(f"Skipping unchanged file: {source}")
-                return True
+                return False
+    return True            
 
 
 def transcode(src, dst, old_src=None, fmt="video"):
     src_root = Path(src)
     dst_root = Path(dst)
-    old_src_root = Path(old_src)
+    old_src_root = Path(old_src) if old_src else None
     exts = INPUT_EXTS[fmt]
     sources = [p for ext in exts for p in src_root.rglob(f"*.{ext}")]
     count = len(sources)

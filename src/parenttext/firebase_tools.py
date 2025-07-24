@@ -46,11 +46,11 @@ class Firebase:
 
         search_pattern = rf"^{gcs_base_path.rstrip('/')}(\d*)/.*$"
         remote_version_number = -1  # initialize at -1
-        # Get v out as a capture group
+        # capture_list will contain duplicate entry for each file in a folder
         capture_list = [re.findall(search_pattern, blob.name)[0] for blob in blob_list]
 
-        # capture_list will contain duplicate entry for each file in a folder
-        for v in list(set(capture_list)):  # iterate only unique captures
+        unique_captures = set(capture_list)
+        for v in unique_captures:
             if v == "" and remote_version_number == -1:
                 remote_version_number = 1
             # Save the highest number

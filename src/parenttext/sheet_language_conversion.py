@@ -1,6 +1,7 @@
 import json
 import re
 import difflib
+import argparse
 
 import os
 from rpft.google import get_credentials
@@ -15,33 +16,45 @@ SCOPES = [
 CREDENTIALS_FILE = "credentials.json"  # Your OAuth 2.0 Client ID JSON
 TOKEN_FILE = "token.json"  # File to store the user's token after first authorization
 
-# dictionary with keys as spreadsheet IDs and values as lists of range names to apply function to
-# Intended use: Find the ranges for a given spreadsheet type (e.g. LTP activities) and locally change the ID
-# or add new ranges for file type and commit
+# File IDs - same process as populating the config
+sources_file_list = {
+    'C_ltp_activities': '1-0Kj3N2F6MU15Vl53vDF8HT0TQWWTHQ5GSm8XqYGonU',
+    'C_modules_all_ages': '17JvNuwr3yzX2ErwSnV0I4WUU2ERc32lxqGHVudrDhyA',
+    'C_modules_child': '1YTkeeZvnI2Uil6cirBCaEcRAfqsZHnplBwIA64tNJH4',
+    'C_modules_child': '1ys3ctng5sJLnFMQ8M6TWVEk2RQFL-xe_PzR8z73RC6A',
+    'C_goal_checkin': '1HERSo5By7fuOhLWQmrSIrT89fWcR8T-AhEy48oqjkj0',
+    'N_delivery_data': '1qwL_l1RJsuuJHGz16J6u63jdLESoc7P0o4Ka1aLhHGE',
+    'N_menu_data': "1uhv_AKkGz6fn6JjTCSt5vUKQBpc46mzG8n98zkAsd9c",
+    'N_onboarding_data': '11oSH7YbRXpXSvEK4dWntZPF-r2RF7MsbYsToRHFHcW8',
+    'N_safeguarding_data': "1I9UnAGc9eA7k-9miJty0kyj0mYYuVEz-4Q99ll4-qk0",
+
+}
+
+# dictionary with lists of range names to apply function to
 spreadsheet_ranges = {
-    '17JvNuwr3yzX2ErwSnV0I4WUU2ERc32lxqGHVudrDhyA': [ # Testing MX Modules - All ages
+    'C_modules_all_ages': [ # Modules - All ages
         'Being a More Responsible and Involved Caregiver!B2:ZZ',
         'Onboarding!B2:ZZ'
     ],
-    '1YTkeeZvnI2Uil6cirBCaEcRAfqsZHnplBwIA64tNJH4': [ # Testing MX Modules - Child
+    'C_modules_child': [ # Modules - Child
         'Improve My Relationship with My Child!B2:ZZ',
         'Keep My Girl or Boy Safe and Healthy!B2:ZZ',
         'Manage My Girl or Boy Behaviour!B2:ZZ',
         'Prepare My Child for Success in School!B2:ZZ',
         'Understand My Girl or Boy Development!B2:ZZ'
     ],
-    '1ys3ctng5sJLnFMQ8M6TWVEk2RQFL-xe_PzR8z73RC6A': [ # Testing MX Modules - Teen
+    'C_modules_teen': [ # Modules - Teen
         'Improve My Relationship with My Teen!B2:ZZ',
         'Teen Health and Safety!B2:ZZ',
         'Support My Teen’s Education!B2:ZZ',
         'Manage My Teen’s Behaviour!B2:ZZ',
         'Understanding My Teen!B2:ZZ'
     ],
-    '1-0Kj3N2F6MU15Vl53vDF8HT0TQWWTHQ5GSm8XqYGonU': [ # Testing MX LTP activities
+    'C_ltp_activities': [ # LTP activities
         'ltp_activity_teen_data!B2:C',
         'ltp_activity_child_data!B2:C',
     ],
-    '1HERSo5By7fuOhLWQmrSIrT89fWcR8T-AhEy48oqjkj0': [ # Testing MX Troubleshooting
+    'C_goal_checkin': [ # Troubleshooting
         'goal_checkin_teen_data!B2:C',
         'goal_checkin_teen_data!E2:I',
         'goal_checkin_teen_data!K2:ZZ',
@@ -54,7 +67,7 @@ spreadsheet_ranges = {
         'survey_behave_teen_data!B2:ZZ',
         'survey_behave_child_data!B2:ZZ'
     ],
-    "1qwL_l1RJsuuJHGz16J6u63jdLESoc7P0o4Ka1aLhHGE": [  # Delivery Data
+    'N_delivery_data': [  # Delivery Data
         "congrats_data!B2:C",
         "delivery_messages!B2:D",
         "make_options_wrapper_data!E2:M",
@@ -71,7 +84,7 @@ spreadsheet_ranges = {
         "certificate_name_data!I2:I",
         "certificate_name_data!M2:O",
     ],
-    "1uhv_AKkGz6fn6JjTCSt5vUKQBpc46mzG8n98zkAsd9c": [  # menu data
+    'N_menu_data': [  # menu data
         "menu_data!B2:B",
         "menu_data!D2:D",
         "menu_data!F2:F",
@@ -103,7 +116,7 @@ spreadsheet_ranges = {
         "make_options_wrapper_menu_data!E2:M",
         "settings_certificate_data!B2:F",
     ],
-    "11oSH7YbRXpXSvEK4dWntZPF-r2RF7MsbYsToRHFHcW8": [  # onboarding data
+    'N_onboarding_data': [  # onboarding data
         "onboarding_messages!B2:C",
         "onboarding_survey!C2:C",
         "onboarding_survey!H2:H",
@@ -119,7 +132,7 @@ spreadsheet_ranges = {
         "onboarding_survey!BC2:BC",
         "survey_defaults!B2:B",
     ],
-    "1I9UnAGc9eA7k-9miJty0kyj0mYYuVEz-4Q99ll4-qk0": [  # safeguarding data
+    'N_safeguarding_data': [  # safeguarding data
         "safeguarding_leave_programme_data!B2:C",
         "safeguarding_start_programme_data!B2:C",
         "referrals!B2:C",
@@ -136,7 +149,7 @@ spreadsheet_ranges = {
 }
 file_prefix = "Translated"
 
-file_path = "merged_translations.json"  # Define the path to your JSON translations file
+file_path = "./temp/translation/es/merged_translations.json"  # Define the path to your JSON translations file
 
 # Snippets in the translations that must be backconverted to the format of the sheets
 translation_substitutions = {
@@ -487,10 +500,13 @@ def sheets_apply(spreadsheet_id, range_name, function, dry_run=False):
 ## --- main ---
 
 
-def main(spreadsheet_ranges, as_copy=True, dry_run=False):
-    for spreadsheet_id, range_list in spreadsheet_ranges.items():
+def main(sources_file_list, dry_run=False):
+    output_config = {}
+    for sheet_name, spreadsheet_id in sources_file_list.items():
+
+        range_list = spreadsheet_ranges[sheet_name]
         # --- make copy ---
-        if as_copy:
+        if not dry_run:
             service = get_sheets_service()
             # Get spreadsheet metadata
             sheet_metadata = (
@@ -502,17 +518,40 @@ def main(spreadsheet_ranges, as_copy=True, dry_run=False):
             )
             new_file_title = " ".join([file_prefix, spreadsheet_title])
             spreadsheet_id = copy_file(spreadsheet_id, new_file_title)
+            output_config[sheet_name] = spreadsheet_id
 
         for range_name in range_list:
             print(f"\nWorking on {range_name} in spreadsheet {spreadsheet_id}")
             sheets_apply(spreadsheet_id, range_name, replace_messages, dry_run)
-
-
-if __name__ == "__main__":
-    main(spreadsheet_ranges, as_copy=False, dry_run=True)  # Dry Run
-    # main(spreadsheet_ranges, as_copy=True, dry_run=False) # Hot Run
+    
+    print(json.dumps(output_config, indent=4))
     with open("language_conversion_errors.json", "w") as f:
         json.dump(
             untranslated_message_locations, f, indent=4
         )  # indent for pretty-printing
     print(f"Total untranslated messages: {len(untranslated_message_locations.keys())}")
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "A script to apply translations direct into"
+            " Google sheets."
+        )
+    )
+
+    parser.add_argument(
+        "-d",
+        "--dry-run",
+        action="store_true",
+        help="Perform a dry run. Files will be processed, but not uploaded.",
+    )
+
+    args = parser.parse_args()
+
+    main(
+        sources_file_list, 
+        dry_run=args.dry_run,
+    )
+

@@ -17,11 +17,12 @@ CREDENTIALS_FILE = "credentials.json"  # Your OAuth 2.0 Client ID JSON
 TOKEN_FILE = "token.json"  # File to store the user's token after first authorization
 
 # File IDs - same process as populating the config
+# TODO: replace with a 'read-from-config'
 sources_file_list = {
     'C_ltp_activities': '1-0Kj3N2F6MU15Vl53vDF8HT0TQWWTHQ5GSm8XqYGonU',
     'C_modules_all_ages': '17JvNuwr3yzX2ErwSnV0I4WUU2ERc32lxqGHVudrDhyA',
     'C_modules_child': '1YTkeeZvnI2Uil6cirBCaEcRAfqsZHnplBwIA64tNJH4',
-    'C_modules_child': '1ys3ctng5sJLnFMQ8M6TWVEk2RQFL-xe_PzR8z73RC6A',
+    'C_modules_teen': '1ys3ctng5sJLnFMQ8M6TWVEk2RQFL-xe_PzR8z73RC6A',
     'C_goal_checkin': '1HERSo5By7fuOhLWQmrSIrT89fWcR8T-AhEy48oqjkj0',
     'N_delivery_data': '1qwL_l1RJsuuJHGz16J6u63jdLESoc7P0o4Ka1aLhHGE',
     'N_menu_data': "1uhv_AKkGz6fn6JjTCSt5vUKQBpc46mzG8n98zkAsd9c",
@@ -149,7 +150,6 @@ spreadsheet_ranges = {
 }
 file_prefix = "Translated"
 
-file_path = "./temp/translation/es/merged_translations.json"  # Define the path to your JSON translations file
 
 # Snippets in the translations that must be backconverted to the format of the sheets
 translation_substitutions = {
@@ -230,108 +230,116 @@ message_splitting = r"([\r\n;|]\s*)"  # some messages shouldn't be split on \r
 # message_splitting = r'([\n;|]\s*)' # some messages need to be split on \r
 
 
-## --- Substitution Setup ---
-# Open the JSON file in read mode ('r')
-with open(file_path, "r", encoding="utf-8") as file:
-    # Use json.load() to parse the JSON data and load it into a Python object
-    merged_translations = json.load(file)
+class LanguageConverter():
+    def __init__(self, language_code):
+        """Language Converter class
 
-# Messages to find and replace in the sheet cells
-message_replacements = {}
+        Parameters
+        ----------
+        language_code : str
+            Two letter language code
+        """
+        self.language_code = language_code
 
-for translation in merged_translations:
-    out_translation = {}
-    # Iterate over the components of each translation entry
-    for key in translation_substitutions.keys():
-        s = (
-            translation[key].rstrip().lstrip()
-        )  # Trim whitespace, as some occurs in the translation file
-        # Iterate over each substitution
-        for pat, repl in translation_substitutions[key].items():
-            s = re.sub(pat, repl, s)
+        self.untranslated_message_locations = {}
+        self.message_replacements = {}
 
-        out_translation[key] = s
+        self.get_message_replacements()
 
-    message_replacements[out_translation["SourceText"]] = out_translation["text"]
+    def get_message_replacements(self):
+        """Generates a dict of messages to find and replace in the sheet cells
+        """
+        file_path = f"./temp/translation/{self.language_code}/merged_translations.json"
 
-## --- Tailoring Removal ---
+        with open(file_path, "r", encoding="utf-8") as file:
+            merged_translations = json.load(file)
 
+        # Messages to find and replace in the sheet cells
+        
 
-def check_tailoring(m):
-    try:
-        most_similar_SourceText = difflib.get_close_matches(
-            m, message_replacements.keys(), n=1, cutoff=0.8
-        )[0]
-    except IndexError:  # No close matches, just return none
-        return None
+        for translation in merged_translations:
+            out_translation = {}
+            # Iterate over the components of each translation entry
+            for key in translation_substitutions.keys():
+                s = (
+                    translation[key].rstrip().lstrip()
+                )  # Trim whitespace, as some occurs in the translation file
+                # Iterate over each substitution
+                for pat, repl in translation_substitutions[key].items():
+                    s = re.sub(pat, repl, s)
 
-    most_similar_text = message_replacements[most_similar_SourceText]
-    for pattern in tailoring_patterns:
-        if re.search(pattern, most_similar_SourceText) and re.search(
-            pattern, most_similar_text
-        ):
-            return re.sub(pattern, r"\1", most_similar_text)
+                out_translation[key] = s
 
-
-## --- Message Replacement ---
-try:
-    with open("language_conversion_errors.json", "r") as f:
-        untranslated_message_locations = json.load(f)
-except FileNotFoundError:
-    untranslated_message_locations = {}
+            self.message_replacements[out_translation["SourceText"]] = out_translation["text"]
 
 
-def replace_messages(cell_value, cell_loc):
-    if cell_value == "":  # Don't try to replace empty cells
-        return cell_value
-    out_messages = []
-    # Break into messages
-    messages = re.split(message_splitting, cell_value)
-    failures = False
-    for m in messages:
-        if re.search(message_splitting, m):  # Skip delimiters
-            out_messages.append(m)
-            continue
-        m = m.rstrip().lstrip()
+    def check_tailoring(self, m):
+        try:
+            most_similar_SourceText = difflib.get_close_matches(
+                m, self.message_replacements.keys(), n=1, cutoff=0.8
+            )[0]
+        except IndexError:  # No close matches, just return none
+            return None
 
-        # If m is directly in message replacements, append and continue
-        if m in message_replacements.keys():
-            out_messages.append(message_replacements[m])
-            continue
+        most_similar_text = self.message_replacements[most_similar_SourceText]
+        for pattern in tailoring_patterns:
+            if re.search(pattern, most_similar_SourceText) and re.search(
+                pattern, most_similar_text
+            ):
+                return re.sub(pattern, r"\1", most_similar_text)
 
-        tailored_output = check_tailoring(m)
-        if tailored_output is not None:
-            out_messages.append(tailored_output)
-            continue
 
-        # if output cant be tailored, it fails
-        failures = True
-        # If any message in the cell has already been translated, don't attempt to translate other cells
-        if m in message_replacements.values():
-            # print('cell {cell_loc} already translated')
-            # Break to not record cell in untranslated message log
-            break
-        # print(f'No replacement found for cell {cell_loc} message "{m}"')
+    def replace_messages(self, cell_value, cell_loc):
+        if cell_value == "":  # Don't try to replace empty cells
+            return cell_value
+        out_messages = []
+        # Break into messages
+        messages = re.split(message_splitting, cell_value)
+        failures = False
+        for m in messages:
+            if re.search(message_splitting, m):  # Skip delimiters
+                out_messages.append(m)
+                continue
+            m = m.rstrip().lstrip()
 
-        # Record the cell locations of untranslated messages
-        if m in untranslated_message_locations.keys():
-            untranslated_message_locations[m]["locations"].append(cell_loc)
-        else:
-            most_similar_messages = difflib.get_close_matches(
-                m, message_replacements.keys(), n=3, cutoff=0.6
-            )
-            most_similar = {
-                message: message_replacements[message]
-                for message in most_similar_messages
-            }
-            untranslated_message_locations[m] = {
-                "most similar": most_similar,
-                "locations": [cell_loc],
-            }
+            # If m is directly in message replacements, append and continue
+            if m in self.message_replacements.keys():
+                out_messages.append(self.message_replacements[m])
+                continue
 
-    if failures:  # If any messages fail to translate, return original cell value
-        return cell_value
-    return "".join(out_messages)  # Join and return the output messages
+            tailored_output = self.check_tailoring(m)
+            if tailored_output is not None:
+                out_messages.append(tailored_output)
+                continue
+
+            # if output cant be tailored, it fails
+            failures = True
+            # If any message in the cell has already been translated, don't attempt to translate other cells
+            if m in self.message_replacements.values():
+                # print('cell {cell_loc} already translated')
+                # Break to not record cell in untranslated message log
+                break
+            # print(f'No replacement found for cell {cell_loc} message "{m}"')
+
+            # Record the cell locations of untranslated messages
+            if m in self.untranslated_message_locations.keys():
+                self.untranslated_message_locations[m]["locations"].append(cell_loc)
+            else:
+                most_similar_messages = difflib.get_close_matches(
+                    m, self.message_replacements.keys(), n=3, cutoff=0.6
+                )
+                most_similar = {
+                    message: self.message_replacements[message]
+                    for message in most_similar_messages
+                }
+                self.untranslated_message_locations[m] = {
+                    "most similar": most_similar,
+                    "locations": [cell_loc],
+                }
+
+        if failures:  # If any messages fail to translate, return original cell value
+            return cell_value
+        return "".join(out_messages)  # Join and return the output messages
 
 
 ## -- Google Auth --
@@ -500,7 +508,9 @@ def sheets_apply(spreadsheet_id, range_name, function, dry_run=False):
 ## --- main ---
 
 
-def main(sources_file_list, dry_run=False):
+def main(sources_file_list, language_code, dry_run=False):
+    converter = LanguageConverter(language_code=language_code)
+
     output_config = {}
     for sheet_name, spreadsheet_id in sources_file_list.items():
 
@@ -522,14 +532,14 @@ def main(sources_file_list, dry_run=False):
 
         for range_name in range_list:
             print(f"\nWorking on {range_name} in spreadsheet {spreadsheet_id}")
-            sheets_apply(spreadsheet_id, range_name, replace_messages, dry_run)
+            sheets_apply(spreadsheet_id, range_name, converter.replace_messages, dry_run)
     
     print(json.dumps(output_config, indent=4))
     with open("language_conversion_errors.json", "w") as f:
         json.dump(
-            untranslated_message_locations, f, indent=4
+            converter.untranslated_message_locations, f, indent=4
         )  # indent for pretty-printing
-    print(f"Total untranslated messages: {len(untranslated_message_locations.keys())}")
+    print(f"Total untranslated messages: {len(converter.untranslated_message_locations.keys())}")
 
 
 if __name__ == "__main__":
@@ -542,16 +552,25 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "-l",
+        "--lan",
+        type=str,
+        help="Two letter language code",
+    )
+
+    parser.add_argument(
         "-d",
         "--dry-run",
         action="store_true",
         help="Perform a dry run. Files will be processed, but not uploaded.",
+        default=False,
     )
 
     args = parser.parse_args()
 
     main(
-        sources_file_list, 
+        sources_file_list,
+        language_code=args.lan,
         dry_run=args.dry_run,
     )
 

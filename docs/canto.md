@@ -34,7 +34,11 @@ Create a configuration file called 'config.json' in the root directory of the de
                 }
             },
             "path_template": [
-                "{% if format == 'image' %}{% if folder == 'Comics' %}comic/{{ name }}{% else %}image/universal/{{ name }}{% endif %}{% else %}voiceover/resourceType/{{ format }}/gender/{{ (annotations['Caregiver Gender'] or 'unknown') }}/language/{{ (language or 'unknown') }}/{{ name }}{% endif %}"
+                "media",
+                "{% if format == 'audio' %}listen{% else %}look{% endif %}",
+                "{{ (annotations['gender'] or 'unknown') }}",
+                "{{ language or '' }}",
+                "{{ name }}"
             ],
             "storage": {
                 "system": "canto",
@@ -50,7 +54,7 @@ Create a configuration file called 'config.json' in the root directory of the de
 
 The `mappings` property maps metadata values on assets from Canto to values that are required for a ParentText deployment. For example, any Canto asset with 'Arabic' as the value of the 'Language' property will have its value changed to 'ara'.
 
-The `path_template` property determines the directory structure of the downloaded assets on the local filesystem. Each item in the list represents a directory; the last item represents the name of the media asset file. An item can be a static value or a Jinja template. Templates have access to the following information about each asset:
+The `path_template` property determines the directory structure of the downloaded assets on the local filesystem. Each item in the list represents a directory; the last item represents the name of the media asset file. An item can be a static value or a [Jinja] template. Templates have access to the following information about each asset:
 
 - `annotations`: transformed metadata properties from Canto
 - `format`: for example, 'video', 'audio', 'image'
@@ -113,3 +117,6 @@ For the IDEMS Firebase this is (without loss of generality re the specific langu
  │                             ├── 📂 eng
  │                             └── 📂 spa
  ```
+
+
+[Jinja]: https://jinja.palletsprojects.com/en/stable/templates/

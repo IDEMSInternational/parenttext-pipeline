@@ -118,5 +118,10 @@ For the IDEMS Firebase this is (without loss of generality re the specific langu
  │                             └── 📂 spa
  ```
 
+For compatibility with other media automation steps the `path_template` **MUST** return this structure.
+For example:
+```
+"{% if format == 'image' %}{% if folder == 'Comics' %}comic/{{ name }}{% else %}image/universal/{{ name }}{% endif %}{% else %}voiceover/resourceType/{{ format }}/gender/{{ (annotations['Caregiver Gender'] or 'unknown') }}/language/{{ (language or 'unknown') }}/{{ name }}{% endif %}"
+```
 
 [Jinja]: https://jinja.palletsprojects.com/en/stable/templates/

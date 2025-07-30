@@ -98,7 +98,7 @@ def transcode(src, dst, old_src=None, fmt="video"):
         prepare(file_dst.parent)
         old_file = old_src_root / source.relative_to(src_root) if old_src_root else None
         # Compare if file has changed from old source to avoid retranscoding
-        if source_has_changed(file_dst, source, old_file):
+        if not source_has_changed(file_dst, source, old_file):
             print(f"Skipping unchanged file: {source}")
             continue
 

@@ -415,14 +415,20 @@ def cell_location(range_name, sheet_name, col_index, row_index):
 
 
 ## --- Copy File ---
-def copy_file(spreadsheet_id, new_file_title):
+def copy_file(spreadsheet_id, new_file_title, destination_folder_id=None):
     service = get_drive_service()
+    copied_file_metadata = {}
+    if destination_folder_id:
+        copied_file_metadata["parents"] = [destination_folder_id]
+    if new_file_title:
+        copied_file_metadata['name'] = new_file_title
+
     copied_file = (
         service.files()
         .copy(
             supportsAllDrives=True,  # needed for shared folders
             fileId=spreadsheet_id,
-            body={"name": new_file_title},
+            body=copied_file_metadata,
             fields="id, webViewLink",  # Specify the fields you want in the response (e.g., id and webViewLink)
         )
         .execute()
@@ -508,7 +514,7 @@ def sheets_apply(spreadsheet_id, range_name, function, dry_run=False):
 ## --- main ---
 
 
-def main(sources_file_list, language_code, dry_run=False):
+def main(sources_file_list, language_code, destination_folder_id=None, dry_run=False):
     converter = LanguageConverter(language_code=language_code)
 
     output_config = {}
@@ -527,7 +533,7 @@ def main(sources_file_list, language_code, dry_run=False):
                 "title", "Untitled Spreadsheet"
             )
             new_file_title = " ".join([file_prefix, spreadsheet_title])
-            spreadsheet_id = copy_file(spreadsheet_id, new_file_title)
+            spreadsheet_id = copy_file(spreadsheet_id, new_file_title, destination_folder_id)
             output_config[sheet_name] = spreadsheet_id
 
         for range_name in range_list:
@@ -555,6 +561,7 @@ if __name__ == "__main__":
         "-l",
         "--lan",
         type=str,
+        required=True,
         help="Two letter language code",
     )
 
@@ -566,11 +573,18 @@ if __name__ == "__main__":
         default=False,
     )
 
+    parser.add_argument(
+        "--dest",
+        type=str,
+        help="Destination folder ID",
+    )
+
     args = parser.parse_args()
 
     main(
         sources_file_list,
         language_code=args.lan,
         dry_run=args.dry_run,
+        destination_folder_id=args.dest
     )
 

@@ -12,6 +12,8 @@ import argparse
 import shutil
 import json
 from pathlib import Path
+from dotenv import load_dotenv
+from os import getenv
 
 # Import the actual functions from your provided scripts
 from parenttext.canto import main as canto_main
@@ -20,18 +22,19 @@ from parenttext.firebase_tools import Firebase
 
 
 def main(
-    config_file: str | None = None,
     gcs_base_path: str | None = None,
     project_id: str | None = None,
     bucket_name: str | None = None,
     dry_run: bool = False,
 ):
-    with open(config_file or "config.json", "r") as fh:
-        config = json.load(fh)["sources"]["deployment_storage"]
 
-    gcs_base_path = gcs_base_path or config["location"]
-    project_id = project_id or config["annotations"]["project_id"]
-    bucket_name = bucket_name or config["annotations"]["bucket_name"]
+    try:
+        load_dotenv(".env")
+        gcs_base_path = gcs_base_path or getenv("DEPLOYMENT_ASSET_LOCATION")
+        project_id = project_id or getenv("GCS_PROJECTID")
+        bucket_name = bucket_name or getenv("GCS_BUCKETNAME")
+    except:
+        raise FileNotFoundError("Must have a .env file in current working directory")
 
     """Main function to orchestrate the entire workflow."""
     print("=" * 50)
@@ -113,13 +116,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--project-id",
         type=str,
-        default="idems-media-recorder",
         help="The target Firebase project ID.",
     )
     parser.add_argument(
         "--bucket-name",
         type=str,
-        default="idems-media-recorder.appspot.com",
         help="The target Firebase Storage bucket name.",
     )
     parser.add_argument(

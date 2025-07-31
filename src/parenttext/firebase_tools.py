@@ -31,10 +31,9 @@ class Firebase:
         Parameters
         ----------
         bucket_name : str
-            The name of the GCS bucket. e.g., "idems-media-recorder.appspot.com"
+            The name of the GCS bucket.
         gcs_base_path : str
             The base path in GCS where the versioned folders are stored.
-            Typically ends in "...resourceGroup/"
 
         Returns
         -------

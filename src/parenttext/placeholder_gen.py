@@ -52,9 +52,8 @@ def create_placeholder_files(file_paths: list[str]):
             # Copy the placeholder if it exists.
             if source_path.is_file():
                 shutil.copy(source_path, dest_path)
-                print(f"✅ Created '{dest_path}'")
             else:
-                print(f"⚠️  Placeholder not found: '{source_path}'. Skipping.")
+                print(f"⚠️  Placeholder not found: '{source_path} for {dest_path}'. Skipping.")
 
         except Exception as e:
             print(f"❌ Error processing '{file_str}': {e}")

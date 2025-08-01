@@ -34,9 +34,10 @@ Create a configuration file called 'config.json' in the root directory of the de
                 }
             },
             "path_template": [
-                "{{ format | title }}",
-                "{{ (annotations['Caregiver Gender'] or '') | title }}",
-                "{{ (language or '') | title }}",
+                "media",
+                "{% if format == 'audio' %}listen{% else %}look{% endif %}",
+                "{{ (annotations['gender'] or 'unknown') }}",
+                "{{ language or '' }}",
                 "{{ name }}"
             ],
             "storage": {
@@ -53,13 +54,14 @@ Create a configuration file called 'config.json' in the root directory of the de
 
 The `mappings` property maps metadata values on assets from Canto to values that are required for a ParentText deployment. For example, any Canto asset with 'Arabic' as the value of the 'Language' property will have its value changed to 'ara'.
 
-The `path_template` property determines the directory structure of the downloaded assets on the local filesystem. Each item in the list represents a directory; the last item represents the name of the media asset file. An item can be a static value or a Jinja template. Templates have access to the following information about each asset:
+The `path_template` property determines the directory structure of the downloaded assets on the local filesystem. Each item in the list represents a directory; the last item represents the name of the media asset file. An item can be a static value or a [Jinja] template. Templates have access to the following information about each asset:
 
 - `annotations`: transformed metadata properties from Canto
 - `format`: for example, 'video', 'audio', 'image'
 - `id`: Canto content id
 - `language`: three-letter language code
 - `name`: asset file name
+- `folder`: asset's parent folder (or album in the case of Canto)
 
 If any path element resolves to the empty string, that element will be ignored and the asset will be stored one level higher in the hierarchy. For example, if an asset would be stored under `audio/ara/name.m4a`, but the language metadata is not set, it would, instead, be stored under `audio/name.m4a`.
 
@@ -82,3 +84,44 @@ CANTO_APP_ID=app_id
 CANTO_APP_SECRET=secret
 CANTO_USER_ID=user_id
 ```
+
+### Compatibility with other media automation steps
+The path template must download the files into the file structure used in the deployment asset server.
+
+For the IDEMS Firebase this is (without loss of generality re the specific language codes):
+```
+📂 PATH/resourceGroup/
+ ├── 📂 image
+ │    └── 📂 universal
+ ├── 📂 comic
+ ├── 📂 voiceover
+ │    └── 📂 resourceType
+ │         ├── 📂 video
+ │         │    └── 📂 gender
+ │         │         ├── 📂 male
+ │         │         │    └── 📂 language
+ │         │         │         ├── 📂 eng
+ │         │         │         └── 📂 spa
+ │         │         └── 📂 female
+ │         │              └── 📂 language
+ │         │                   ├── 📂 eng
+ │         │                   └── 📂 spa
+ │         ├── 📂 audio
+ │              └── 📂 gender
+ │                   ├── 📂 male
+ │                   │    └── 📂 language
+ │                   │         ├── 📂 eng
+ │                   │         └── 📂 spa
+ │                   └── 📂 female
+ │                        └── 📂 language
+ │                             ├── 📂 eng
+ │                             └── 📂 spa
+ ```
+
+For compatibility with other media automation steps the `path_template` **MUST** return this structure.
+For example:
+```
+"{% if format == 'image' %}{% if folder == 'Comics' %}comic/{{ name }}{% else %}image/universal/{{ name }}{% endif %}{% else %}voiceover/resourceType/{{ format }}/gender/{{ (annotations['Caregiver Gender'] or 'unknown') }}/language/{{ (language or 'unknown') }}/{{ name }}{% endif %}"
+```
+
+[Jinja]: https://jinja.palletsprojects.com/en/stable/templates/

@@ -15,6 +15,7 @@ class MediaAsset:
     id: str
     language: str
     name: str
+    folder: str
     annotations: dict = field(default_factory=dict)
 
 
@@ -62,15 +63,14 @@ class Canto:
         )
 
     def tree(self, folder_id: str):
-        return (
-            requests.request(
-                method="GET",
-                url=f"{self.site_base_url}/api/v1/tree/{folder_id}",
-                headers={"Authorization": f"Bearer {self.token}"},
-            )
-            .json()
-            .get("results", [])
+        req = requests.request(
+            method="GET",
+            url=f"{self.site_base_url}/api/v1/tree/{folder_id}",
+            headers={"Authorization": f"Bearer {self.token}"},
         )
+        if req.status_code == 401:
+            raise Exception("401 Unauthorized: Ensure environment variables are loaded")
+        return req.json().get("results", [])
 
     def album(self, album_id: str):
         return (
@@ -106,6 +106,7 @@ class Canto:
                         id=content["id"],
                         language=annotations.get("Language", [""])[0],
                         name=content["name"],
+                        folder=item["name"],
                     )
                     yield asset
 
@@ -152,12 +153,13 @@ def download(client, path_template, asset: MediaAsset, destination):
     print(f"Download completed, path={dst}")
 
 
-if __name__ == "__main__":
-    with open("config.json", "r") as fh:
+def main(destination: str, config_file: str | None = None):
+    with open(config_file or "config.json", "r") as fh:
         config = json.load(fh)["sources"]["media_assets"]
 
     _env = Environment(undefined=ChainableUndefined)
-    load_dotenv(".env")
+    if not load_dotenv(".env"):
+        raise FileNotFoundError("Must have a .env file in current working directory")
 
     download_all(
         client=Canto(
@@ -169,5 +171,9 @@ if __name__ == "__main__":
         ),
         path_template=_env.from_string(os.path.join(*config["path_template"])),
         location=config["storage"]["location"],
-        destination=sys.argv[1],
+        destination=destination,
     )
+
+
+if __name__ == "__main__":
+    main(destination=sys.argv[1])

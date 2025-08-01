@@ -148,6 +148,11 @@ Example: Assume that, relative to the current working directory, we have a folde
 }
 ```
 
+## Media Assets
+
+To enable the automated download of new files from the server deployers store their assets on, the `media_assets` object in the `sources` must be defined. Detailed information on this can be found in [Canto](canto.md).
+
+
 [configs]: ../src/parenttext_pipeline/configs.py
 [configuration]: configuration.md
 [steps]: steps.md

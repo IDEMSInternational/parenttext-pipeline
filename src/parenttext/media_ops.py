@@ -69,12 +69,12 @@ def step_transcode():
 
 def step_firebase_versioned_upload():
 
-    transcoded_folder = env.get("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
+    upload_folder = env.get("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
 
     fb = Firebase(project_id=env["GCS_PROJECTID"])
     fb.upload_new_version(
-        transcoded_folder, 
-        env["GCS_BUCKETNAME"], 
+        source_directory=upload_folder, 
+        bucket_name=env["GCS_BUCKETNAME"], 
         remote_directory=env["DEPLOYMENT_ASSET_LOCATION"], 
         dry_run=env['dry_run']
     )
@@ -84,6 +84,18 @@ def step_firebase_versioned_upload():
         "Update variables: RapidPro -> flows -> @ Globals\n"
         "Push those updates to users: RapidPro -> flows -> update_attachment_path_version"
         " -> Start -> select group 'enrolled' -> click start button"
+    )
+
+def step_firebase_non_versioned_upload():
+
+    upload_folder = env.get("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
+
+    fb = Firebase(project_id=env["GCS_PROJECTID"])
+    fb.upload_folder(
+        local_base_path=upload_folder, 
+        bucket_name=env["GCS_BUCKETNAME"], 
+        gcs_base_path=env["DEPLOYMENT_ASSET_LOCATION"], 
+        dry_run=env['dry_run']
     )
 
 
@@ -134,11 +146,46 @@ step_dict = {
             "GCS_BUCKETNAME"
         ]
     },
+    "firebase_non_versioned_upload": {
+        "fn": step_firebase_non_versioned_upload,
+        "start_msg": "Starting upload to Firebase Storage",
+        "end_msg": "Firebase upload complete",
+        "required_env": [
+            "DEPLOYMENT_ASSET_LOCATION"
+            "GCS_PROJECTID"
+            "GCS_BUCKETNAME"
+        ]
+    },
     "placeholder_gen": {
-        "fn": step_placeholder_gen
+        "fn": step_placeholder_gen,
+        "start_msg": "Creating directory of placeholder assets",
+        "end_msg": "Placeholders created"
     }
 
 }
+
+
+def assert_env_exists(step_list):
+
+    load_dotenv(".env")
+
+    failure_list = []
+    for step_name in step_list:
+        step = step_dict[step_name]
+        try:
+            for e in step['required_env']:
+                env[e] = getenv(e)
+                if env[e] is None:
+                    failure_list.append(e)
+        except KeyError:
+            # It's okay if there are no required envs
+            continue
+    
+    if len(failure_list) != 0:
+        raise Exception(
+            f"Required environment variables not found: {failure_list}"
+             "maybe you need a .env file?"
+        )
 
 
 def main(
@@ -147,15 +194,12 @@ def main(
 ):
     env['dry_run'] = dry_run
 
+    assert_env_exists(step_list)
 
     """Main function to orchestrate the entire workflow."""
     print("=" * 50)
     print("🚀 Starting Automated Media Processing Pipeline")
     print("=" * 50)
-
-    print("🚀 Step 1: Starting Canto download...")
-
-
 
     for i, step_name in enumerate(step_list):
         step = step_dict[step_name]
@@ -163,32 +207,9 @@ def main(
         step["fn"]()
         print(f"✅ Step {i}: {step['end_msg']}")
 
-
-
     print("\n" + "=" * 50)
     print("🎉 Pipeline execution finished successfully!")
     print("=" * 50)
-
-
-
-
-
-
-def assert_env_exists(step):
-
-    load_dotenv(".env")
-
-    failure_list = []
-    for e in step_dict[step]:
-        env[e] = getenv(e)
-        if env[e] is None:
-            failure_list.append(e)
-    
-    if len(failure_list) != 0:
-        raise Exception(
-            f"Required environment variables not found: {failure_list}"
-             "maybe you need a .env file?"
-        )
 
 
 if __name__ == "__main__":
@@ -208,12 +229,12 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--steps",
-        action="store_true",
+        type=str,
         nargs="+",
         default=['canto_download', "transcode", "firebase_versioned_upload"],
         help=(
             "Space separated list of steps. Defaults to versioned upload pipeline."
-            f"Options: {[step_name for step_name in step_dict.keys()]}"
+            f"\nOptions: {[step_name for step_name in step_dict.keys()]}"
         ),
     )
 

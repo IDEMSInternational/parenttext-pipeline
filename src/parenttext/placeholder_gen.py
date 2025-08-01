@@ -58,7 +58,3 @@ def create_placeholder_files(file_paths: list[str]):
 
         except Exception as e:
             print(f"❌ Error processing '{file_str}': {e}")
-
-
-if __name__ == '__main__':
-    # --- Example Setup ---

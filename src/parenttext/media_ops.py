@@ -126,9 +126,9 @@ step_dict = {
         "start_msg": "Starting Canto download",
         "end_msg": "Canto download complete",
         "required_env": [
-            "CANTO_APP_ID"
-            "CANTO_APP_SECRET"
-            "CANTO_USER_ID"
+            "CANTO_APP_ID",
+            "CANTO_APP_SECRET",
+            "CANTO_USER_ID",
         ]
     },
     "transcode":{
@@ -141,9 +141,9 @@ step_dict = {
         "start_msg": "Starting upload to Firebase Storage",
         "end_msg": "Firebase upload complete",
         "required_env": [
-            "DEPLOYMENT_ASSET_LOCATION"
-            "GCS_PROJECTID"
-            "GCS_BUCKETNAME"
+            "DEPLOYMENT_ASSET_LOCATION",
+            "GCS_PROJECTID",
+            "GCS_BUCKETNAME",
         ]
     },
     "firebase_non_versioned_upload": {
@@ -151,9 +151,9 @@ step_dict = {
         "start_msg": "Starting upload to Firebase Storage",
         "end_msg": "Firebase upload complete",
         "required_env": [
-            "DEPLOYMENT_ASSET_LOCATION"
-            "GCS_PROJECTID"
-            "GCS_BUCKETNAME"
+            "DEPLOYMENT_ASSET_LOCATION",
+            "GCS_PROJECTID",
+            "GCS_BUCKETNAME",
         ]
     },
     "placeholder_gen": {
@@ -203,9 +203,9 @@ def main(
 
     for i, step_name in enumerate(step_list):
         step = step_dict[step_name]
-        print(f"\n🚀 Step {i}: {step['end_msg']}")
+        print(f"\n🚀 Step {i+1}: {step['start_msg']}")
         step["fn"]()
-        print(f"✅ Step {i}: {step['end_msg']}")
+        print(f"✅ Step {i+1}: {step['end_msg']}")
 
     print("\n" + "=" * 50)
     print("🎉 Pipeline execution finished successfully!")

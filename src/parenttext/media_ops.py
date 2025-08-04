@@ -31,8 +31,8 @@ def main(
     try:
         load_dotenv(".env")
         gcs_base_path = gcs_base_path or getenv("DEPLOYMENT_ASSET_LOCATION")
-        project_id = project_id or getenv("GCS_PROJECTID")
-        bucket_name = bucket_name or getenv("GCS_BUCKETNAME")
+        project_id = project_id or getenv("GCS_PROJECT_ID")
+        bucket_name = bucket_name or getenv("GCS_BUCKET_NAME")
     except:
         raise FileNotFoundError("Must have a .env file in current working directory")
 

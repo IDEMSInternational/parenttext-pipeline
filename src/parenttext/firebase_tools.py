@@ -18,7 +18,7 @@ class Firebase:
             project_id (str): Your Google Cloud project ID.
         """
 
-        gcs_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+        gcs_scopes = ["https://www.googleapis.com/auth/devstorage.read_write"]
         self.project_id = project_id
         self.creds = get_credentials(scopes=gcs_scopes)
         self.gcs_client = storage.Client(

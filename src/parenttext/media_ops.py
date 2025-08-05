@@ -71,10 +71,10 @@ def step_firebase_versioned_upload():
 
     upload_folder = env.get("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
 
-    fb = Firebase(project_id=env["GCS_PROJECTID"])
+    fb = Firebase(project_id=env["GCS_PROJECT_ID"])
     fb.upload_new_version(
         source_directory=upload_folder, 
-        bucket_name=env["GCS_BUCKETNAME"], 
+        bucket_name=env["GCS_BUCKET_NAME"], 
         remote_directory=env["DEPLOYMENT_ASSET_LOCATION"], 
         dry_run=env['dry_run']
     )
@@ -90,10 +90,10 @@ def step_firebase_non_versioned_upload():
 
     upload_folder = env.get("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
 
-    fb = Firebase(project_id=env["GCS_PROJECTID"])
+    fb = Firebase(project_id=env["GCS_PROJECT_ID"])
     fb.upload_folder(
         local_base_path=upload_folder, 
-        bucket_name=env["GCS_BUCKETNAME"], 
+        bucket_name=env["GCS_BUCKET_NAME"], 
         gcs_base_path=env["DEPLOYMENT_ASSET_LOCATION"], 
         dry_run=env['dry_run']
     )
@@ -142,8 +142,8 @@ step_dict = {
         "end_msg": "Firebase upload complete",
         "required_env": [
             "DEPLOYMENT_ASSET_LOCATION",
-            "GCS_PROJECTID",
-            "GCS_BUCKETNAME",
+            "GCS_PROJECT_ID",
+            "GCS_BUCKET_NAME",
         ]
     },
     "firebase_non_versioned_upload": {
@@ -152,8 +152,8 @@ step_dict = {
         "end_msg": "Firebase upload complete",
         "required_env": [
             "DEPLOYMENT_ASSET_LOCATION",
-            "GCS_PROJECTID",
-            "GCS_BUCKETNAME",
+            "GCS_PROJECT_ID",
+            "GCS_BUCKET_NAME",
         ]
     },
     "placeholder_gen": {

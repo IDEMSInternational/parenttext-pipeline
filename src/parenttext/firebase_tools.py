@@ -144,9 +144,7 @@ class Firebase:
 
             if not up_to_date:
                 remote_version_number += 1
-                print(
-                    f"Bumping {vrs_posix} to {remote_version_number}"
-                )
+                print(f"Bumping {vrs_posix} to {remote_version_number}")
                 # Bump the remote version number
                 remote_version_folder = Path(f"{vrs_posix}{remote_version_number}")
                 self.upload_folder(
@@ -156,16 +154,14 @@ class Firebase:
                     dry_run=dry_run,
                 )
             else:
-                print(
-                    f"Hashes Matched for {vrs_posix}"
-                )
+                print(f"Hashes Matched for {vrs_posix}")
             current_versions[vrs_posix] = remote_version_number
         print("Current Versions")
         print(current_versions)
 
     def compare_hashes(self, local_filepath, bucket_name, file_path_in_storage):
         """Compares the MD5 hash of a local file with a Firebase Storage file.
-        
+
         Parameters
         ----------
         local_filepath : str
@@ -174,7 +170,7 @@ class Firebase:
             The name of the GCS bucket.
         file_path_in_storage : str
             The path to the file in Firebase Storage.
-        
+
         Returns
         -------
         bool
@@ -209,7 +205,7 @@ class Firebase:
 
     def upload_folder(self, bucket_name, local_base_path, gcs_base_path, dry_run=False):
         """Recursively uploads files from a local folder to a GCS bucket.
-        
+
         Parameters
         ----------
         bucket_name : str
@@ -221,7 +217,7 @@ class Firebase:
         dry_run : bool, optional
             If True, only prints the actions without uploading files.
             Defaults to False.
-        
+
         Returns
         -------
         None
@@ -254,6 +250,4 @@ class Firebase:
                     blob.make_public()
                 else:
                     print("Dry Run")
-                print(
-                    f"{file_path} -> gs://{bucket_name}/{destination_blob_name}"
-                )
+                print(f"{file_path} -> gs://{bucket_name}/{destination_blob_name}")

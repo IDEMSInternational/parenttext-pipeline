@@ -79,7 +79,7 @@ def source_has_changed(file_dst, source, old_file=None):
                 old_hash = hashlib.md5(f.read()).hexdigest()
             if new_hash == old_hash:
                 return False
-    return True            
+    return True
 
 
 def transcode(src, dst, old_src=None, fmt="video"):

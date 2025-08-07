@@ -627,19 +627,6 @@ class SafeguardingLaunchFlowModel(DataRowModel):
     flow: str = ""  # backward compatibility
 
 
-class Language(ParserModel):
-    eng: str = ""
-    msa: str = ""
-    zho: str = ""
-    spa: str = ""
-    fra: str = ""
-    afr: str = ""
-    xho: str = ""
-    zul: str = ""
-    hau: str = ""
-    ara: str = ""
-    sin: str = ""
-
 class JoiningTriggerModel(DataRowModel):
     triggers: str = ""
     groups: list[str] = []
@@ -667,8 +654,8 @@ class ModuleDataModel(DataRowModel):
     priority_in_topic: str = ""
     age: list[int] = []
     child_gender: list[str] = []
-    name_c: Language = Language()
-    name: Language = Language()
+    name_c: dict = {}
+    name: dict = {}
 
 
 class GoalTopicLinkModel(DataRowModel):

@@ -64,8 +64,9 @@ def step_transcode():
 
     # remove old canto directory once it's no longer needed for change detection
     shutil.rmtree(Path("old_canto"))
-    
+
     env["MEDIA_OPS_UPLOAD_FOLDER"] = transcode_path
+
 
 def step_firebase_versioned_upload():
 
@@ -73,10 +74,10 @@ def step_firebase_versioned_upload():
 
     fb = Firebase(project_id=env["GCS_PROJECT_ID"])
     fb.upload_new_version(
-        source_directory=upload_folder, 
-        bucket_name=env["GCS_BUCKET_NAME"], 
-        remote_directory=env["DEPLOYMENT_ASSET_LOCATION"], 
-        dry_run=env['dry_run']
+        source_directory=upload_folder,
+        bucket_name=env["GCS_BUCKET_NAME"],
+        remote_directory=env["DEPLOYMENT_ASSET_LOCATION"],
+        dry_run=env["dry_run"],
     )
 
     print(
@@ -86,29 +87,32 @@ def step_firebase_versioned_upload():
         " -> Start -> select group 'enrolled' -> click start button"
     )
 
+
 def step_firebase_non_versioned_upload():
 
     upload_folder = env.get("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
 
     fb = Firebase(project_id=env["GCS_PROJECT_ID"])
     fb.upload_folder(
-        local_base_path=upload_folder, 
-        bucket_name=env["GCS_BUCKET_NAME"], 
-        gcs_base_path=env["DEPLOYMENT_ASSET_LOCATION"], 
-        dry_run=env['dry_run']
+        local_base_path=upload_folder,
+        bucket_name=env["GCS_BUCKET_NAME"],
+        gcs_base_path=env["DEPLOYMENT_ASSET_LOCATION"],
+        dry_run=env["dry_run"],
     )
 
 
 def step_placeholder_gen():
 
     rapidpro_file = env.get("RAPIDPRO_OUTPUT", "./output/parenttext_all.json")
-    placeholder_directory = env.get("MEDIA_OPS_PLACEHOLDER_FOLDER", "placeholder_assets")
+    placeholder_directory = env.get(
+        "MEDIA_OPS_PLACEHOLDER_FOLDER", "placeholder_assets"
+    )
 
     with open("config.json", "r") as fh:
         language_dicts = json.load(fh)["sources"]["translation"]["languages"]
     language_list = [d["language"] for d in language_dicts]
 
-    gender_list = ["male", "female"] # Sexs will be replaced with genders soon...
+    gender_list = ["male", "female"]  # Sexs will be replaced with genders soon...
 
     path_dict = get_parenttext_paths(placeholder_directory, language_list, gender_list)
 
@@ -116,12 +120,11 @@ def step_placeholder_gen():
 
     create_placeholder_files(asset_list)
 
-
     env["MEDIA_OPS_UPLOAD_FOLDER"] = placeholder_directory
 
 
 step_dict = {
-    "canto_download":{
+    "canto_download": {
         "fn": step_canto_download,
         "start_msg": "Starting Canto download",
         "end_msg": "Canto download complete",
@@ -129,9 +132,9 @@ step_dict = {
             "CANTO_APP_ID",
             "CANTO_APP_SECRET",
             "CANTO_USER_ID",
-        ]
+        ],
     },
-    "transcode":{
+    "transcode": {
         "fn": step_transcode,
         "start_msg": "Starting media transcoding",
         "end_msg": "Transcoding complete",
@@ -144,7 +147,7 @@ step_dict = {
             "DEPLOYMENT_ASSET_LOCATION",
             "GCS_PROJECT_ID",
             "GCS_BUCKET_NAME",
-        ]
+        ],
     },
     "firebase_non_versioned_upload": {
         "fn": step_firebase_non_versioned_upload,
@@ -154,14 +157,13 @@ step_dict = {
             "DEPLOYMENT_ASSET_LOCATION",
             "GCS_PROJECT_ID",
             "GCS_BUCKET_NAME",
-        ]
+        ],
     },
     "placeholder_gen": {
         "fn": step_placeholder_gen,
         "start_msg": "Creating directory of placeholder assets",
-        "end_msg": "Placeholders created"
-    }
-
+        "end_msg": "Placeholders created",
+    },
 }
 
 
@@ -173,18 +175,18 @@ def assert_env_exists(step_list):
     for step_name in step_list:
         step = step_dict[step_name]
         try:
-            for e in step['required_env']:
+            for e in step["required_env"]:
                 env[e] = getenv(e)
                 if env[e] is None:
                     failure_list.append(e)
         except KeyError:
             # It's okay if there are no required envs
             continue
-    
+
     if len(failure_list) != 0:
         raise Exception(
             f"Required environment variables not found: {failure_list}"
-             "maybe you need a .env file?"
+            "maybe you need a .env file?"
         )
 
 
@@ -192,7 +194,7 @@ def main(
     step_list,
     dry_run: bool = False,
 ):
-    env['dry_run'] = dry_run
+    env["dry_run"] = dry_run
 
     assert_env_exists(step_list)
 
@@ -231,7 +233,7 @@ if __name__ == "__main__":
         "--steps",
         type=str,
         nargs="+",
-        default=['canto_download', "transcode", "firebase_versioned_upload"],
+        default=["canto_download", "transcode", "firebase_versioned_upload"],
         help=(
             "Space separated list of steps. Defaults to versioned upload pipeline."
             f"\nOptions: {[step_name for step_name in step_dict.keys()]}"

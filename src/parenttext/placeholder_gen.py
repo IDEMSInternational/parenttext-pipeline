@@ -16,7 +16,7 @@ def create_placeholder_files(file_paths: list[str]):
     Args:
         file_paths: A list of destination file paths.
     """
-    placeholder_dir = pathlib.Path('placeholders')
+    placeholder_dir = pathlib.Path("placeholders")
     if not placeholder_dir.is_dir():
         print(f"⚠️  Placeholder directory not found: '{placeholder_dir}'. Aborting.")
         return
@@ -33,7 +33,9 @@ def create_placeholder_files(file_paths: list[str]):
             # Verify the base directory for the current file path exists.
             base_dir = pathlib.Path(dest_path.parts[0])
             if not base_dir.is_dir():
-                print(f"⚠️  Base directory '{base_dir}' not found. Skipping '{file_str}'.")
+                print(
+                    f"⚠️  Base directory '{base_dir}' not found. Skipping '{file_str}'."
+                )
                 continue
 
             # Create parent directories (e.g., 'a/b/' from 'a/b/c.ext').
@@ -53,7 +55,9 @@ def create_placeholder_files(file_paths: list[str]):
             if source_path.is_file():
                 shutil.copy(source_path, dest_path)
             else:
-                print(f"⚠️  Placeholder not found: '{source_path} for {dest_path}'. Skipping.")
+                print(
+                    f"⚠️  Placeholder not found: '{source_path} for {dest_path}'. Skipping."
+                )
 
         except Exception as e:
             print(f"❌ Error processing '{file_str}': {e}")

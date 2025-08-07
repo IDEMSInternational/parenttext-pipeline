@@ -626,7 +626,6 @@ class SafeguardingLaunchFlowModel(DataRowModel):
     expiration_msg: str = ""
     flow: str = ""  # backward compatibility
 
-
 class JoiningTriggerModel(DataRowModel):
     triggers: str = ""
     groups: list[str] = []

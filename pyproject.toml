@@ -32,7 +32,8 @@ dependencies = [
     "python-dotenv",
     "rapidpro-abtesting @ git+https://github.com/IDEMSInternational/rapidpro_abtesting.git@master",
     "requests~=2.31",
-    "rpft @ git+https://github.com/IDEMSInternational/rapidpro-flow-toolkit.git@1.13.0",
+    "google-cloud-storage~=3.2",
+    "rpft ~= 1.15",
 ]
 
 [project.scripts]

@@ -27,6 +27,16 @@ from parenttext.placeholder_gen import create_placeholder_files
 env = {}
 
 
+def safe_getenv(key, default):
+    if key not in env.keys():
+        env[key] = getenv(key)
+
+    if env[key] is None:
+        env[key] = default
+    
+    return env[key]
+
+
 def step_canto_download():
     if Path("canto").exists():
         # Copy all files into transcoded folder for images & comics
@@ -39,7 +49,7 @@ def step_canto_download():
 
 def step_transcode():
 
-    transcode_path = env.get("MEDIA_OPS_TRANSCODE_FOLDER", "transcoded")
+    transcode_path = safe_getenv("MEDIA_OPS_TRANSCODE_FOLDER", "transcoded")
 
     # Copy all files into transcoded folder for images & comics
     # TODO: Handle compression of these folders in below loop with transcode
@@ -70,7 +80,7 @@ def step_transcode():
 
 def step_firebase_versioned_upload():
 
-    upload_folder = env.get("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
+    upload_folder = safe_getenv("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
 
     fb = Firebase(project_id=env["GCS_PROJECT_ID"])
     fb.upload_new_version(
@@ -90,7 +100,7 @@ def step_firebase_versioned_upload():
 
 def step_firebase_non_versioned_upload():
 
-    upload_folder = env.get("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
+    upload_folder = safe_getenv("MEDIA_OPS_UPLOAD_FOLDER", "transcoded")
 
     fb = Firebase(project_id=env["GCS_PROJECT_ID"])
     fb.upload_folder(
@@ -103,8 +113,8 @@ def step_firebase_non_versioned_upload():
 
 def step_placeholder_gen():
 
-    rapidpro_file = env.get("RAPIDPRO_OUTPUT", "./output/parenttext_all.json")
-    placeholder_directory = env.get(
+    rapidpro_file = safe_getenv("RAPIDPRO_OUTPUT", "./output/parenttext_all.json")
+    placeholder_directory = safe_getenv(
         "MEDIA_OPS_PLACEHOLDER_FOLDER", "placeholder_assets"
     )
 

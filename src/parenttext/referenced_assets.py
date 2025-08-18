@@ -55,7 +55,7 @@ def get_referenced_assets(rapidpro_file, path_dict, process_attachment_method=No
     return referenced_assets
 
 
-def get_parenttext_paths(root, language_list, gender_list, folder_versions=None):
+def get_parenttext_paths(root, language_list, gender_list, folder_versions=None, old_structure=False):
     _folder_versions = {"comic": "", "image": "", "voiceover": ""}
     if folder_versions is not None:
         _folder_versions.update(folder_versions)
@@ -69,21 +69,36 @@ def get_parenttext_paths(root, language_list, gender_list, folder_versions=None)
     }
 
     av_tails = []
-    for gender, language in itertools.product(language_list, gender_list):
-        av_tails.append("/".join(["gender", gender, "language", language]))
+    for gender, language in itertools.product(gender_list, language_list):
+        if old_structure:
+            av_tails.append("/".join(["gender", gender, "language", language]))
+        else:
+            av_tails.append("/".join([gender, language]))
 
     path_dict["voiceover_video_path"] = []
     path_dict["voiceover_audio_path"] = []
     for tail in av_tails:
-        path_dict["voiceover_video_path"].append(
-            "/".join(
-                [root, versioned_folder["voiceover"], "resourceType", "video", tail]
+        if old_structure:
+            path_dict["voiceover_video_path"].append(
+                "/".join(
+                    [root, versioned_folder["voiceover"], "resourceType", "video", tail]
+                )
             )
-        )
-        path_dict["voiceover_audio_path"].append(
-            "/".join(
-                [root, versioned_folder["voiceover"], "resourceType", "audio", tail]
+            path_dict["voiceover_audio_path"].append(
+                "/".join(
+                    [root, versioned_folder["voiceover"], "resourceType", "audio", tail]
+                )
             )
-        )
+        else:
+            path_dict["voiceover_video_path"].append(
+                "/".join(
+                    [root, versioned_folder["voiceover"], "video", tail]
+                )
+            )
+            path_dict["voiceover_audio_path"].append(
+                "/".join(
+                    [root, versioned_folder["voiceover"], "audio", tail]
+                )
+            )            
 
     return path_dict

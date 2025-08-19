@@ -42,7 +42,7 @@ def create_flows(config, step_config, step_number, _=None):
     flows = rpft.converters.create_flows(
         sheets,
         None,
-        "json",
+        None,
         data_models=step_config.models_module,
         tags=step_config.tags,
     )

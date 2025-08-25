@@ -50,30 +50,42 @@ def step_canto_download():
 def step_transcode():
 
     transcode_path = safe_getenv("MEDIA_OPS_TRANSCODE_FOLDER", "transcoded")
+    old_structure = safe_getenv("MEDIA_OPS_OLD_STRUCTURE", False)
 
     # Copy all files into transcoded folder for images & comics
     # TODO: Handle compression of these folders in below loop with transcode
     try:
         shutil.copytree("canto/image", f"{transcode_path}/image", dirs_exist_ok=True)
         shutil.copytree("canto/comic", f"{transcode_path}/comic", dirs_exist_ok=True)
+        shutil.copytree("canto/logo", f"{transcode_path}/logo", dirs_exist_ok=True)
     except FileNotFoundError:
         print("  Warning: Image/Comic split not found, skipping")
 
+    if Path("old_canto").exists():
+        old_exists = True
+    else:
+        old_exists = False
+        
+    resource_type = "resourceType/" if old_structure else ""
     # transcode video & audio
     for fmt in ["video", "audio"]:
         print(f"  -> Transcoding {fmt} folder...")
-        raw_dir = f"canto/voiceover/resourceType/{fmt}/"
+        raw_dir = f"canto/voiceover/{resource_type}{fmt}/"
         # Handle case where audio is transcoded from video source
         if not Path(raw_dir).exists() and fmt == "audio":
             print("  Transcoding audio from video files.")
-            raw_dir = "canto/voiceover/resourceType/video/"
-        old_dir = f"old_{raw_dir}"
-        transcoded_dir = f"{transcode_path}/voiceover/resourceType/{fmt}/"
+            raw_dir = f"canto/voiceover/{resource_type}video/"
+        if old_exists:
+            old_dir = f"old_{raw_dir}"
+        else:
+            old_dir = None
+        transcoded_dir = f"{transcode_path}/voiceover/{resource_type}{fmt}/"
         prepare_dir(transcoded_dir, wipe=False)  # make dir if doesn't exist
         transcode_media(raw_dir, transcoded_dir, old_src=old_dir, fmt=fmt)
 
     # remove old canto directory once it's no longer needed for change detection
-    shutil.rmtree(Path("old_canto"))
+    if old_exists:
+        shutil.rmtree(Path("old_canto"))
 
     env["MEDIA_OPS_UPLOAD_FOLDER"] = transcode_path
 

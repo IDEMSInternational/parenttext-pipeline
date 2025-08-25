@@ -69,7 +69,7 @@ def get_parenttext_paths(root, language_list, gender_list, folder_versions=None,
     if old_structure:
         path_dict["image_path"] = ["/".join([root, versioned_folder["image"], "universal"])]
     else:
-        path_dict["image_path"] = ["/".join([root, versioned_folder["image"]])],
+        path_dict["image_path"] = ["/".join([root, versioned_folder["image"]])]
 
     av_tails = []
     for gender, language in itertools.product(gender_list, language_list):

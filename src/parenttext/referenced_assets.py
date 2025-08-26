@@ -56,7 +56,7 @@ def get_referenced_assets(rapidpro_file, path_dict, process_attachment_method=No
 
 
 def get_parenttext_paths(root, language_list, gender_list, folder_versions=None, old_structure=False):
-    _folder_versions = {"comic": "", "image": "", "voiceover": ""}
+    _folder_versions = {"logo": "", "comic": "", "image": "", "voiceover": ""}
     if folder_versions is not None:
         _folder_versions.update(folder_versions)
     versioned_folder = {k: "".join([k, v]) for k, v in _folder_versions.items()}

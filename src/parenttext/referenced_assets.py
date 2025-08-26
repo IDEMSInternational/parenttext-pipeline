@@ -65,6 +65,7 @@ def get_parenttext_paths(root, language_list, gender_list, folder_versions=None,
     path_dict = {
         "path": [root],
         "comic_path": ["/".join([root, versioned_folder["comic"]])],
+        "logo_path": ["/".join([root, versioned_folder["logo"]])],
     }
     if old_structure:
         path_dict["image_path"] = ["/".join([root, versioned_folder["image"], "universal"])]

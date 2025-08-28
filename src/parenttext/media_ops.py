@@ -11,6 +11,7 @@ For help, run:
 import argparse
 import shutil
 import json
+import re
 from pathlib import Path
 from dotenv import load_dotenv
 from os import getenv
@@ -211,6 +212,100 @@ def assert_env_exists(step_list):
             "maybe you need a .env file?"
         )
 
+def get_yes_no_input(prompt):
+    """
+    Prompts the user for a 'yes' or 'no' response and keeps asking until a valid answer is given.
+    Returns True for 'yes' and False for 'no'.
+    """
+    while True:
+        # Get user input and convert it to lowercase for case-insensitive matching
+        user_input = input(f"{prompt} (yes/no): ").lower()
+        
+        if user_input in ["yes", "y"]:
+            return True
+        elif user_input in ["no", "n"]:
+            return False
+        else:
+            print("Invalid input. Please enter 'yes' or 'no'.")
+
+def _verify_old_structure():
+    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION",None)
+    if deployment_asset_location is None:
+        return
+    if deployment_asset_location.endswith("resourceGroup"):
+        old_structure = safe_getenv("MEDIA_OPS_OLD_STRUCTURE", None)
+        if old_structure is None or False:
+            if get_yes_no_input(
+                "Your DEPLOYMENT_ASSET_LOCATION ends with `resourceGroup` which is "
+                "incompatible with the new structure, but MEDIA_OPS_OLD_STRUCTURE is "
+                "not set to True. Are you sure you want to continue? (y/n)"
+                ):
+                return
+            else:
+                exit()
+
+def _verify_deployment_asset_location():
+    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION",None)
+    if deployment_asset_location is None:
+        return
+
+    if deployment_asset_location.endswith("/"):
+        print("Please do not end DEPLOYMENT_ASSET_LOCATION with '/'")
+        exit()
+
+    folder_path = Path("./input/flow_definitions")
+    match_list = []
+    for file in folder_path.iterdir():
+        if not file.is_file():
+            continue
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                matches = re.findall(
+                    r'"name": "deployment",\n\s*"value": "([^"]*)"', content)
+                match_list += matches
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+
+    deployment_asset_ending = deployment_asset_location.split('/')[-1]
+
+    if len(match_list) == 1:
+        if deployment_asset_ending == match_list[0]:
+            return
+        elif get_yes_no_input(
+            f"DEPLOYMENT_ASSET_LOCATION ending {deployment_asset_ending} does not"
+            f" match the specified name {match_list[0]}. "
+            "Are you sure you want to continue? (y/n)"
+            ):
+            return
+        else:
+            exit()
+
+    elif len(match_list) == 0:
+        if get_yes_no_input(
+            "No deployment name found in the sheets, unable to verify the "
+            "DEPLOYMENT_ASSET_LOCATION. Are you sure you want to continue? (y/n)"
+            ):
+            return
+        else:
+            exit()
+
+    elif len(match_list) > 1:
+        if get_yes_no_input(
+            "DEPLOYMENT_ASSET_LOCATION unable to be verified against input, found:"
+            f" {match_list} "
+            "Are you sure you want to continue? (y/n)"
+            ):
+            return
+        else:
+            exit()
+
+
+def verify_env(step_list):
+    assert_env_exists(step_list)
+    _verify_old_structure()
+    _verify_deployment_asset_location()
+
 
 def main(
     step_list,
@@ -218,7 +313,7 @@ def main(
 ):
     env["dry_run"] = dry_run
 
-    assert_env_exists(step_list)
+    verify_env(step_list)
 
     """Main function to orchestrate the entire workflow."""
     print("=" * 50)

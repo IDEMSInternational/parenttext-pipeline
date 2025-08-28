@@ -87,6 +87,35 @@ CANTO_USER_ID=user_id
 
 ### Compatibility with other media automation steps
 The path template must download the files into the file structure used in the deployment asset server.
+For the IDEMS Firebase this is (without loss of generality re the specific language codes):
+```
+📂 PATH/resourceGroup/
+ ├── 📂 image
+ │    └── 📂 universal
+ ├── 📂 comic
+ ├── 📂 voiceover
+ │    ├── 📂 video
+ │    │    ├── 📂 male
+ │    │    │    ├── 📂 eng
+ │    │    │    └── 📂 spa
+ │    │    └── 📂 female
+ │    │         ├── 📂 eng
+ │    │         └── 📂 spa
+ │    └── 📂 audio
+ │         ├── 📂 male
+ │         │    ├── 📂 eng
+ │         │    └── 📂 spa
+ │         └── 📂 female
+ │              ├── 📂 eng
+ │              └── 📂 spa
+ ```
+
+For compatibility with other media automation steps the `path_template` **MUST** return this structure.
+For example:
+```
+"{% if format == 'image' %}{% if folder == 'Comics' %}comic/{{ name }}{% else %}image/universal/{{ name }}{% endif %}{% else %}voiceover/{{ format }}/{{ (annotations['Caregiver Gender'] or 'unknown') }}/{{ (language or 'unknown') }}/{{ name }}{% endif %}"
+
+#### Legacy structure:
 
 For the IDEMS Firebase this is (without loss of generality re the specific language codes):
 ```

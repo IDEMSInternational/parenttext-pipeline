@@ -11,6 +11,7 @@ For help, run:
 import argparse
 import shutil
 import json
+import re
 from pathlib import Path
 from dotenv import load_dotenv
 from os import getenv
@@ -50,30 +51,42 @@ def step_canto_download():
 def step_transcode():
 
     transcode_path = safe_getenv("MEDIA_OPS_TRANSCODE_FOLDER", "transcoded")
+    old_structure = safe_getenv("MEDIA_OPS_OLD_STRUCTURE", False)
 
     # Copy all files into transcoded folder for images & comics
     # TODO: Handle compression of these folders in below loop with transcode
     try:
         shutil.copytree("canto/image", f"{transcode_path}/image", dirs_exist_ok=True)
         shutil.copytree("canto/comic", f"{transcode_path}/comic", dirs_exist_ok=True)
+        shutil.copytree("canto/logo", f"{transcode_path}/logo", dirs_exist_ok=True)
     except FileNotFoundError:
         print("  Warning: Image/Comic split not found, skipping")
 
+    if Path("old_canto").exists():
+        old_exists = True
+    else:
+        old_exists = False
+        
+    resource_type = "resourceType/" if old_structure else ""
     # transcode video & audio
     for fmt in ["video", "audio"]:
         print(f"  -> Transcoding {fmt} folder...")
-        raw_dir = f"canto/voiceover/resourceType/{fmt}/"
+        raw_dir = f"canto/voiceover/{resource_type}{fmt}/"
         # Handle case where audio is transcoded from video source
         if not Path(raw_dir).exists() and fmt == "audio":
             print("  Transcoding audio from video files.")
-            raw_dir = "canto/voiceover/resourceType/video/"
-        old_dir = f"old_{raw_dir}"
-        transcoded_dir = f"{transcode_path}/voiceover/resourceType/{fmt}/"
+            raw_dir = f"canto/voiceover/{resource_type}video/"
+        if old_exists:
+            old_dir = f"old_{raw_dir}"
+        else:
+            old_dir = None
+        transcoded_dir = f"{transcode_path}/voiceover/{resource_type}{fmt}/"
         prepare_dir(transcoded_dir, wipe=False)  # make dir if doesn't exist
         transcode_media(raw_dir, transcoded_dir, old_src=old_dir, fmt=fmt)
 
     # remove old canto directory once it's no longer needed for change detection
-    shutil.rmtree(Path("old_canto"))
+    if old_exists:
+        shutil.rmtree(Path("old_canto"))
 
     env["MEDIA_OPS_UPLOAD_FOLDER"] = transcode_path
 
@@ -199,6 +212,100 @@ def assert_env_exists(step_list):
             "maybe you need a .env file?"
         )
 
+def get_yes_no_input(prompt):
+    """
+    Prompts the user for a 'yes' or 'no' response and keeps asking until a valid answer is given.
+    Returns True for 'yes' and False for 'no'.
+    """
+    while True:
+        # Get user input and convert it to lowercase for case-insensitive matching
+        user_input = input(f"{prompt} (yes/no): ").lower()
+        
+        if user_input in ["yes", "y"]:
+            return True
+        elif user_input in ["no", "n"]:
+            return False
+        else:
+            print("Invalid input. Please enter 'yes' or 'no'.")
+
+def _verify_old_structure():
+    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION",None)
+    if deployment_asset_location is None:
+        return
+    if deployment_asset_location.endswith("resourceGroup"):
+        old_structure = safe_getenv("MEDIA_OPS_OLD_STRUCTURE", None)
+        if old_structure is None or False:
+            if get_yes_no_input(
+                "Your DEPLOYMENT_ASSET_LOCATION ends with `resourceGroup` which is "
+                "incompatible with the new structure, but MEDIA_OPS_OLD_STRUCTURE is "
+                "not set to True. Are you sure you want to continue? (y/n)"
+                ):
+                return
+            else:
+                exit()
+
+def _verify_deployment_asset_location():
+    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION",None)
+    if deployment_asset_location is None:
+        return
+
+    if deployment_asset_location.endswith("/"):
+        print("Please do not end DEPLOYMENT_ASSET_LOCATION with '/'")
+        exit()
+
+    folder_path = Path("./input/flow_definitions")
+    match_list = []
+    for file in folder_path.iterdir():
+        if not file.is_file():
+            continue
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                matches = re.findall(
+                    r'"name": "deployment",\n\s*"value": "([^"]*)"', content)
+                match_list += matches
+        except Exception as e:
+            print(f"Error reading {file}: {e}")
+
+    deployment_asset_ending = deployment_asset_location.split('/')[-1]
+
+    if len(match_list) == 1:
+        if deployment_asset_ending == match_list[0]:
+            return
+        elif get_yes_no_input(
+            f"DEPLOYMENT_ASSET_LOCATION ending {deployment_asset_ending} does not"
+            f" match the specified name {match_list[0]}. "
+            "Are you sure you want to continue? (y/n)"
+            ):
+            return
+        else:
+            exit()
+
+    elif len(match_list) == 0:
+        if get_yes_no_input(
+            "No deployment name found in the sheets, unable to verify the "
+            "DEPLOYMENT_ASSET_LOCATION. Are you sure you want to continue? (y/n)"
+            ):
+            return
+        else:
+            exit()
+
+    elif len(match_list) > 1:
+        if get_yes_no_input(
+            "DEPLOYMENT_ASSET_LOCATION unable to be verified against input, found:"
+            f" {match_list} "
+            "Are you sure you want to continue? (y/n)"
+            ):
+            return
+        else:
+            exit()
+
+
+def verify_env(step_list):
+    assert_env_exists(step_list)
+    _verify_old_structure()
+    _verify_deployment_asset_location()
+
 
 def main(
     step_list,
@@ -206,7 +313,7 @@ def main(
 ):
     env["dry_run"] = dry_run
 
-    assert_env_exists(step_list)
+    verify_env(step_list)
 
     """Main function to orchestrate the entire workflow."""
     print("=" * 50)

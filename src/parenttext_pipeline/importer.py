@@ -1,144 +1,215 @@
+import abc
 from argparse import ArgumentParser
-from pprint import pprint
-from re import sub
-
-from bs4 import BeautifulSoup
-from requests import Session
-
+from playwright.sync_api import sync_playwright, Page, Error, Browser
+import time
 
 class ImporterError(Exception):
     pass
 
+class Importer(abc.ABC):
+    """Abstract Base Class defining the importer interface."""
+    def __init__(self, page: Page, host: str):
+        self.page = page
+        self.host = host
 
-def import_definition(host, username, password, definitions):
-    with Session() as session:
+    @abc.abstractmethod
+    def login(self, username, password):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def select_workspace(self, workspace_name):
+        raise NotImplementedError
+
+    def upload(self, definition_fp):
+        print(f"Uploading file: {definition_fp}...")
+        
+        self.page.goto(self.upload_url)
+        self.page.locator('input[type="file"]').set_input_files(definition_fp)
+
+        submit_button = self.page.locator('button[type="submit"], input[type="submit"]')
+        if submit_button.count() > 0:
+            submit_button.first.click()
+            self.page.wait_for_load_state('networkidle')
+
+        if "In progress" in self.page.content():
+            print("In progress", end="")
+            counter = 0
+            while "In progress" in self.page.content():
+                time.sleep(1)
+                print(".", end="")
+                counter += 1
+                if counter > 300:
+                    print("Timeout ")
+                    break
+            print(" Done")
+        
+        if self.upload_success_msg not in self.page.content():
+            raise ImporterError("Import failed, content did not confirm success. See screenshot.")
+        print(f"Import of {definition_fp} completed successfully.")
+
+    @abc.abstractmethod
+    def logout(self):
+        raise NotImplementedError
+
+class TextItImporter(Importer):
+    """Importer for the TextIt server environment."""
+    def __init__(self, page: Page, host: str):
+        super().__init__(page, host)
+        self.upload_url = f"{self.host}/orgimport/create/"
+        self.upload_success_msg = "Finished successfully"
+
+    def login(self, username, password):
+        print("Attempting TextIt login...")
+        url = f"{self.host}/accounts/login/?next=/msg/"
+        self.page.goto(url)
+        self.page.locator('input[name="login"]').fill(username)
+        self.page.locator('input[name="password"]').fill(password)
+        self.page.locator('button[type="submit"]').click()
         try:
-            login(session, host, username, password)
+            self.page.wait_for_url(f"{self.host}/msg/", timeout=10000)
+            print(f"Login completed, url={self.page.url}, username={username}")
+        except Error:
+            raise ImporterError("Login failed. Was not redirected to inbox.")
+
+    def select_workspace(self, workspace_name):
+        print(f"Switching to workspace {workspace_name}...")
+        self.page.locator("#dd-workspace").click()
+        self.page.locator("#dd-workspace > div:nth-child(2) > temba-workspace-select").click()
+        try:
+            self.page.get_by_text(workspace_name, exact=True).click()
+        except Error:
+            raise ImporterError(f"Workspace name '{workspace_name}' does not exist.")
+        print(f"Switched to workspace {workspace_name}")
+
+    def logout(self):
+        print("Logging out...")
+        url = f"{self.host}/accounts/logout/"
+        self.page.goto(url)
+        self.page.locator('button[type="submit"]').click()
+        try:
+            # Wait for redirection to the login or home page
+            self.page.wait_for_url(f"{self.host}/", timeout=10000)
+            print("Logout completed.")
+        except Error:
+            raise ImporterError("Logout failed. Did not redirect correctly.")
+
+class InternalImporter(Importer):
+    """
+    Importer for the internal test server environment.
+    """
+    def __init__(self, page: Page, host: str):
+        super().__init__(page, host)
+        self.upload_url = f"{self.host}/org/import/"
+        self.upload_success_msg = "Import successful"
+
+    def login(self, username, password):
+        print("Attempting Internal Server login...")
+
+        url = f"{self.host}/users/login/"
+        self.page.goto(url)
+        self.page.locator('input[name="username"]').fill(username)
+        self.page.locator('input[name="password"]').fill(password)
+        self.page.locator('input[type="submit"]').click()
+        try:
+            self.page.wait_for_url(f"{self.host}/org/choose/", timeout=10000)
+            print(f"Login completed, url={self.page.url}, username={username}")
+        except Error:
+            raise ImporterError("Login failed. Was not redirected to expected page.")
+
+    def select_workspace(self, workspace_name):
+        try:
+            self.page.get_by_text(workspace_name, exact=True).click()
+        except Error:
+            raise ImporterError(f"Workspace name '{workspace_name}' does not exist.")
+
+    def logout(self):
+        print("Logging out...")
+        url = f"{self.host}/users/logout/"
+        self.page.goto(url)
+        try:
+            self.page.wait_for_url(f"{self.host}/users/login/", timeout=10000)
+            print("Logout completed.")
+        except Error:
+            raise ImporterError("Logout failed. Did not redirect correctly.")
+
+
+def get_importer(importer_type: str, page: Page, host: str) -> Importer:
+    """Factory function to get the correct importer instance."""
+    if importer_type == "textit":
+        return TextItImporter(page, host)
+    elif importer_type == "internal":
+        return InternalImporter(page, host)
+    else:
+        raise ValueError(f"Unknown importer type: {importer_type}")
+
+danger_words = ["API", "token"]
+
+def print_error(e: Exception, page: Page):
+    """Prints detailed error information, including a screenshot."""
+    print("\n" + "#" * 30)
+    print("## PAGE CONTENT (truncated)")
+    try:
+        text_content = page.locator('body').inner_text(timeout=500)
+        if any([danger in text_content for danger in danger_words]):
+            print("### FATAL ERROR ###")
+            print(f"An exception occurred: {e}")
+            print("contained potentially sensitive information, so full html/screenshot not output")
+            return
+
+        print(text_content[:1000])
+    except Error:
+        print(page.content()[:1000])
+    print("#" * 30)
+    print("### FATAL ERROR ###")
+    print(f"An exception occurred: {e}")
+    screenshot_path = "import_failure.png"
+    page.screenshot(path=screenshot_path)
+    print(f"A screenshot has been saved to: {screenshot_path}")
+    print(f"## Final URL: {page.url}")
+    print("#" * 30)
+
+def main_import_flow(importer_type, host, username, password, deployment, definitions):
+    """Main execution flow."""
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        try:
+            importer = get_importer(importer_type, page, host)
+            importer.login(username, password)
+            importer.select_workspace(deployment)
             for fp in definitions:
-                upload(session, host, fp)
-            logout(session, host)
-        except ImporterError as e:
-            print_error(e)
-
-
-def login(session, host, username, password):
-    url = f"{host}/users/login/"
-    r = session.post(
-        url,
-        headers={
-            "Referer": url,
-        },
-        data={
-            "username": username,
-            "password": password,
-            "csrfmiddlewaretoken": extract_csrf_token(session, url),
-        },
-    )
-
-    if r.status_code == 200 and r.url == f"{host}/msg/inbox/":
-        print(f"Login completed, url={url}, username={username}")
-    else:
-        raise ImporterError("Login failed", r)
-
-
-def upload(session, host, definition_fp):
-    url = f"{host}/org/import/"
-
-    with open(definition_fp, "rb") as definition_file:
-        r = session.post(
-            url,
-            headers={
-                "Referer": url,
-            },
-            data={
-                "csrfmiddlewaretoken": extract_csrf_token(session, url),
-            },
-            files={
-                "import_file": definition_file,
-            },
-        )
-
-    if r.status_code == 200 and "Import successful" in r.text:
-        print(f"Import completed, url={url}, file={definition_fp}")
-    else:
-        raise ImporterError("Import failed", r)
-
-
-def logout(session, host):
-    url = f"{host}/users/logout/"
-    r = session.get(url)
-
-    if r.status_code == 200:
-        print(f"Logout completed, url={url}")
-    else:
-        raise ImporterError("Logout failed", r)
-
-
-def extract_csrf_token(session, url):
-    return BeautifulSoup(
-        session.get(url).text,
-        features="html.parser",
-    ).select_one(
-        "input[name=csrfmiddlewaretoken]"
-    )["value"]
-
-
-def print_error(e: ImporterError):
-    msg, r = e.args
-    print("# ERROR")
-    print(msg)
-    print("## REQUEST ")
-    pprint(
-        {
-            "url": r.request.url,
-            "method": r.request.method,
-            "headers": dict(r.request.headers),
-            "body": sub(r"password=.*&", "password=(hidden)&", r.request.body or ""),
-        }
-    )
-    print("## RESPONSE")
-    pprint(
-        {
-            "url": r.url,
-            "status": r.status_code,
-            "headers": dict(r.headers),
-        }
-    )
-    print("### BODY")
-    print(r.text)
-
+                importer.upload(fp)
+            importer.logout()
+            print("\nAll definitions imported successfully!")
+            print(f"## Final URL: {page.url}")
+        except (ImporterError, Error) as e:
+            print_error(e, page)
+        finally:
+            browser.close()
 
 def cli():
-    parser = ArgumentParser(description="Import a flow definition into RapidPro")
+    parser = ArgumentParser(description="Import a flow definition into a RapidPro server")
     parser.add_argument(
-        "-H",
-        "--host",
+        "-t",
+        "--type",
         required=True,
-        help="URL of the RapidPro server to upload to e.g. https://rp.example.com",
+        choices=["textit", "internal"],
+        help="The type of server to connect to.",
     )
-    parser.add_argument(
-        "-u",
-        "--username",
-        required=True,
-    )
-    parser.add_argument(
-        "-p",
-        "--password",
-        required=True,
-    )
-    parser.add_argument(
-        "definition_file",
-        nargs="+",
-        help="File containing flow definition to upload",
-    )
+    parser.add_argument("-H", "--host", required=True, help="URL of the server")
+    parser.add_argument("-u", "--username", required=True)
+    parser.add_argument("-p", "--password", required=True)
+    parser.add_argument("-d", "--deployment", required=True, help="The workspace name")
+    parser.add_argument("definition_files", nargs="+", help="File(s) with flow definitions")
     args = parser.parse_args()
-    import_definition(
+    main_import_flow(
+        args.type,
         args.host,
         args.username,
         args.password,
-        args.definition_file,
+        args.deployment,
+        args.definition_files,
     )
-
 
 if __name__ == "__main__":
     cli()

@@ -21,6 +21,8 @@ def process_attachment(attachment, path_dict, method) -> list:
                 return ["/".join([p, file]) for p in path_dict[path]]
             except IndexError:
                 pass
+            except KeyError:
+                print(f"Was unable to process path {path}, associated with file {file}")
     # If the method failed, print and return
     print(f"Could not process attachment {attachment}")
     return [attachment]

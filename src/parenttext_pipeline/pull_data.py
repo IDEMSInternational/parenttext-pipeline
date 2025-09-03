@@ -9,7 +9,7 @@ import concurrent.futures
 import requests
 from googleapiclient.discovery import build
 from rpft.converters import convert_to_json
-from rpft.google import Drive, get_credentials
+from rpft.google import Drive
 
 from parenttext_pipeline.common import (
     clear_or_create_folder,
@@ -28,8 +28,6 @@ def run(config):
     try:
         meta = read_meta(get_input_folder(config, in_temp=False))
         last_update_str = meta["pull_timestamp"]
-        if last_update_str.endswith("Z"):
-            last_update_str = last_update_str[:-1] + "+00:00"
         last_update = datetime.fromisoformat(last_update_str)
     except (FileNotFoundError, KeyError):
         print('meta.json not found, updating everything')
@@ -107,31 +105,6 @@ def get_json_from_sheet_id(source, temp_dir, sheet_id):
         return convert_to_json(sheet_path, source.subformat)
 
 
-_drive_service = None
-
-
-def get_drive_service():
-    global _drive_service
-    if _drive_service is None:
-        _drive_service = build("drive", "v3", credentials=get_credentials())
-    return _drive_service
-
-
-def get_sheet_modified_time(sheet_id):
-    try:
-        service = get_drive_service()
-        file_meta = service.files().get(
-            fileId=sheet_id, fields="modifiedTime", supportsAllDrives=True
-        ).execute()
-        modified_time_str = file_meta["modifiedTime"]
-        if modified_time_str.endswith("Z"):
-            modified_time_str = modified_time_str[:-1] + "+00:00"
-        return datetime.fromisoformat(modified_time_str)
-    except Exception as e:
-        print(f"Could not get modified time for sheet {sheet_id}: {e}")
-        return None
-
-
 def pull_sheets(config, source, source_name, last_update):
     source_input_path = get_input_subfolder(
         config, source_name, makedirs=True, in_temp=False
@@ -162,12 +135,13 @@ def pull_sheets(config, source, source_name, last_update):
     )
     
     # Check that the drive credentials work before N auth tabs are opened
-    get_drive_service()
+    Drive.client()
     
     sheets_to_download = {}
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    # Max workers set to 1 after consistent SSL errors migrating get_modified_time to Drive class
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         future_to_sheet = {
-            executor.submit(get_sheet_modified_time, sheet_id): sheet_name
+            executor.submit(Drive.get_modified_time, sheet_id): sheet_name
             for sheet_name, sheet_id in all_sheets.items()
         }
         for future in concurrent.futures.as_completed(future_to_sheet):

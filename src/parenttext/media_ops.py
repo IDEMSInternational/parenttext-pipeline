@@ -124,26 +124,65 @@ def step_firebase_non_versioned_upload():
     )
 
 
-def step_placeholder_gen():
-
+def get_referenced_asset_list(root):
     rapidpro_file = safe_getenv("RAPIDPRO_OUTPUT", "./output/parenttext_all.json")
-    placeholder_directory = safe_getenv(
-        "MEDIA_OPS_PLACEHOLDER_FOLDER", "placeholder_assets"
-    )
-
     with open("config.json", "r") as fh:
         language_dicts = json.load(fh)["sources"]["translation"]["languages"]
     language_list = [d["language"] for d in language_dicts]
 
     gender_list = ["male", "female"]  # Sexs will be replaced with genders soon...
-
-    path_dict = get_parenttext_paths(placeholder_directory, language_list, gender_list)
+    
+    path_dict = get_parenttext_paths(root, language_list, gender_list)
+    print(path_dict)
 
     asset_list = get_referenced_assets(rapidpro_file, path_dict)
+
+    return asset_list
+
+def step_placeholder_gen():
+
+    placeholder_directory = safe_getenv(
+        "MEDIA_OPS_PLACEHOLDER_FOLDER", "placeholder_assets"
+    )
+
+    asset_list = get_referenced_asset_list(placeholder_directory)
 
     create_placeholder_files(asset_list)
 
     env["MEDIA_OPS_UPLOAD_FOLDER"] = placeholder_directory
+
+
+def step_list_referenced_assets():
+    print("#" * 30)
+    asset_list = get_referenced_asset_list("canto")
+    asset_list.sort()
+    print(json.dumps(asset_list, indent=2))
+
+
+def step_list_missing_assets():
+
+    referenced = set(get_referenced_asset_list("canto"))
+    downloaded = set([p.as_posix() for p in Path("canto").rglob('*') if p.is_file()])
+
+    missing = list(referenced - downloaded)
+    missing.sort()
+    unreferenced = list(downloaded - referenced)
+    unreferenced.sort()
+
+    union = list(referenced.intersection(downloaded))
+    union.sort()
+
+    print("#" * 30)
+    print(f"Correct assets: {len(union)}")
+    print(json.dumps(union, indent=2))
+
+    print("#" * 30)
+    print(f"Missing assets: {len(missing)}")
+    print(json.dumps(missing, indent=2))
+
+    print("#" * 30)
+    print(f"Unreferenced/Extra assets: {len(unreferenced)}")
+    print(json.dumps(unreferenced, indent=2))    
 
 
 step_dict = {
@@ -186,6 +225,16 @@ step_dict = {
         "fn": step_placeholder_gen,
         "start_msg": "Creating directory of placeholder assets",
         "end_msg": "Placeholders created",
+    },
+    "list_referenced_assets": {
+        "fn": step_list_referenced_assets,
+        "start_msg": "Printing list of assets referenced by flows",
+        "end_msg": "List of assets printed",
+    },
+    "list_missing_assets": {
+        "fn": step_list_missing_assets,
+        "start_msg": "Printing list of missing assets and unreferenced assets",
+        "end_msg": "List of assets printed",
     },
 }
 

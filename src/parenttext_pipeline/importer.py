@@ -173,6 +173,7 @@ def main_import_flow(importer_type, host, username, password, deployment, defini
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page()
+        error_occured = False
         try:
             importer = get_importer(importer_type, page, host)
             importer.login(username, password)
@@ -184,8 +185,11 @@ def main_import_flow(importer_type, host, username, password, deployment, defini
             print(f"## Final URL: {page.url}")
         except (ImporterError, Error) as e:
             print_error(e, page)
+            error_occured = True
         finally:
             browser.close()
+        if error_occured:
+            exit(1)
 
 def cli():
     parser = ArgumentParser(description="Import a flow definition into a RapidPro server")

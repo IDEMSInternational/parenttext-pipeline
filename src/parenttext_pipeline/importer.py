@@ -75,7 +75,7 @@ class TextItImporter(Importer):
         print(f"Switching to workspace {workspace_name}...")
         self.page.locator("#dd-workspace").click()
         try:
-            expect(page.getByText(workspace_name, exact=True)).toBeVisible()
+            expect(self.page.getByText(workspace_name, exact=True)).toBeVisible()
             print(f"Already in workspace {workspace_name}")
         except:
             pass

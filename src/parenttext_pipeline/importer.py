@@ -74,6 +74,11 @@ class TextItImporter(Importer):
     def select_workspace(self, workspace_name):
         print(f"Switching to workspace {workspace_name}...")
         self.page.locator("#dd-workspace").click()
+        try:
+            self.page.get_by_text(workspace_name, exact=True).click()
+            print(f"Already in workspace {workspace_name}")
+        except:
+            pass
         self.page.locator("#dd-workspace > div:nth-child(2) > temba-workspace-select").click()
         try:
             self.page.get_by_text(workspace_name, exact=True).click()

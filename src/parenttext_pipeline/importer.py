@@ -77,6 +77,7 @@ class TextItImporter(Importer):
         try:
             expect(self.page.get_by_text(workspace_name, exact=True, )).to_be_visible(timeout=0.5)
             print(f"Already in workspace {workspace_name}")
+            return
         except:
             pass
         self.page.locator("#dd-workspace > div:nth-child(2) > temba-workspace-select").click()

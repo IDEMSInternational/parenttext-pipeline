@@ -1,6 +1,6 @@
 import abc
 from argparse import ArgumentParser
-from playwright.sync_api import sync_playwright, Page, Error, Browser
+from playwright.sync_api import sync_playwright, Page, Error, Browser, expect
 import time
 
 class ImporterError(Exception):
@@ -75,7 +75,7 @@ class TextItImporter(Importer):
         print(f"Switching to workspace {workspace_name}...")
         self.page.locator("#dd-workspace").click()
         try:
-            self.page.get_by_text(workspace_name, exact=True).click()
+            expect(page.getByText(workspace_name, exact=True)).toBeVisible()
             print(f"Already in workspace {workspace_name}")
         except:
             pass

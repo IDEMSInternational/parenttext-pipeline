@@ -138,20 +138,15 @@ def pull_sheets(config, source, source_name, last_update):
     Drive.client()
     
     sheets_to_download = {}
-    # Max workers set to 1 after consistent SSL errors migrating get_modified_time to Drive class
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        future_to_sheet = {
-            executor.submit(Drive.get_modified_time, sheet_id): sheet_name
-            for sheet_name, sheet_id in all_sheets.items()
-        }
-        for future in concurrent.futures.as_completed(future_to_sheet):
-            sheet_name = future_to_sheet[future]
-            try:
-                modified_time = future.result()
-                if not last_update or (modified_time and modified_time > last_update) or not Path(source_input_path / f"{sheet_name}.json").exists():
-                    sheets_to_download[sheet_name] = all_sheets[sheet_name]
-            except Exception as e:
-                print(f"Error checking sheet '{sheet_name}': {e}")
+
+    
+    modified_time_dict = Drive.get_modified_time(all_sheets.values())
+
+    for sheet_name, sheet_id in all_sheets.items():
+        modified_time = modified_time_dict[sheet_id]
+        if not last_update or (modified_time and modified_time > last_update) or not Path(source_input_path / f"{sheet_name}.json").exists():
+            sheets_to_download[sheet_name] = all_sheets[sheet_name]
+
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_sheet = {

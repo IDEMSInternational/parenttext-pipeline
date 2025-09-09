@@ -33,7 +33,7 @@ dependencies = [
     "rapidpro-abtesting @ git+https://github.com/IDEMSInternational/rapidpro_abtesting.git@master",
     "requests~=2.31",
     "google-cloud-storage~=3.2",
-    "rpft ~= 1.16",
+    "rpft ~= 1.17",
     "playwright",
 ]
 

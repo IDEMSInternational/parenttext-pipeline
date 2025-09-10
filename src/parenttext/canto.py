@@ -84,9 +84,21 @@ class Canto:
         )
 
     def download(self, scheme: str, content_id: str):
+        if scheme == "image":
+            return self._download_image(scheme, content_id)
+
         return requests.request(
             method="GET",
             url=f"{self.site_base_url}/api_binary/v1/{scheme}/{content_id}",
+            headers={"Authorization": f"Bearer {self.token}"},
+        ).content
+    
+    def _download_image(self, scheme, content_id: str):
+        advdownload = "download?resize=300x400&dpi=150&type=jpg"
+        url=f"{self.site_base_url}/api_binary/v1/{scheme}/{content_id}/{advdownload}"        
+        return requests.request(
+            method="GET",
+            url=url,
             headers={"Authorization": f"Bearer {self.token}"},
         ).content
 

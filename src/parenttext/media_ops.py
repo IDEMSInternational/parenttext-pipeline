@@ -127,8 +127,8 @@ def step_firebase_non_versioned_upload():
 def get_referenced_asset_list(root):
     rapidpro_file = safe_getenv("RAPIDPRO_OUTPUT", "./output/parenttext_all.json")
     with open("config.json", "r") as fh:
-        language_dicts = json.load(fh)["sources"]["translation"]["languages"]
-    language_list = [d["language"] for d in language_dicts]
+        language_dict = json.load(fh)["sources"]["media_assets"]["mappings"]["Language"]
+    language_list = list(language_dict.values())
 
     gender_list = ["male", "female"]  # Sexs will be replaced with genders soon...
     

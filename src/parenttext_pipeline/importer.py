@@ -39,7 +39,7 @@ class Importer(abc.ABC):
         if any(text in self.page.content() for text in wait_and_see):
             print("In progress", end="")
             counter = 0
-            while "In progress" in self.page.content():
+            while any(text in self.page.content() for text in wait_and_see):
                 time.sleep(1)
                 print(".", end="")
                 counter += 1

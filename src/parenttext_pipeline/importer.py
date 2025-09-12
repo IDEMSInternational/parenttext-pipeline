@@ -31,7 +31,12 @@ class Importer(abc.ABC):
             submit_button.first.click()
             self.page.wait_for_load_state('networkidle')
 
-        if "In progress" in self.page.content():
+        wait_and_see = [
+            "In progress",
+            "About to start",
+        ]
+        
+        if any(text in self.page.content() for text in wait_and_see):
             print("In progress", end="")
             counter = 0
             while "In progress" in self.page.content():

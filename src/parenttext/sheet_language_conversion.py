@@ -28,7 +28,7 @@ sources_file_list = {
     'N_menu_data': "1uhv_AKkGz6fn6JjTCSt5vUKQBpc46mzG8n98zkAsd9c",
     'N_onboarding_data': '11oSH7YbRXpXSvEK4dWntZPF-r2RF7MsbYsToRHFHcW8',
     'N_safeguarding_data': "1I9UnAGc9eA7k-9miJty0kyj0mYYuVEz-4Q99ll4-qk0",
-
+    'development_assessment_tool': '1imz9ctVOIsDQx3Xb8DdjFDnyrPtAolFBoO2LyonEKWY',
 }
 
 # dictionary with lists of range names to apply function to
@@ -146,6 +146,13 @@ spreadsheet_ranges = {
         "safeguarding_help_data!B2:B",
         "uncaught_message_flow_data!B2:B",
         "book_trigger_data!B2:B",
+    ],
+    "development_assessment_tool": [
+        "wg_unicef_survey_data!B2:D",
+        "wg_unicef_survey_questions_data!B2:E",
+        "swyc_survey_data!B2:C",
+        "swyc_survey_data!G2:R",
+        "dev_assess_question_date_data!B2:B",
     ],
 }
 file_prefix = "Translated"

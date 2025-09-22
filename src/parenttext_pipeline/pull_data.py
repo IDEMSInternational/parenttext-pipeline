@@ -30,7 +30,7 @@ def run(config):
         last_update_str = meta["pull_timestamp"]
         last_update = datetime.fromisoformat(last_update_str)
     except (FileNotFoundError, KeyError):
-        print('meta.json not found, updating everything')
+        print("meta.json not found, updating everything")
         last_update = None
 
     # Only clear the temp path; the input path is now managed incrementally
@@ -133,20 +133,22 @@ def pull_sheets(config, source, source_name, last_update):
             for new_name, sheet_name in files_dict.items()
         }
     )
-    
+
     # Check that the drive credentials work before N auth tabs are opened
     Drive.client()
-    
+
     sheets_to_download = {}
 
-    
     modified_time_dict = Drive.get_modified_time(all_sheets.values())
 
     for sheet_name, sheet_id in all_sheets.items():
         modified_time = modified_time_dict[sheet_id]
-        if not last_update or (modified_time and modified_time > last_update) or not Path(source_input_path / f"{sheet_name}.json").exists():
+        if (
+            not last_update
+            or (modified_time and modified_time > last_update)
+            or not Path(source_input_path / f"{sheet_name}.json").exists()
+        ):
             sheets_to_download[sheet_name] = all_sheets[sheet_name]
-
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_sheet = {
@@ -254,6 +256,7 @@ def download_archive(destination, location):
 
 
 def get_github_last_commit_date(repo_url, file_path_in_repo):
+
     try:
         parts = repo_url.split("/")
         owner = parts[-2]
@@ -276,9 +279,11 @@ def download_translations_github(repo_url, folder_path, local_folder, last_updat
     parts = repo_url.split("/")
     owner = parts[-2]
     repo_name = parts[-1].split(".")[0]
-    api_url = f"https://api.github.com/repos/{owner}/{repo_name}/contents/{folder_path}"
 
     try:
+        api_url = (
+            f"https://api.github.com/repos/{owner}/{repo_name}/contents/{folder_path}"
+        )
         response = requests.get(api_url)
         response.raise_for_status()
         remote_files = {
@@ -288,22 +293,42 @@ def download_translations_github(repo_url, folder_path, local_folder, last_updat
         print(f"An error occurred fetching file list from GitHub: {e}")
         return
 
-    files_to_download = {}
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future_to_file = {
-            executor.submit(
-                get_github_last_commit_date, repo_url, item["path"]
-            ): name
-            for name, item in remote_files.items()
-        }
-        for future in concurrent.futures.as_completed(future_to_file):
-            file_name = future_to_file[future]
-            try:
-                commit_date = future.result()
-                if not last_update or (commit_date and commit_date > last_update):
-                    files_to_download[file_name] = remote_files[file_name]
-            except Exception as e:
-                print(f"Error checking translation '{file_name}': {e}")
+    try:
+        api_url = f"https://api.github.com/repos/{owner}/{repo_name}/commits?page=1&per_page=1"
+        response = requests.get(api_url)
+        response.raise_for_status()
+        most_recent_commit = response.json()[0]["sha"]
+    except Exception as e:
+        print(f"An error occurred fetching most recent commit from GitHub: {e}")
+        return
+
+    try:
+        api_url = f"https://api.github.com/repos/{owner}/{repo_name}/commits?page=1&per_page=1&until={last_update}"
+        response = requests.get(api_url)
+        response.raise_for_status()
+        last_update_commit = response.json()[0]["sha"]
+    except Exception as e:
+        print(f"An error occurred fetching file list from GitHub: {e}")
+        return
+
+    try:
+        api_url = f"https://api.github.com/repos/{owner}/{repo_name}/compare/{last_update_commit}...{most_recent_commit}"
+        response = requests.get(api_url)
+        response.raise_for_status()
+        changed_file_list = [
+            item["filename"]
+            for item in response.json()["files"]
+            if folder_path in item["filename"] and item["filename"].endswith(".po")
+        ]
+    except Exception as e:
+        print(f"An error occurred fetching changed file list from GitHub: {e}")
+        return
+
+    files_to_download = {
+        key: value
+        for key, value in remote_files.items()
+        if value["path"] in changed_file_list
+    }
 
     def download_worker(item):
         try:

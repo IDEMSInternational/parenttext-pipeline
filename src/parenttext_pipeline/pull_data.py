@@ -1,4 +1,5 @@
 import os
+import stat
 import re
 import shutil
 import tempfile
@@ -7,6 +8,8 @@ from pathlib import Path
 import concurrent.futures
 
 import requests
+import subprocess
+
 from googleapiclient.discovery import build
 from rpft.converters import convert_to_json
 from rpft.google import Drive
@@ -73,12 +76,19 @@ def pull_translations(config, source, source_name, last_update):
 
         # Download relevant PO translation files from github to temp folder
         language_folder_in_repo = source.folder_within_repo + "/" + lang_code
-        download_translations_github(
+        fetch_remote_folder(
             source.translation_repo,
             language_folder_in_repo,
             str(translation_temp_po_folder),
-            last_update,
+            "main"
         )
+
+        # download_translations_github(
+        #     source.translation_repo,
+        #     language_folder_in_repo,
+        #     str(translation_temp_po_folder),
+        #     last_update,
+        # )
 
         # Convert PO to json and write these to input folder
         for root, dirs, files in os.walk(translation_temp_po_folder):
@@ -253,6 +263,66 @@ def download_archive(destination, location):
         return archive_destinationpath
     else:
         return location
+
+
+def remove_readonly(func, path, excinfo):
+    # Check if the error is a permission error
+    if not os.access(path, os.W_OK):
+        if ".git" not in path:
+            # If it is not in a .git folder, don't force remove
+            raise
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    else:
+        raise
+
+def fetch_remote_folder(repo_url, folder_path, destination, branch):
+    """
+    Performs a shallow, sparse clone to fetch only a specific folder
+    from a remote Git repository.
+    """
+    print(f"--- Fetching '{folder_path}' from '{repo_url}' ---")
+
+    # 1. Clean up any previous runs and create a fresh directory.
+    if os.path.exists(destination):
+        print(f"Removing existing directory: {destination}")
+        shutil.rmtree(destination)
+    os.makedirs(destination)
+
+    # 2. Initialize an empty Git repository.
+    if not subprocess.run(["git", "init"], cwd=destination): return False
+
+    # 3. Add the remote repository.
+    if not subprocess.run(["git", "remote", "add", "origin", repo_url], cwd=destination): return False
+
+    # 4. Enable sparse checkout.
+    if not subprocess.run(["git", "config", "core.sparseCheckout", "true"], cwd=destination): return False
+
+    # 5. Define which folder(s) to fetch.
+    sparse_checkout_file = os.path.join(destination, ".git/info/sparse-checkout")
+    with open(sparse_checkout_file, "w") as f:
+        f.write(f"{folder_path}/**/*.po\n")
+    print(f"Configured sparse-checkout to fetch: {folder_path}/*")
+
+    # 6. Pull the files with a depth of 1 (no history).
+    print(f"Pulling from branch '{branch}'...")
+    if not subprocess.run(["git", "pull", "--depth=1", "origin", branch], cwd=destination): return False
+
+    print(f"\n✅ Successfully fetched files into '{destination}'")
+
+    download_path = Path.joinpath(Path(destination), Path(folder_path))
+    files_and_directories = os.listdir(download_path)
+    for item in files_and_directories:
+        source_path = os.path.join(download_path, item)
+        destination_path = os.path.join(destination, item)
+        shutil.move(source_path, destination_path)
+
+    rmfolder = Path(folder_path)
+    while str(rmfolder) != ".":
+        os.rmdir(Path.joinpath(Path(destination), rmfolder))
+        rmfolder = rmfolder.parent
+    shutil.rmtree(Path.joinpath(Path(destination), Path(".git")), onerror=remove_readonly)
+    return True
 
 
 def get_github_last_commit_date(repo_url, file_path_in_repo):

@@ -301,34 +301,42 @@ def download_translations_github(repo_url, folder_path, local_folder, last_updat
     except Exception as e:
         print(f"An error occurred fetching most recent commit from GitHub: {e}")
         return
+    
+    if last_update is not None:
 
-    try:
-        api_url = f"https://api.github.com/repos/{owner}/{repo_name}/commits?page=1&per_page=1&until={last_update}"
-        response = requests.get(api_url)
-        response.raise_for_status()
-        last_update_commit = response.json()[0]["sha"]
-    except Exception as e:
-        print(f"An error occurred fetching file list from GitHub: {e}")
-        return
+        try:
+            api_url = f"https://api.github.com/repos/{owner}/{repo_name}/commits?page=1&per_page=1&until={last_update}"
+            response = requests.get(api_url)
+            response.raise_for_status()
+            last_update_commit = response.json()[0]["sha"]
+        except Exception as e:
+            print(f"An error occurred fetching file list from GitHub: {e}")
+            return
 
-    try:
-        api_url = f"https://api.github.com/repos/{owner}/{repo_name}/compare/{last_update_commit}...{most_recent_commit}"
-        response = requests.get(api_url)
-        response.raise_for_status()
-        changed_file_list = [
-            item["filename"]
-            for item in response.json()["files"]
-            if folder_path in item["filename"] and item["filename"].endswith(".po")
-        ]
-    except Exception as e:
-        print(f"An error occurred fetching changed file list from GitHub: {e}")
-        return
-
-    files_to_download = {
-        key: value
-        for key, value in remote_files.items()
-        if value["path"] in changed_file_list
-    }
+        try:
+            api_url = f"https://api.github.com/repos/{owner}/{repo_name}/compare/{last_update_commit}...{most_recent_commit}"
+            response = requests.get(api_url)
+            response.raise_for_status()
+            changed_file_list = [
+                item["filename"]
+                for item in response.json()["files"]
+                if folder_path in item["filename"]
+            ]
+        except Exception as e:
+            print(f"An error occurred fetching changed file list from GitHub: {e}")
+            return
+        
+        files_to_download = {
+            key: value
+            for key, value in remote_files.items()
+            if value["path"] in changed_file_list and value["path"].endswith(".po")
+        }
+    else:
+        files_to_download = {
+            key: value
+            for key, value in remote_files.items()
+            if folder_path in value["path"] and value["path"].endswith(".po")
+        }
 
     def download_worker(item):
         try:

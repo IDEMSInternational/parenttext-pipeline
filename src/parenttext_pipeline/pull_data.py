@@ -150,6 +150,7 @@ def pull_sheets(config, source, source_name, last_update):
     sheets_to_download = {}
 
     modified_time_dict = Drive.get_modified_time(all_sheets.values())
+    print(modified_time_dict)
 
     for sheet_name, sheet_id in all_sheets.items():
         modified_time = modified_time_dict[sheet_id]

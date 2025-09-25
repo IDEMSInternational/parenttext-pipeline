@@ -80,7 +80,7 @@ def pull_translations(config, source, source_name, last_update):
             source.translation_repo,
             language_folder_in_repo,
             str(translation_temp_po_folder),
-            "main"
+            "main",
         )
 
         # download_translations_github(
@@ -150,10 +150,10 @@ def pull_sheets(config, source, source_name, last_update):
     sheets_to_download = {}
 
     modified_time_dict = Drive.get_modified_time(all_sheets.values())
-    print(modified_time_dict)
 
     for sheet_name, sheet_id in all_sheets.items():
         modified_time = modified_time_dict[sheet_id]
+        print(f"{sheet_name:>25}: {modified_time > last_update:^6} {modified_time}")
         if (
             not last_update
             or (modified_time and modified_time > last_update)
@@ -277,6 +277,7 @@ def remove_readonly(func, path, excinfo):
     else:
         raise
 
+
 def fetch_remote_folder(repo_url, folder_path, destination, branch):
     """
     Performs a shallow, sparse clone to fetch only a specific folder
@@ -291,13 +292,20 @@ def fetch_remote_folder(repo_url, folder_path, destination, branch):
     os.makedirs(destination)
 
     # 2. Initialize an empty Git repository.
-    if not subprocess.run(["git", "init"], cwd=destination): return False
+    if not subprocess.run(["git", "init"], cwd=destination):
+        return False
 
     # 3. Add the remote repository.
-    if not subprocess.run(["git", "remote", "add", "origin", repo_url], cwd=destination): return False
+    if not subprocess.run(
+        ["git", "remote", "add", "origin", repo_url], cwd=destination
+    ):
+        return False
 
     # 4. Enable sparse checkout.
-    if not subprocess.run(["git", "config", "core.sparseCheckout", "true"], cwd=destination): return False
+    if not subprocess.run(
+        ["git", "config", "core.sparseCheckout", "true"], cwd=destination
+    ):
+        return False
 
     # 5. Define which folder(s) to fetch.
     sparse_checkout_file = os.path.join(destination, ".git/info/sparse-checkout")
@@ -307,7 +315,10 @@ def fetch_remote_folder(repo_url, folder_path, destination, branch):
 
     # 6. Pull the files with a depth of 1 (no history).
     print(f"Pulling from branch '{branch}'...")
-    if not subprocess.run(["git", "pull", "--depth=1", "origin", branch], cwd=destination): return False
+    if not subprocess.run(
+        ["git", "pull", "--depth=1", "origin", branch], cwd=destination
+    ):
+        return False
 
     print(f"\n✅ Successfully fetched files into '{destination}'")
 
@@ -322,7 +333,9 @@ def fetch_remote_folder(repo_url, folder_path, destination, branch):
     while str(rmfolder) != ".":
         os.rmdir(Path.joinpath(Path(destination), rmfolder))
         rmfolder = rmfolder.parent
-    shutil.rmtree(Path.joinpath(Path(destination), Path(".git")), onerror=remove_readonly)
+    shutil.rmtree(
+        Path.joinpath(Path(destination), Path(".git")), onerror=remove_readonly
+    )
     return True
 
 
@@ -372,7 +385,7 @@ def download_translations_github(repo_url, folder_path, local_folder, last_updat
     except Exception as e:
         print(f"An error occurred fetching most recent commit from GitHub: {e}")
         return
-    
+
     if last_update is not None:
 
         try:
@@ -396,7 +409,7 @@ def download_translations_github(repo_url, folder_path, local_folder, last_updat
         except Exception as e:
             print(f"An error occurred fetching changed file list from GitHub: {e}")
             return
-        
+
         files_to_download = {
             key: value
             for key, value in remote_files.items()

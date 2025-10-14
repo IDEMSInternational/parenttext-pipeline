@@ -19,6 +19,10 @@ class MediaAsset:
     annotations: dict = field(default_factory=dict)
 
 
+img_fmt = "jpg"
+img_dim_lim = 2000
+
+
 class Canto:
 
     def __init__(
@@ -84,9 +88,36 @@ class Canto:
         )
 
     def download(self, scheme: str, content_id: str):
+        if scheme == "image":
+            return self._download_image(scheme, content_id)
+
         return requests.request(
             method="GET",
             url=f"{self.site_base_url}/api_binary/v1/{scheme}/{content_id}",
+            headers={"Authorization": f"Bearer {self.token}"},
+        ).content
+
+    def _download_image(self, scheme, content_id: str):
+        url = f"{self.site_base_url}/api/v1/{scheme}/{content_id}"
+        metadata = json.loads(
+            requests.request(
+                method="GET",
+                url=url,
+                headers={"Authorization": f"Bearer {self.token}"},
+            ).content
+        )
+        width = int(metadata["width"])
+        height = int(metadata["height"])
+        if max(width, height) > img_dim_lim:
+            ratio = img_dim_lim / max(width, height)
+        else:
+            ratio = 1
+
+        advdownload = f"download?resize={int(width * ratio)}x{int(height * ratio)}&dpi=72&type={img_fmt}&proportion=true"
+        url = f"{self.site_base_url}/api_binary/v1/advance/{scheme}/{content_id}/{advdownload}"
+        return requests.request(
+            method="GET",
+            url=url,
             headers={"Authorization": f"Bearer {self.token}"},
         ).content
 
@@ -129,7 +160,11 @@ def transform_values(mappings: dict, d: dict) -> dict:
 
 
 def asset_path(path_template, asset: MediaAsset):
-    return os.path.normpath(path_template.render(**asdict(asset)))
+    asset_dict = asdict(asset)
+    if asset_dict["format"] == "image":
+        asset_dict["name"] = str(Path(asset_dict["name"]).with_suffix("." + img_fmt))
+
+    return os.path.normpath(path_template.render(**asset_dict))
 
 
 def download_all(client, path_template, location: str, destination: str):

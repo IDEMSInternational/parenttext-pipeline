@@ -34,14 +34,15 @@ def safe_getenv(key, default):
 
     if env[key] is None:
         env[key] = default
-    
+
     return env[key]
 
 
 def step_canto_download():
     if Path("canto").exists():
         # Copy all files into transcoded folder for images & comics
-        shutil.copytree("canto", "old_canto")
+        if not Path("old_canto").exists():
+            shutil.copytree("canto", "old_canto")
         print(f"  INFO: Removing existing directory '{Path('canto')}' for a clean run.")
         shutil.rmtree(Path("canto"))
 
@@ -66,7 +67,7 @@ def step_transcode():
         old_exists = True
     else:
         old_exists = False
-        
+
     resource_type = "resourceType/" if old_structure else ""
     # transcode video & audio
     for fmt in ["video", "audio"]:
@@ -131,13 +132,14 @@ def get_referenced_asset_list(root):
     language_list = list(language_dict.values())
 
     gender_list = ["male", "female"]  # Sexs will be replaced with genders soon...
-    
+
     path_dict = get_parenttext_paths(root, language_list, gender_list)
     print(path_dict)
 
     asset_list = get_referenced_assets(rapidpro_file, path_dict)
 
     return asset_list
+
 
 def step_placeholder_gen():
 
@@ -162,7 +164,7 @@ def step_list_referenced_assets():
 def step_list_missing_assets():
 
     referenced = set(get_referenced_asset_list("canto"))
-    downloaded = set([p.as_posix() for p in Path("canto").rglob('*') if p.is_file()])
+    downloaded = set([p.as_posix() for p in Path("canto").rglob("*") if p.is_file()])
 
     missing = list(referenced - downloaded)
     missing.sort()
@@ -182,7 +184,7 @@ def step_list_missing_assets():
 
     print("#" * 30)
     print(f"Unreferenced/Extra assets: {len(unreferenced)}")
-    print(json.dumps(unreferenced, indent=2))    
+    print(json.dumps(unreferenced, indent=2))
 
 
 step_dict = {
@@ -261,6 +263,7 @@ def assert_env_exists(step_list):
             "maybe you need a .env file?"
         )
 
+
 def get_yes_no_input(prompt):
     """
     Prompts the user for a 'yes' or 'no' response and keeps asking until a valid answer is given.
@@ -269,7 +272,7 @@ def get_yes_no_input(prompt):
     while True:
         # Get user input and convert it to lowercase for case-insensitive matching
         user_input = input(f"{prompt} (yes/no): ").lower()
-        
+
         if user_input in ["yes", "y"]:
             return True
         elif user_input in ["no", "n"]:
@@ -277,8 +280,9 @@ def get_yes_no_input(prompt):
         else:
             print("Invalid input. Please enter 'yes' or 'no'.")
 
+
 def _verify_old_structure():
-    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION",None)
+    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION", None)
     if deployment_asset_location is None:
         return
     if deployment_asset_location.endswith("resourceGroup"):
@@ -288,13 +292,14 @@ def _verify_old_structure():
                 "Your DEPLOYMENT_ASSET_LOCATION ends with `resourceGroup` which is "
                 "incompatible with the new structure, but MEDIA_OPS_OLD_STRUCTURE is "
                 "not set to True. Are you sure you want to continue? (y/n)"
-                ):
+            ):
                 return
             else:
                 exit()
 
+
 def _verify_deployment_asset_location():
-    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION",None)
+    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION", None)
     if deployment_asset_location is None:
         return
 
@@ -308,15 +313,16 @@ def _verify_deployment_asset_location():
         if not file.is_file():
             continue
         try:
-            with open(file, 'r', encoding='utf-8') as f:
+            with open(file, "r", encoding="utf-8") as f:
                 content = f.read()
                 matches = re.findall(
-                    r'"name": "deployment",\n\s*"value": "([^"]*)"', content)
+                    r'"name": "deployment",\n\s*"value": "([^"]*)"', content
+                )
                 match_list += matches
         except Exception as e:
             print(f"Error reading {file}: {e}")
 
-    deployment_asset_ending = deployment_asset_location.split('/')[-1]
+    deployment_asset_ending = deployment_asset_location.split("/")[-1]
 
     if len(match_list) == 1:
         if deployment_asset_ending == match_list[0]:
@@ -325,7 +331,7 @@ def _verify_deployment_asset_location():
             f"DEPLOYMENT_ASSET_LOCATION ending {deployment_asset_ending} does not"
             f" match the specified name {match_list[0]}. "
             "Are you sure you want to continue? (y/n)"
-            ):
+        ):
             return
         else:
             exit()
@@ -334,7 +340,7 @@ def _verify_deployment_asset_location():
         if get_yes_no_input(
             "No deployment name found in the sheets, unable to verify the "
             "DEPLOYMENT_ASSET_LOCATION. Are you sure you want to continue? (y/n)"
-            ):
+        ):
             return
         else:
             exit()
@@ -344,7 +350,7 @@ def _verify_deployment_asset_location():
             "DEPLOYMENT_ASSET_LOCATION unable to be verified against input, found:"
             f" {match_list} "
             "Are you sure you want to continue? (y/n)"
-            ):
+        ):
             return
         else:
             exit()

@@ -153,13 +153,15 @@ def pull_sheets(config, source, source_name, last_update):
 
     for sheet_name, sheet_id in all_sheets.items():
         modified_time = modified_time_dict[sheet_id]
-        print(f"{sheet_name:>25}: {modified_time > last_update:^6} {modified_time}")
+        update_planned = False
         if (
             not last_update
             or (modified_time and modified_time > last_update)
             or not Path(source_input_path / f"{sheet_name}.json").exists()
         ):
             sheets_to_download[sheet_name] = all_sheets[sheet_name]
+            update_planned = True
+        print(f"{sheet_name:>25}: {update_planned:^6} {modified_time}")
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_sheet = {

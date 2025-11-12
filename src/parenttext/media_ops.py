@@ -24,6 +24,8 @@ from parenttext.firebase_tools import Firebase
 from parenttext.referenced_assets import get_referenced_assets, get_parenttext_paths
 from parenttext.placeholder_gen import create_placeholder_files
 
+from parenttext.validate_assets import process_media_urls
+
 
 env = {}
 
@@ -141,6 +143,34 @@ def get_referenced_asset_list(root):
     return asset_list
 
 
+def get_root():
+    rapidpro_file = safe_getenv("RAPIDPRO_OUTPUT", "./output/parenttext_all.json")
+    with open(rapidpro_file, 'r', errors="ignore") as f:
+        content = f.read()
+
+    pattern = r'\s*"field": {\n\s*"key": "path",\n\s*"name": "path"\n\s*},'
+    match = re.search(pattern, content, re.DOTALL)
+
+    line = None
+    if match:
+        end_of_match_pos = match.end()
+        next_newline_pos = content.find('\n', end_of_match_pos)
+
+        if next_newline_pos != -1:
+            start_of_next_line = next_newline_pos + 1
+            end_of_next_line = content.find('\n', start_of_next_line)
+            if end_of_next_line != -1:
+                line = content[start_of_next_line:end_of_next_line].strip()
+            else:
+                line = content[start_of_next_line:].strip()
+    
+    if line:
+        pattern = r'(?:"value": "@\(\\")([^\\"]*)'
+        match = re.findall(pattern, line)
+        return match[0]
+    return None
+
+
 def step_placeholder_gen():
 
     placeholder_directory = safe_getenv(
@@ -185,6 +215,13 @@ def step_list_missing_assets():
     print("#" * 30)
     print(f"Unreferenced/Extra assets: {len(unreferenced)}")
     print(json.dumps(unreferenced, indent=2))
+
+
+def step_verify_assets():
+    root = "/".join([get_root().rstrip("/"), get_deployment()])
+    asset_list = get_referenced_asset_list(root)
+    asset_list.sort()
+    process_media_urls(asset_list)
 
 
 step_dict = {
@@ -238,6 +275,11 @@ step_dict = {
         "start_msg": "Printing list of missing assets and unreferenced assets",
         "end_msg": "List of assets printed",
     },
+    "verify_assets": {
+        "fn": step_verify_assets,
+        "start_msg": "Validating asset URLs",
+        "end_msg": "Status of all referenced assets checked",
+    }
 }
 
 
@@ -297,16 +339,7 @@ def _verify_old_structure():
             else:
                 exit()
 
-
-def _verify_deployment_asset_location():
-    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION", None)
-    if deployment_asset_location is None:
-        return
-
-    if deployment_asset_location.endswith("/"):
-        print("Please do not end DEPLOYMENT_ASSET_LOCATION with '/'")
-        exit()
-
+def get_deployment():
     folder_path = Path("./input/flow_definitions")
     match_list = []
     for file in folder_path.iterdir():
@@ -321,22 +354,38 @@ def _verify_deployment_asset_location():
                 match_list += matches
         except Exception as e:
             print(f"Error reading {file}: {e}")
-
-    deployment_asset_ending = deployment_asset_location.split("/")[-1]
-
     if len(match_list) == 1:
-        if deployment_asset_ending == match_list[0]:
+        return match_list[0]
+    elif len(match_list) == 0:
+        return None
+    else:
+        return match_list
+
+def _verify_deployment_asset_location():
+    deployment_asset_location = safe_getenv("DEPLOYMENT_ASSET_LOCATION",None)
+    if deployment_asset_location is None:
+        return
+
+    if deployment_asset_location.endswith("/"):
+        print("Please do not end DEPLOYMENT_ASSET_LOCATION with '/'")
+        exit()
+
+    deployment = get_deployment()
+    deployment_asset_ending = deployment_asset_location.split('/')[-1]
+
+    if type(deployment) is str:
+        if deployment_asset_ending == deployment:
             return
         elif get_yes_no_input(
             f"DEPLOYMENT_ASSET_LOCATION ending {deployment_asset_ending} does not"
-            f" match the specified name {match_list[0]}. "
+            f" match the specified name {deployment}. "
             "Are you sure you want to continue? (y/n)"
         ):
             return
         else:
             exit()
 
-    elif len(match_list) == 0:
+    elif deployment is None:
         if get_yes_no_input(
             "No deployment name found in the sheets, unable to verify the "
             "DEPLOYMENT_ASSET_LOCATION. Are you sure you want to continue? (y/n)"
@@ -345,7 +394,7 @@ def _verify_deployment_asset_location():
         else:
             exit()
 
-    elif len(match_list) > 1:
+    else:
         if get_yes_no_input(
             "DEPLOYMENT_ASSET_LOCATION unable to be verified against input, found:"
             f" {match_list} "

@@ -4,6 +4,7 @@ import os
 import tempfile
 from typing import List, Dict
 
+
 def check_url_existence(url: str) -> bool:
     """
     Checks if a URL exists and is accessible without downloading the full content.
@@ -16,6 +17,7 @@ def check_url_existence(url: str) -> bool:
         print(f"Error checking URL {url}: {e}")
         return False
 
+
 def verify_media_integrity(url: str) -> str:
     """
     Downloads the media file to a temporary location and uses FFmpeg to check integrity.
@@ -24,15 +26,14 @@ def verify_media_integrity(url: str) -> str:
     if not check_url_existence(url):
         return "Does not exist"
 
-    # Use a temporary file for the download
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_file_path = os.path.join(temp_dir, os.path.basename(url))
-        
+
         # Download the file
         try:
             response = requests.get(url, stream=True, timeout=30)
             response.raise_for_status()
-            with open(temp_file_path, 'wb') as f:
+            with open(temp_file_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
         except requests.exceptions.RequestException as e:
@@ -44,11 +45,16 @@ def verify_media_integrity(url: str) -> str:
         # -f null -: output to null (standard output)
         # 2>&1: redirect stderr to stdout for capturing errors
         command = [
-            'ffmpeg', '-v', 'error', '-i', temp_file_path, '-f', 'null', '-'
+            "ffmpeg", "-v", "error", "-i", temp_file_path, "-f", "null", "-"
         ]
-        
+
         try:
-            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(
+                command,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
             return "Valid and not corrupted"
         except subprocess.CalledProcessError as e:
             return f"Corrupted: {e.stderr.decode().strip()}"
@@ -56,6 +62,7 @@ def verify_media_integrity(url: str) -> str:
             return "Error: FFmpeg not installed or not in PATH"
         except Exception as e:
             return f"An unexpected error occurred during FFmpeg check: {e}"
+
 
 def process_media_urls(urls: List[str]) -> Dict[str, str]:
     """

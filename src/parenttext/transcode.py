@@ -3,6 +3,8 @@ import subprocess
 import shutil
 from pathlib import Path
 import hashlib
+import json
+from parenttext.firebase_tools import Firebase
 
 
 AUDIO_EXTS = [
@@ -114,6 +116,77 @@ def transcode(src, dst, old_src=None, fmt="video"):
         )
 
 
+def transcode_dir(src, dst, env, audio_from_video=True, old_structure=False):
+    fb = Firebase(project_id=env["GCS_PROJECT_ID"])
+    try:
+        hash_manifest = fb.download_hash_manifest(
+            bucket_name=env["GCS_BUCKET_NAME"],
+            remote_directory=env["DEPLOYMENT_ASSET_LOCATION"],
+        )
+    except Exception as e:
+        print(e)
+        hash_manifest = {}
+    resource_type = "resourceType/" if old_structure else ""
+
+    if audio_from_video:
+        shutil.copytree(src / "voiceover" / "video", src / "voiceover" / "audio", dirs_exist_ok=True)
+    hash_manifest.update(handle_dir(src=Path(src), dst=Path(dst), env=env, fb=fb, hash_manifest=hash_manifest, resource_type=resource_type))
+    # write hash_manifest to a local file for future reference
+    with open(dst / "hash_manifest.json", "w") as f:
+        json.dump(hash_manifest, f, indent=4)
+
+
+def handle_dir(src: Path, dst: Path, env: dict, fb: Firebase, hash_manifest: dict, resource_type: str):
+    for dir in src.iterdir():
+        if dir.is_dir():
+            if dir.name in OPS:
+                op = OPS[dir.name]
+                sources = [p for p in dir.rglob("*") if p.is_file()]
+                count = len(sources)
+                print(f"Processing {dir.name} files, found {count} files.")
+                relative_dir = dir.relative_to([p for p in dir.parents][-2])
+                for i, source in enumerate(sources, start=1):
+                    filename = source.relative_to(dir)
+                    relative_path = source.relative_to(src)
+                    key = str(relative_dir / filename).replace("\\", "/")  # Normalize for Windows paths
+                    file_dst = dst / relative_path
+                    prepare(file_dst.parent)
+                    source_hash = hashlib.md5(source.read_bytes()).hexdigest()
+                    if hash_manifest and key in hash_manifest:
+                        if hash_manifest[key] == source_hash:
+                            # File has not changed, download from Firebase
+                            source_blob_name = fb.get_latest_path(
+                                bucket_name=env["GCS_BUCKET_NAME"],
+                                gcs_base_path=env["DEPLOYMENT_ASSET_LOCATION"],
+                                path_in_dir=key,
+                            )
+                            fb.download_file(
+                                bucket_name=env["GCS_BUCKET_NAME"],
+                                source_blob_name=source_blob_name,
+                                destination_file_name=str(file_dst),
+                            )
+                            print(f"Downloaded unchanged file from Firebase: {source}")
+                            continue
+                    # File has changed or not in manifest, transcode
+                    
+                    hash_manifest[key] = source_hash
+                    final_dst = op(source, file_dst)
+                    print(
+                        "Operation completed,",
+                        {
+                            "op": op.__name__,
+                            "source": str(source),
+                            "dest": str(final_dst),
+                            "progress": f"{i}/{count}",
+                        },
+                    )
+            else:
+                # Recurse into the directory
+                hash_manifest.update(handle_dir(src=dir, dst=dst / dir.name, env=env, fb=fb, hash_manifest=hash_manifest, resource_type=resource_type))
+
+    return hash_manifest
+
+
 def to_video(src: Path, dst: Path):
     out = dst.with_suffix(".mp4")
     first_pass(src)
@@ -137,6 +210,12 @@ def to_audio(src: Path, dst: Path):
         + [str(out)],
     )
 
+    return out
+
+
+def copy(src: Path, dst: Path):
+    out = dst
+    shutil.copyfile(src, dst)
     return out
 
 
@@ -182,6 +261,9 @@ def second_pass(src, dst):
 OPS = {
     "video": to_video,
     "audio": to_audio,
+    "image": copy,
+    "comic": copy,
+    "logo": copy,
 }
 
 

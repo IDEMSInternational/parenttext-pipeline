@@ -3,6 +3,7 @@ import hashlib
 import base64
 import re
 import uuid
+import json
 from google.cloud import storage
 from rpft.google import get_credentials
 
@@ -57,6 +58,37 @@ class Firebase:
                 remote_version_number = int(v)
 
         return remote_version_number
+
+    def get_latest_path(self, bucket_name, gcs_base_path, path_in_dir, version_level: int = 1) -> str:
+        """Get the latest versioned path for a given GCS path.
+
+        Parameters
+        ----------
+        bucket_name : str
+            The name of the GCS bucket.
+        gcs_base_path : str
+            The base path in GCS where the versioned folders are stored.
+        path_in_dir : str
+            The relative path to convert to a full versioned path.
+        version_level : int, optional
+            The depth of the versioning structure in the directory. Default is 1.
+        Returns
+        -------
+        str
+            The latest versioned GCS path.
+        """
+        versioned_folder = "/".join(path_in_dir.split("/")[:version_level])
+        latest_version_number = self.get_latest_folder_version(
+            bucket_name, "/".join([gcs_base_path.rstrip("/"), versioned_folder])
+        )
+        version_string = str(latest_version_number) if latest_version_number > 0 else ""
+
+        return  "/".join([
+                gcs_base_path,
+                versioned_folder + version_string,
+                "/".join(path_in_dir.split("/")[version_level:]),
+            ])
+
 
     def upload_new_version(
         self,
@@ -156,6 +188,11 @@ class Firebase:
             else:
                 print(f"Hashes Matched for {vrs_posix}")
             current_versions[vrs_posix] = remote_version_number
+        self.upload_hash_manifest(
+            bucket_name,
+            remote_directory,
+            file_path="/".join([source_directory, "hash_manifest.json"]),
+        )
         print("Current Versions")
         print(current_versions)
 
@@ -251,3 +288,64 @@ class Firebase:
                 else:
                     print("Dry Run")
                 print(f"{file_path} -> gs://{bucket_name}/{destination_blob_name}")
+
+
+    def download_hash_manifest(self, bucket_name, remote_directory) -> dict:
+        """Downloads a hash manifest file from the directory.
+
+        Parameters
+        ----------
+        bucket_name : str
+            The name of the GCS bucket where files will be uploaded.
+        remote_directory : str
+            The base path in GCS where files will be uploaded.
+
+        Returns
+        -------
+        dict
+        """
+        filename = "hash_manifest.json"
+        bucket = self.gcs_client.bucket(bucket_name)
+        blob_name = "/".join([remote_directory.rstrip("/"), filename])
+        blob = bucket.blob(blob_name)
+        hash_manifest_content = blob.download_as_text()
+        hash_manifest = json.loads(hash_manifest_content)
+        return hash_manifest
+
+
+
+    def upload_hash_manifest(self, bucket_name, remote_directory, file_path):
+        filename = "hash_manifest.json"
+        bucket = self.gcs_client.bucket(bucket_name)
+        blob_name = "/".join([remote_directory.rstrip("/"), filename])
+        blob = bucket.blob(blob_name)
+        blob.upload_from_filename(str(file_path))
+        # Generate Token to allow access to the file
+        access_token = uuid.uuid4()
+        # Update metadata with the new token
+        metadata = {"firebaseStorageDownloadTokens": access_token}
+        blob.metadata = metadata
+        # Use patch() to update the metadata on the object
+        blob.patch()
+        # Make the blob publicly readable
+        blob.make_public()
+
+    def download_file(self, bucket_name, source_blob_name, destination_file_name):
+        """Downloads a file from Firebase Storage.
+
+        Parameters
+        ----------
+        bucket_name : str
+            The name of the GCS bucket.
+        source_blob_name : str
+            The path to the file in Firebase Storage.
+        destination_file_name : str
+            The local path where the file will be saved.
+
+        Returns
+        -------
+        None
+        """
+        bucket = self.gcs_client.bucket(bucket_name)
+        blob = bucket.blob(source_blob_name)
+        blob.download_to_filename(destination_file_name)

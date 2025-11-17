@@ -148,8 +148,13 @@ def handle_dir(src: Path, dst: Path, env: dict, fb: Firebase, hash_manifest: dic
                 for i, source in enumerate(sources, start=1):
                     filename = source.relative_to(dir)
                     relative_path = source.relative_to(src)
-                    key = str(relative_dir / filename).replace("\\", "/")  # Normalize for Windows paths
-                    file_dst = dst / relative_path
+                    if dir.name in suffix_dict.keys():
+                        dst_filename = filename.with_suffix(suffix_dict[dir.name])
+                        file_dst = dst / relative_path.with_suffix(suffix_dict[dir.name])
+                    else:
+                        dst_filename = filename
+                        file_dst = dst / relative_path
+                    key = str(relative_dir / dst_filename).replace("\\", "/")  # Normalize for Windows paths
                     prepare(file_dst.parent)
                     source_hash = hashlib.md5(source.read_bytes()).hexdigest()
                     if hash_manifest and key in hash_manifest:
@@ -165,7 +170,7 @@ def handle_dir(src: Path, dst: Path, env: dict, fb: Firebase, hash_manifest: dic
                                 source_blob_name=source_blob_name,
                                 destination_file_name=str(file_dst),
                             )
-                            print(f"Downloaded unchanged file from Firebase: {source}")
+                            print(f"Downloaded unchanged file from Firebase: {file_dst}")
                             continue
                     # File has changed or not in manifest, transcode
                     
@@ -266,6 +271,10 @@ OPS = {
     "logo": copy,
 }
 
+suffix_dict = {
+    "video": ".mp4",
+    "audio": ".mp3",
+}
 
 if __name__ == "__main__":
     start()

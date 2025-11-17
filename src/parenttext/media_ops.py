@@ -16,7 +16,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from os import getenv
 
-# Import the actual functions from your provided scripts
+from requests import ConnectionError
+
 from parenttext.canto import main as canto_main
 from parenttext.transcode import transcode_dir
 from parenttext.firebase_tools import Firebase
@@ -40,8 +41,13 @@ def safe_getenv(key, default):
     return env[key]
 
 
-def step_canto_download():
-    canto_main("canto")
+def step_canto_download(try_count = 0):    
+    try:
+        canto_main("canto")
+    except ConnectionError as e:
+        print(e)
+        step_canto_download(try_count + 1)
+    
 
 
 def step_transcode():

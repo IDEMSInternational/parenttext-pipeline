@@ -46,7 +46,8 @@ def step_canto_download(try_count = 0):
         canto_main("canto")
     except ConnectionError as e:
         print(e)
-        step_canto_download(try_count + 1)
+        if try_count < 3:
+            step_canto_download(try_count + 1)
     
 
 

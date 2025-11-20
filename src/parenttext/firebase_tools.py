@@ -143,10 +143,7 @@ class Firebase:
                 case 1:
                     remote_version_str = ""
                 case -1:
-                    raise NotImplementedError(
-                        "Remote version-level folder doesn't exist. "
-                        "Should only happen during new upload. "
-                    )
+                    remote_version_str = ""
                 case _:
                     remote_version_str = str(remote_version_number)
             remote_version_folder = Path(f"{remote_folder_path}{remote_version_str}/")

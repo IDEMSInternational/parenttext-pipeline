@@ -16,9 +16,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from os import getenv
 
-# Import the actual functions from your provided scripts
+from requests import ConnectionError
+
 from parenttext.canto import main as canto_main
-from parenttext.transcode import transcode as transcode_media, prepare as prepare_dir
+from parenttext.transcode import transcode_dir
 from parenttext.firebase_tools import Firebase
 
 from parenttext.referenced_assets import get_referenced_assets, get_parenttext_paths
@@ -40,15 +41,14 @@ def safe_getenv(key, default):
     return env[key]
 
 
-def step_canto_download():
-    if Path("canto").exists():
-        # Copy all files into transcoded folder for images & comics
-        if not Path("old_canto").exists():
-            shutil.copytree("canto", "old_canto")
-        print(f"  INFO: Removing existing directory '{Path('canto')}' for a clean run.")
-        shutil.rmtree(Path("canto"))
-
-    canto_main("canto")
+def step_canto_download(try_count = 0):    
+    try:
+        canto_main("canto")
+    except ConnectionError as e:
+        print(e)
+        if try_count < 3:
+            step_canto_download(try_count + 1)
+    
 
 
 def step_transcode():
@@ -56,40 +56,12 @@ def step_transcode():
     transcode_path = safe_getenv("MEDIA_OPS_TRANSCODE_FOLDER", "transcoded")
     old_structure = safe_getenv("MEDIA_OPS_OLD_STRUCTURE", False)
 
-    # Copy all files into transcoded folder for images & comics
-    # TODO: Handle compression of these folders in below loop with transcode
-    try:
-        shutil.copytree("canto/image", f"{transcode_path}/image", dirs_exist_ok=True)
-        shutil.copytree("canto/comic", f"{transcode_path}/comic", dirs_exist_ok=True)
-        shutil.copytree("canto/logo", f"{transcode_path}/logo", dirs_exist_ok=True)
-    except FileNotFoundError:
-        print("  Warning: Image/Comic split not found, skipping")
-
-    if Path("old_canto").exists():
-        old_exists = True
-    else:
-        old_exists = False
-
-    resource_type = "resourceType/" if old_structure else ""
-    # transcode video & audio
-    for fmt in ["video", "audio"]:
-        print(f"  -> Transcoding {fmt} folder...")
-        raw_dir = f"canto/voiceover/{resource_type}{fmt}/"
-        # Handle case where audio is transcoded from video source
-        if not Path(raw_dir).exists() and fmt == "audio":
-            print("  Transcoding audio from video files.")
-            raw_dir = f"canto/voiceover/{resource_type}video/"
-        if old_exists:
-            old_dir = f"old_{raw_dir}"
-        else:
-            old_dir = None
-        transcoded_dir = f"{transcode_path}/voiceover/{resource_type}{fmt}/"
-        prepare_dir(transcoded_dir, wipe=False)  # make dir if doesn't exist
-        transcode_media(raw_dir, transcoded_dir, old_src=old_dir, fmt=fmt)
-
-    # remove old canto directory once it's no longer needed for change detection
-    if old_exists:
-        shutil.rmtree(Path("old_canto"))
+    transcode_dir(
+        src=Path("canto"),
+        dst=Path(transcode_path),
+        env=env,
+        old_structure=old_structure
+    )
 
     env["MEDIA_OPS_UPLOAD_FOLDER"] = transcode_path
 
@@ -239,6 +211,11 @@ step_dict = {
         "fn": step_transcode,
         "start_msg": "Starting media transcoding",
         "end_msg": "Transcoding complete",
+        "required_env": [ # needed to reduce transcode time and double uploads
+            "DEPLOYMENT_ASSET_LOCATION",
+            "GCS_PROJECT_ID",
+            "GCS_BUCKET_NAME",
+        ],
     },
     "firebase_versioned_upload": {
         "fn": step_firebase_versioned_upload,
@@ -369,8 +346,18 @@ def _verify_deployment_asset_location():
     if deployment_asset_location.endswith("/"):
         print("Please do not end DEPLOYMENT_ASSET_LOCATION with '/'")
         exit()
+    try:
+        deployment = get_deployment()
+    except FileNotFoundError:
+        if get_yes_no_input(
+            f"The input flow definitions cannot be found at "
+            f"./input/flow_definitions so we cannot verify the asset location"
+            "\nAre you sure you want to continue? (y/n)"
+        ):
+            return
+        else:
+            exit()
 
-    deployment = get_deployment()
     deployment_asset_ending = deployment_asset_location.split('/')[-1]
 
     if type(deployment) is str:

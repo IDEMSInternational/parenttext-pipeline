@@ -3,7 +3,7 @@ import stat
 import re
 import shutil
 import tempfile
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import concurrent.futures
 
@@ -27,6 +27,7 @@ from parenttext_pipeline.extract_keywords import process_keywords_to_file
 
 
 def run(config):
+    update_start = datetime.now(timezone.utc).isoformat()
     # Get last update timestamp
     try:
         meta = read_meta(get_input_folder(config, in_temp=False))
@@ -56,7 +57,7 @@ def run(config):
         print(f"Pulled all {name} data")
 
     meta = {
-        "pull_timestamp": datetime.now(timezone.utc).isoformat(),
+        "pull_timestamp": update_start,
     }
     write_meta(config, meta, config.inputpath)
 
@@ -156,7 +157,7 @@ def pull_sheets(config, source, source_name, last_update):
         update_planned = False
         if (
             not last_update
-            or (modified_time and modified_time > last_update)
+            or (modified_time and modified_time > last_update - timedelta(minutes=5))
             or not Path(source_input_path / f"{sheet_name}.json").exists()
         ):
             sheets_to_download[sheet_name] = all_sheets[sheet_name]

@@ -294,32 +294,24 @@ def fetch_remote_folder(repo_url, folder_path, destination, branch):
         shutil.rmtree(destination)
     os.makedirs(destination)
 
-    # 2. Initialize an empty Git repository.
-    if not subprocess.run(["git", "init"], cwd=destination):
-        return False
-
-    # 3. Add the remote repository.
     if not subprocess.run(
-        ["git", "remote", "add", "origin", repo_url], cwd=destination
+        [
+            "git", "clone", "--no-checkout", 
+            "--filter=tree:0", "--depth", "1", 
+            "--branch", branch, repo_url, "./"
+        ], cwd=destination
     ):
         return False
 
-    # 4. Enable sparse checkout.
     if not subprocess.run(
-        ["git", "config", "core.sparseCheckout", "true"], cwd=destination
+        ["git", "sparse-checkout", "set", "--no-cone", f"{folder_path}/**/*.po\n"],
+        cwd=destination
     ):
         return False
-
-    # 5. Define which folder(s) to fetch.
-    sparse_checkout_file = os.path.join(destination, ".git/info/sparse-checkout")
-    with open(sparse_checkout_file, "w") as f:
-        f.write(f"{folder_path}/**/*.po\n")
     print(f"Configured sparse-checkout to fetch: {folder_path}/*")
 
-    # 6. Pull the files with a depth of 1 (no history).
-    print(f"Pulling from branch '{branch}'...")
     if not subprocess.run(
-        ["git", "pull", "--depth=1", "origin", branch], cwd=destination
+        ["git", "checkout"], cwd=destination
     ):
         return False
 

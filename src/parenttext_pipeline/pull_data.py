@@ -3,6 +3,7 @@ import stat
 import re
 import shutil
 import tempfile
+import hashlib
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import concurrent.futures
@@ -28,11 +29,19 @@ from parenttext_pipeline.extract_keywords import process_keywords_to_file
 
 def run(config):
     update_start = datetime.now(timezone.utc).isoformat()
+    
+    # Get config hash
+    with open("config.json", "rb") as f:
+        config_hash = hashlib.file_digest(f, "SHA256").hexdigest()
     # Get last update timestamp
     try:
         meta = read_meta(get_input_folder(config, in_temp=False))
         last_update_str = meta["pull_timestamp"]
         last_update = datetime.fromisoformat(last_update_str)
+
+        if not meta.get("hash", False) == config_hash:
+            print("config.json hash has changed, updating everything")
+            last_update = None
     except (FileNotFoundError, KeyError):
         print("meta.json not found, updating everything")
         last_update = None
@@ -56,8 +65,10 @@ def run(config):
 
         print(f"Pulled all {name} data")
 
+
     meta = {
         "pull_timestamp": update_start,
+        "hash": config_hash
     }
     write_meta(config, meta, config.inputpath)
 

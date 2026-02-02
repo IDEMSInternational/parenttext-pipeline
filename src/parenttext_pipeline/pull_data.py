@@ -1,12 +1,16 @@
 import os
+import stat
 import re
 import shutil
 import tempfile
-from datetime import datetime, timezone
+import hashlib
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import concurrent.futures
 
 import requests
+import subprocess
+
 from googleapiclient.discovery import build
 from rpft.converters import convert_to_json
 from rpft.google import Drive
@@ -24,13 +28,22 @@ from parenttext_pipeline.extract_keywords import process_keywords_to_file
 
 
 def run(config):
+    update_start = datetime.now(timezone.utc).isoformat()
+    
+    # Get config hash
+    with open("config.json", "rb") as f:
+        config_hash = hashlib.file_digest(f, "SHA256").hexdigest()
     # Get last update timestamp
     try:
         meta = read_meta(get_input_folder(config, in_temp=False))
         last_update_str = meta["pull_timestamp"]
         last_update = datetime.fromisoformat(last_update_str)
+
+        if not meta.get("hash", False) == config_hash:
+            print("config.json hash has changed, updating everything")
+            last_update = None
     except (FileNotFoundError, KeyError):
-        print('meta.json not found, updating everything')
+        print("meta.json not found, updating everything")
         last_update = None
 
     # Only clear the temp path; the input path is now managed incrementally
@@ -52,8 +65,10 @@ def run(config):
 
         print(f"Pulled all {name} data")
 
+
     meta = {
-        "pull_timestamp": datetime.now(timezone.utc).isoformat(),
+        "pull_timestamp": update_start,
+        "hash": config_hash
     }
     write_meta(config, meta, config.inputpath)
 
@@ -73,12 +88,19 @@ def pull_translations(config, source, source_name, last_update):
 
         # Download relevant PO translation files from github to temp folder
         language_folder_in_repo = source.folder_within_repo + "/" + lang_code
-        download_translations_github(
+        fetch_remote_folder(
             source.translation_repo,
             language_folder_in_repo,
             str(translation_temp_po_folder),
-            last_update,
+            "main",
         )
+
+        # download_translations_github(
+        #     source.translation_repo,
+        #     language_folder_in_repo,
+        #     str(translation_temp_po_folder),
+        #     last_update,
+        # )
 
         # Convert PO to json and write these to input folder
         for root, dirs, files in os.walk(translation_temp_po_folder):
@@ -133,20 +155,25 @@ def pull_sheets(config, source, source_name, last_update):
             for new_name, sheet_name in files_dict.items()
         }
     )
-    
+
     # Check that the drive credentials work before N auth tabs are opened
     Drive.client()
-    
+
     sheets_to_download = {}
 
-    
     modified_time_dict = Drive.get_modified_time(all_sheets.values())
 
     for sheet_name, sheet_id in all_sheets.items():
         modified_time = modified_time_dict[sheet_id]
-        if not last_update or (modified_time and modified_time > last_update) or not Path(source_input_path / f"{sheet_name}.json").exists():
+        update_planned = False
+        if (
+            not last_update
+            or (modified_time and modified_time > last_update - timedelta(minutes=5))
+            or not Path(source_input_path / f"{sheet_name}.json").exists()
+        ):
             sheets_to_download[sheet_name] = all_sheets[sheet_name]
-
+            update_planned = True
+        print(f"{sheet_name:>25}: {update_planned:^6} {modified_time}")
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_sheet = {
@@ -253,7 +280,73 @@ def download_archive(destination, location):
         return location
 
 
+def remove_readonly(func, path, excinfo):
+    # Check if the error is a permission error
+    if not os.access(path, os.W_OK):
+        if ".git" not in path:
+            # If it is not in a .git folder, don't force remove
+            raise
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    else:
+        raise
+
+
+def fetch_remote_folder(repo_url, folder_path, destination, branch):
+    """
+    Performs a shallow, sparse clone to fetch only a specific folder
+    from a remote Git repository.
+    """
+    print(f"--- Fetching '{folder_path}' from '{repo_url}' ---")
+
+    # 1. Clean up any previous runs and create a fresh directory.
+    if os.path.exists(destination):
+        print(f"Removing existing directory: {destination}")
+        shutil.rmtree(destination)
+    os.makedirs(destination)
+
+    if not subprocess.run(
+        [
+            "git", "clone", "--no-checkout", 
+            "--filter=tree:0", "--depth", "1", 
+            "--branch", branch, repo_url, "./"
+        ], cwd=destination
+    ):
+        return False
+
+    if not subprocess.run(
+        ["git", "sparse-checkout", "set", "--no-cone", f"{folder_path}/**/*.po\n"],
+        cwd=destination
+    ):
+        return False
+    print(f"Configured sparse-checkout to fetch: {folder_path}/*")
+
+    if not subprocess.run(
+        ["git", "checkout"], cwd=destination
+    ):
+        return False
+
+    print(f"\n✅ Successfully fetched files into '{destination}'")
+
+    download_path = Path.joinpath(Path(destination), Path(folder_path))
+    files_and_directories = os.listdir(download_path)
+    for item in files_and_directories:
+        source_path = os.path.join(download_path, item)
+        destination_path = os.path.join(destination, item)
+        shutil.move(source_path, destination_path)
+
+    rmfolder = Path(folder_path)
+    while str(rmfolder) != ".":
+        os.rmdir(Path.joinpath(Path(destination), rmfolder))
+        rmfolder = rmfolder.parent
+    shutil.rmtree(
+        Path.joinpath(Path(destination), Path(".git")), onerror=remove_readonly
+    )
+    return True
+
+
 def get_github_last_commit_date(repo_url, file_path_in_repo):
+
     try:
         parts = repo_url.split("/")
         owner = parts[-2]
@@ -276,9 +369,11 @@ def download_translations_github(repo_url, folder_path, local_folder, last_updat
     parts = repo_url.split("/")
     owner = parts[-2]
     repo_name = parts[-1].split(".")[0]
-    api_url = f"https://api.github.com/repos/{owner}/{repo_name}/contents/{folder_path}"
 
     try:
+        api_url = (
+            f"https://api.github.com/repos/{owner}/{repo_name}/contents/{folder_path}"
+        )
         response = requests.get(api_url)
         response.raise_for_status()
         remote_files = {
@@ -288,22 +383,50 @@ def download_translations_github(repo_url, folder_path, local_folder, last_updat
         print(f"An error occurred fetching file list from GitHub: {e}")
         return
 
-    files_to_download = {}
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future_to_file = {
-            executor.submit(
-                get_github_last_commit_date, repo_url, item["path"]
-            ): name
-            for name, item in remote_files.items()
+    try:
+        api_url = f"https://api.github.com/repos/{owner}/{repo_name}/commits?page=1&per_page=1"
+        response = requests.get(api_url)
+        response.raise_for_status()
+        most_recent_commit = response.json()[0]["sha"]
+    except Exception as e:
+        print(f"An error occurred fetching most recent commit from GitHub: {e}")
+        return
+
+    if last_update is not None:
+
+        try:
+            api_url = f"https://api.github.com/repos/{owner}/{repo_name}/commits?page=1&per_page=1&until={last_update}"
+            response = requests.get(api_url)
+            response.raise_for_status()
+            last_update_commit = response.json()[0]["sha"]
+        except Exception as e:
+            print(f"An error occurred fetching file list from GitHub: {e}")
+            return
+
+        try:
+            api_url = f"https://api.github.com/repos/{owner}/{repo_name}/compare/{last_update_commit}...{most_recent_commit}"
+            response = requests.get(api_url)
+            response.raise_for_status()
+            changed_file_list = [
+                item["filename"]
+                for item in response.json()["files"]
+                if folder_path in item["filename"]
+            ]
+        except Exception as e:
+            print(f"An error occurred fetching changed file list from GitHub: {e}")
+            return
+
+        files_to_download = {
+            key: value
+            for key, value in remote_files.items()
+            if value["path"] in changed_file_list and value["path"].endswith(".po")
         }
-        for future in concurrent.futures.as_completed(future_to_file):
-            file_name = future_to_file[future]
-            try:
-                commit_date = future.result()
-                if not last_update or (commit_date and commit_date > last_update):
-                    files_to_download[file_name] = remote_files[file_name]
-            except Exception as e:
-                print(f"Error checking translation '{file_name}': {e}")
+    else:
+        files_to_download = {
+            key: value
+            for key, value in remote_files.items()
+            if folder_path in value["path"] and value["path"].endswith(".po")
+        }
 
     def download_worker(item):
         try:

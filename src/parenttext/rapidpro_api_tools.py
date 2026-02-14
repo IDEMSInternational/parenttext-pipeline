@@ -1,13 +1,15 @@
 """
-# rapidpro_tools.py
+# rapidpro_api_tools.py
 This script acts as a CLI for various RapidPro API operations.
 Currently supported operations:
     - count_flow_runs: Calculates run statistics for specific flows defined in .env
     - process_deletion_requests: Deletes messages, runs, and contacts for users in a specific group.
+    - export_contacts: Exports contact data to CSV with whitelisted fields and group memberships.
 
 Usage:
-    python rapidpro_tools.py --steps count_flow_runs
-    python rapidpro_tools.py --steps process_deletion_requests --dry-run
+    python -m parenttext.rapidpro_api_tools --steps count_flow_runs
+    python -m parenttext.rapidpro_api_tools --steps process_deletion_requests --dry-run
+    python -m parenttext.rapidpro_api_tools --steps export_contacts
 """
 
 import argparse
@@ -190,7 +192,7 @@ def step_count_flow_runs():
     output_filename = safe_getenv("OUTPUT_FILE", "flow_run_stats.csv")
 
     if ".csv" in output_filename:
-        keys = ["Flow Name", "Flow UUID", "Total Runs", "Responded True", "Responded %"]
+        keys = ["Flow Name", "Flow UUID", "Total Runs", "Responded True", "Responded %", "Response Values"]
         
         try:
             with open(output_filename, "w", newline="", encoding="utf-8") as f:
@@ -364,6 +366,62 @@ def step_process_deletion_requests():
     print("="*90)
 
 
+def step_export_contacts():
+    host = getenv("RAPIDPRO_URL")
+    output_filename = safe_getenv("OUTPUT_FILE", "contacts.csv")
+    whitelist_str = safe_getenv("CONTACT_FIELDS", "")
+    whitelist_fields = [f.strip() for f in whitelist_str.split(",") if f.strip()]
+
+    print("  > Exporting contact data...")
+    print(f"  > Whitelisted fields: {whitelist_fields}")
+
+    # 1. Fetch Groups to create boolean columns
+    print("  > Fetching group definitions...")
+    groups_mapping = {}  # UUID -> Name
+    for group in get_all_results("groups.json", host):
+        groups_mapping[group["uuid"]] = group["name"]
+    
+    sorted_group_names = sorted(groups_mapping.values())
+    print(f"  > Found {len(sorted_group_names)} groups for schema.")
+
+    # 2. Prepare CSV Header
+    # Base fields + whitelisted fields + group booleans
+    header = ["created_on"] + whitelist_fields + sorted_group_names
+
+    # 3. Fetch Contacts and Write to CSV
+    print(f"  > Fetching contacts and writing to {output_filename}...")
+    try:
+        with open(output_filename, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=header, extrasaction='ignore')
+            writer.writeheader()
+
+            count = 0
+            for contact in get_all_results("contacts.json", host):
+                row = {
+                    "created_on": contact.get("created_on"),
+                }
+
+                # Add Whitelisted Fields
+                fields = contact.get("fields", {})
+                for field in whitelist_fields:
+                    row[field] = fields.get(field, "")
+
+                # Add Group Memberships
+                contact_group_uuids = set([g['uuid'] for g in contact.get("groups", []) if 'uuid' in g.keys()]) # Set of UUIDs
+                for g_uuid, g_name in groups_mapping.items():
+                    row[g_name] = g_uuid in contact_group_uuids
+
+                writer.writerow(row)
+                count += 1
+                if count % 1000 == 0:
+                    print(f"    Exported {count} contacts...")
+
+            print(f"  > Finished exporting {count} contacts to {output_filename}.")
+
+    except IOError as e:
+        print(f"  [!] Error writing output file: {e}")
+
+
 def generate_quadrant_chart(data, response_key):
     # 1. Filter out empty runs and calculate Max for Normalization
     valid_data = [d for d in data if d['Total Runs'] > 0]
@@ -452,6 +510,15 @@ step_dict = {
             "RAPIDPRO_API_TOKEN",
             "RAPIDPRO_URL",
         ],
+    },
+    "export_contacts": {
+        "fn": step_export_contacts,
+        "start_msg": "Starting contact export",
+        "end_msg": "Contact export complete",
+        "required_env": [
+            "RAPIDPRO_API_TOKEN",
+            "RAPIDPRO_URL",
+        ]
     }
 }
 

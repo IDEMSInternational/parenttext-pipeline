@@ -386,7 +386,7 @@ def step_export_contacts():
 
     # 2. Prepare CSV Header
     # Base fields + whitelisted fields + group booleans
-    header = ["created_on"] + whitelist_fields + sorted_group_names
+    header = ["uuid", "created_on"] + whitelist_fields + sorted_group_names
 
     # 3. Fetch Contacts and Write to CSV
     print(f"  > Fetching contacts and writing to {output_filename}...")
@@ -398,6 +398,7 @@ def step_export_contacts():
             count = 0
             for contact in get_all_results("contacts.json", host):
                 row = {
+                    "uuid": contact.get("uuid"),
                     "created_on": contact.get("created_on"),
                 }
 

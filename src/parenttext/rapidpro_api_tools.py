@@ -412,8 +412,10 @@ def step_export_contacts():
                 for g_uuid, g_name in groups_mapping.items():
                     row[g_name] = g_uuid in contact_group_uuids
 
-                writer.writerow(row)
-                count += 1
+                filter_true = row["consent"] == "yes"
+                if filter_true:
+                    writer.writerow(row)
+                    count += 1
                 if count % 1000 == 0:
                     print(f"    Exported {count} contacts...")
 

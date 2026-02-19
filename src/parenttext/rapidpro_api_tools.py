@@ -405,7 +405,7 @@ def step_export_contacts():
                 # Add Whitelisted Fields
                 fields = contact.get("fields", {})
                 for field in whitelist_fields:
-                    row[field] = fields.get(field, "")
+                    row[field] = fields.get("_".join(field.split(" ")), "")
 
                 # Add Group Memberships
                 contact_group_uuids = set([g['uuid'] for g in contact.get("groups", []) if 'uuid' in g.keys()]) # Set of UUIDs

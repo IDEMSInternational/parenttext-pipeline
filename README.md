@@ -30,6 +30,8 @@ You will need to create a file called 'config.py', in the current working direct
 - [RapidPro flow importer] - to automatically import flow definitions into RapidPro
 - [Archive tool] - to create snapshots of source Google Sheets to support repeatable pipeline runs
 - [Transcode tool] - to prepare video and audio files that may be used by ParentText applications
+- [RapidPro API Tools] - tools for managing and exporting data from RapidPro
+- [CKAN Tools] - tools for uploading exported data to a CKAN server
 
 
 [operations]: docs/operations.md
@@ -37,3 +39,5 @@ You will need to create a file called 'config.py', in the current working direct
 [Archive tool]: docs/archive.md
 [RapidPro flow importer]: docs/rapidpro-import.md
 [Transcode tool]: docs/transcode.md
+[RapidPro API Tools]: docs/rapidpro_api_tools.md
+[CKAN Tools]: docs/ckan_tools.md

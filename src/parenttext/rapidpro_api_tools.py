@@ -375,6 +375,8 @@ def step_export_contacts(host=None, output_filename=None, whitelist_fields=None,
         if whitelist_fields == []:
             whitelist_fields = [f["key"] for f in get_all_results("fields.json", host)]
     if blacklist_fields is None: blacklist_fields = []
+    whitelist_fields = ["_".join(f.split(" ")).lower() for f in whitelist_fields]
+    blacklist_fields = ["_".join(f.split(" ")).lower() for f in blacklist_fields]
 
     fields_to_get = sorted(list(set(whitelist_fields)-set(blacklist_fields)))
 
@@ -411,7 +413,7 @@ def step_export_contacts(host=None, output_filename=None, whitelist_fields=None,
                 # Add Whitelisted Fields
                 fields = contact.get("fields", {})
                 for field in fields_to_get:
-                    row[field] = fields.get("_".join(field.split(" ")).lower(), "")
+                    row[field] = fields.get(field, "")
 
                 # Add Group Memberships
                 contact_group_uuids = set([g['uuid'] for g in contact.get("groups", []) if 'uuid' in g.keys()]) # Set of UUIDs

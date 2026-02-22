@@ -366,14 +366,20 @@ def step_process_deletion_requests():
     print("="*90)
 
 
-def step_export_contacts():
-    host = getenv("RAPIDPRO_URL")
-    output_filename = safe_getenv("OUTPUT_FILE", "contacts.csv")
-    whitelist_str = safe_getenv("CONTACT_FIELDS", "")
-    whitelist_fields = [f.strip() for f in whitelist_str.split(",") if f.strip()]
+def step_export_contacts(host=None, output_filename=None, whitelist_fields=None, blacklist_fields=None):
+    if host is None: host = getenv("RAPIDPRO_URL")
+    if output_filename is None: output_filename = safe_getenv("OUTPUT_FILE", "contacts.csv")
+    if whitelist_fields is None:
+        whitelist_str = safe_getenv("CONTACT_FIELDS", "")
+        whitelist_fields = [f.strip() for f in whitelist_str.split(",") if f.strip()]
+        if whitelist_fields == []:
+            whitelist_fields = [f["key"] for f in get_all_results("fields.json", host)]
+    if blacklist_fields is None: blacklist_fields = []
+
+    fields_to_get = sorted(list(set(whitelist_fields)-set(blacklist_fields)))
 
     print("  > Exporting contact data...")
-    print(f"  > Whitelisted fields: {whitelist_fields}")
+    print(f"  > Fields to get: {fields_to_get}")
 
     # 1. Fetch Groups to create boolean columns
     print("  > Fetching group definitions...")
@@ -386,7 +392,7 @@ def step_export_contacts():
 
     # 2. Prepare CSV Header
     # Base fields + whitelisted fields + group booleans
-    header = ["uuid", "created_on"] + whitelist_fields + sorted_group_names
+    header = ["uuid", "created_on"] + fields_to_get + sorted_group_names
 
     # 3. Fetch Contacts and Write to CSV
     print(f"  > Fetching contacts and writing to {output_filename}...")
@@ -404,7 +410,7 @@ def step_export_contacts():
 
                 # Add Whitelisted Fields
                 fields = contact.get("fields", {})
-                for field in whitelist_fields:
+                for field in fields_to_get:
                     row[field] = fields.get("_".join(field.split(" ")).lower(), "")
 
                 # Add Group Memberships

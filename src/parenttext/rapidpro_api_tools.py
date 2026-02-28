@@ -51,10 +51,11 @@ def get_all_results(endpoint, host, params=None):
     """
     url = f"{host}/api/v2/{endpoint}"
     headers = get_headers()
-    
+    verify_ssl = safe_getenv("VERIFY_SSL", "true").lower() == "true"
+
     while url:
         try:
-            response = requests.get(url, headers=headers, params=params)
+            response = requests.get(url, headers=headers, params=params, verify=verify_ssl)
             response.raise_for_status()
             data = response.json()
             
@@ -80,6 +81,7 @@ def chunked_action(endpoint, host, payload_key, item_list, action, extra_data=No
     BATCH_SIZE = 100
     headers = get_headers()
     url = f"{host}/api/v2/{endpoint}"
+    verify_ssl = safe_getenv("VERIFY_SSL", "true").lower() == "true"
     
     print(f"  > Prepared {action} for {len(item_list)} items via {endpoint}...")
 
@@ -97,7 +99,7 @@ def chunked_action(endpoint, host, payload_key, item_list, action, extra_data=No
             payload.update(extra_data)
             
         try:
-            response = requests.post(url, headers=headers, json=payload)
+            response = requests.post(url, headers=headers, json=payload, verify=verify_ssl)
             if response.status_code in [200, 204]:
                 print(f"    ✔ Processed batch {i // BATCH_SIZE + 1} ({len(batch)} items)")
             else:
@@ -338,18 +340,10 @@ def step_process_deletion_requests():
     # 6. Delete Contacts (Only proceeds if above check passed)
     if contacts_to_delete:
         print(f"  > Deleting {len(contacts_to_delete)} contacts...")
-        failed_contacts = chunked_action("contact_actions.json", host, "contacts", contacts_to_delete, "delete")
-        
-        # Update logs
+        chunked_action("contact_actions.json", host, "contacts", contacts_to_delete, "delete")
         now = datetime.now().isoformat()
-        failed_contact_set = set(failed_contacts)
-        
         for log in deletion_log:
-            if log["uuid"] in failed_contact_set:
-                log["status"] = "FAILED"
-            else:
-                log["deleted_at"] = now
-                log["status"] = "SUCCESS"
+            log["deleted_at"] = now
     else:
         print("  > No contacts to delete.")
 
@@ -357,12 +351,11 @@ def step_process_deletion_requests():
     print("\n" + "="*90)
     print("DELETION SUMMARY")
     print("="*90)
-    print(f"{'Contact UUID':<38} | {'Status':<10} | {'Deleted At'}")
+    print(f"{'Contact UUID':<38} | {'Deleted At'}")
     print("-" * 90)
     for entry in deletion_log:
-        status = entry.get("status", "UNKNOWN")
         deleted_at = entry["deleted_at"] or "N/A"
-        print(f"{entry['uuid']:<38} | {status:<10} | {deleted_at}")
+        print(f"{entry['uuid']:<38} | {deleted_at}")
     print("="*90)
 
 

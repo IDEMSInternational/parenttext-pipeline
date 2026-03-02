@@ -41,3 +41,8 @@ python -m parenttext.ckan_tools \
   --resource-name "Flow Run Statistics"
 
 ```
+
+## Automated Cloud Deployment
+If you want to run this workflow on a daily schedule without a manual local machine, we have a pre-configured Docker and Google Cloud Run setup. 
+
+👉 **See the [Automated RapidPro to CKAN Pipeline Guide](automated_ckan_export.md) for full deployment instructions.**

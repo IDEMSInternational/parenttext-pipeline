@@ -4,7 +4,7 @@ This script acts as a CLI for various RapidPro API operations.
 Currently supported operations:
     - count_flow_runs: Calculates run statistics for specific flows defined in .env
     - process_deletion_requests: Deletes messages, runs, and contacts for users in a specific group.
-    - export_contacts: Exports contact data to CSV with whitelisted fields and group memberships.
+    - export_contacts: Exports contact data to CSV with allowlisted fields and group memberships.
 
 Usage:
     python -m parenttext.rapidpro_api_tools --steps count_flow_runs
@@ -359,19 +359,21 @@ def step_process_deletion_requests():
     print("="*90)
 
 
-def step_export_contacts(host=None, output_filename=None, whitelist_fields=None, blacklist_fields=None):
+def step_export_contacts(host=None, output_filename=None, allowlist_fields=None, denylist_fields=None):
     if host is None: host = getenv("RAPIDPRO_URL")
     if output_filename is None: output_filename = safe_getenv("OUTPUT_FILE", "contacts.csv")
-    if whitelist_fields is None:
-        whitelist_str = safe_getenv("CONTACT_FIELDS", "")
-        whitelist_fields = [f.strip() for f in whitelist_str.split(",") if f.strip()]
-        if whitelist_fields == []:
-            whitelist_fields = [f["key"] for f in get_all_results("fields.json", host)]
-    if blacklist_fields is None: blacklist_fields = []
-    whitelist_fields = ["_".join(f.split(" ")).lower() for f in whitelist_fields]
-    blacklist_fields = ["_".join(f.split(" ")).lower() for f in blacklist_fields]
+    if allowlist_fields is None:
+        allowlist_str = safe_getenv("ALLOWLIST_FIELDS", "")
+        allowlist_fields = [f.strip() for f in allowlist_str.split(",") if f.strip()]
+        if allowlist_fields == []:
+            allowlist_fields = [f["key"] for f in get_all_results("fields.json", host)]
+    if denylist_fields is None: 
+        denylist_str = safe_getenv("ALLOWLIST_FIELDS", "")
+        denylist_fields = [f.strip() for f in denylist_str.split(",") if f.strip()]
+    allowlist_fields = ["_".join(f.split(" ")).lower() for f in allowlist_fields]
+    denylist_fields = ["_".join(f.split(" ")).lower() for f in denylist_fields]
 
-    fields_to_get = sorted(list(set(whitelist_fields)-set(blacklist_fields)))
+    fields_to_get = sorted(list(set(allowlist_fields)-set(denylist_fields)))
 
     print("  > Exporting contact data...")
     print(f"  > Fields to get: {fields_to_get}")
@@ -386,7 +388,7 @@ def step_export_contacts(host=None, output_filename=None, whitelist_fields=None,
     print(f"  > Found {len(sorted_group_names)} groups for schema.")
 
     # 2. Prepare CSV Header
-    # Base fields + whitelisted fields + group booleans
+    # Base fields + allowlisted fields + group booleans
     header = ["uuid", "created_on"] + fields_to_get + sorted_group_names
 
     # 3. Fetch Contacts and Write to CSV
@@ -403,7 +405,7 @@ def step_export_contacts(host=None, output_filename=None, whitelist_fields=None,
                     "created_on": contact.get("created_on"),
                 }
 
-                # Add Whitelisted Fields
+                # Add Allowlisted Fields
                 fields = contact.get("fields", {})
                 for field in fields_to_get:
                     row[field] = fields.get(field, "")

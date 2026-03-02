@@ -32,6 +32,7 @@ You will need to create a file called 'config.py', in the current working direct
 - [Transcode tool] - to prepare video and audio files that may be used by ParentText applications
 - [RapidPro API Tools] - tools for managing and exporting data from RapidPro
 - [CKAN Tools] - tools for uploading exported data to a CKAN server
+- [Automated RapidPro to CKAN Export](docs/automated_ckan_export.md) - deployment guide for automating contact exports to CKAN via Google Cloud Run
 
 
 [operations]: docs/operations.md

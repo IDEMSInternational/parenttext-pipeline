@@ -1,148 +1,120 @@
-# Google Cloud Run - CKAN Upload of Research Data
+# Automated RapidPro to CKAN Export Pipeline
 
-To routinely sync research data from RapidPro to CKAN so our partners have access, we need to run custom code which redacts and processes the RapidPro API output, provided by the [RapidPro API Tools].
-Due to GDPR constraints on the processing of private data, we do not want to run these in GitHub Actions, and have elected to Google Cloud Run.
+This guide details how to deploy an automated pipeline that exports contact data from a RapidPro workspace and uploads it to a CKAN data portal. 
 
-This guide details how to deploy an automated, scheduled pipeline that exports contact data from a RapidPro workspace and uploads it to a CKAN data portal. The pipeline is packaged as a Docker container, deployed as a **Google Cloud Run Job**, and triggered by **Google Cloud Scheduler**.
-
-This setup is designed to be easily reproducible for new deployments (e.g., `south-africa-swift`, `romania`, `malaysia`).
+It utilizes an Infrastructure-as-Code approach. A GitHub Action executes **OpenTofu** to automatically provision a Google Cloud Run Job, a Cloud Scheduler, and a unique **Runner Service Account** specifically for the deployment.
 
 ---
 
-## 1. Prerequisites and Environment Verification
+## 1. Global Google Cloud Setup (One-Time Admin Task)
 
-Before creating resources, ensure your Google Cloud CLI is authenticated and pointing to the correct project. This is crucial if you haven't used `gcloud` recently.
+If your Google Cloud project is already configured for ParentText automated deployments, you likely already have a Deployer account and State Bucket. If not, an Admin must set these up once per GCP project using the bootstrap script.
 
+1. Clone the `parenttext-pipeline` repository to your local machine.
+2. Navigate to the bootstrap folder: `cd tools/ckan-export/bootstrap-tofu/`
+3. Edit the `main.tf` file to insert your specific `project_id`.
+4. Authenticate your CLI: `gcloud auth application-default login`
+5. Run the bootstrap: `tofu init` followed by `tofu apply`
+6. Note the output values for `deployer_sa_email` and `state_bucket_name` for use in future deployments. Create a JSON Service Account Key for the Deployer account to use in GitHub Actions.
+
+---
+
+## 2. Setup For a New Deployment (Local Machine)
+
+We intentionally keep RapidPro and CKAN API tokens *out* of GitHub Actions for security. When setting up a new deployment (e.g. `parenttext-crisis-ukraine-georgia`), you must manually insert these secrets into Google Secret Manager from your local terminal.
+
+**Step A: Define variables locally**
 ```bash
-# 1. Log in to your Google Cloud account
-gcloud auth login
-
-# 2. If you don't know the project ID off-hand, get it using the name, for example:
-gcloud projects list --filter="name='IDEMS General'" --format="value(projectId)"
-
-# 3. Set the active project, inserting the project ID
-gcloud config set project PROJECT_ID_HERE
-
-# 4. Verify the active project is correct
-gcloud config get-value project
-
-```
-
-## 2. Define Deployment Variables
-
-To keep naming conventions consistent across multiple deployments, set the following environment variables in your terminal. We will use these throughout the deployment process.
-
-*Note: Use PowerShell, Command Prompt, or Bash to set these depending on your OS. The examples below use Bash/Zsh syntax, which works in macOS, Linux, and Git Bash on Windows. If using PowerShell, use `$env:DEPLOYMENT_NAME="parenttext-swift"`, etc.*
-
-```bash
-# The exact name of the deployment repository (e.g., parenttext-swift, parenttext-crisis-ukraine-georgia)
+# The exact name of your deployment (used for the secret names)
 export DEPLOYMENT_NAME="parenttext-crisis-ukraine-georgia"
 
-# The Google Cloud region to deploy resources to, e.g. europe-west4
-export REGION="europe-west4"
-
-# The Service Account Name used for all CKAN export jobs
-export SA_NAME="parenttext-export-sa"
-export SA_EMAIL="${SA_NAME}@$(gcloud config get-value project).iam.gserviceaccount.com"
 ```
 
-## 3. Securely Store API Tokens
+**Step B: Create temporary text files**
+Create `rp_token.txt` with your RapidPro Token, and `ckan_token.txt` with your CKAN API Key.
 
-To remain OS-agnostic and avoid leaking secrets in terminal histories, create temporary text files for your tokens, upload them to Google Secret Manager, and then delete the local files.
+**Step C: Create the Secrets in Google Cloud**
+We attempt to delete the secrets first to prevent multi-version billing costs if you are updating an existing token.
 
-**Step A: Create temporary text files**
-1. Create a file named `rp_token.txt` and paste the **RapidPro API Token** inside.
-2. Create a file named `ckan_token.txt` and paste the **CKAN API Key** inside.
-
-**Step B: Create the unique secrets in Google Cloud**
-To ensure we aren't billed for keeping outdated versions of secrets (if we are updating an existing deployment), we first attempt to delete any existing secrets before creating fresh ones.
 ```bash
-# 1. Clean up existing secrets to prevent multi-version billing 
-# (The '|| true' ensures the script doesn't stop if this is a brand new deployment)
 gcloud secrets delete ${DEPLOYMENT_NAME}-rapidpro-token --quiet || true
 gcloud secrets delete ${DEPLOYMENT_NAME}-ckan-token --quiet || true
 
-# 2. Create the fresh RapidPro token secret
 gcloud secrets create ${DEPLOYMENT_NAME}-rapidpro-token --data-file=rp_token.txt
-
-# 3. Create the fresh CKAN token secret
 gcloud secrets create ${DEPLOYMENT_NAME}-ckan-token --data-file=ckan_token.txt
-```
-
-**Step C: Clean up**
-Delete `rp_token.txt` and `ckan_token.txt` from your local machine to prevent accidental exposure.
-
-## 4. Configure the Shared Service Account
-
-We use a single, shared Service Account for all export jobs to keep IAM permissions clean.
-
-```bash
-# 1. Create the Shared Service Account (If it already exists, this safely prints a warning and continues)
-gcloud iam service-accounts create $SA_NAME \
-  --description="Shared service account for ParentText RapidPro to CKAN exports" \
-  --display-name="ParentText CKAN Export SA" || echo "Service account already exists, proceeding..."
-
-# 2. Grant the Shared Service Account permission to read THIS deployment's RapidPro token
-gcloud secrets add-iam-policy-binding ${DEPLOYMENT_NAME}-rapidpro-token \
-  --member="serviceAccount:${SA_EMAIL}" \
-  --role="roles/secretmanager.secretAccessor"
-
-# 3. Grant the Shared Service Account permission to read THIS deployment's CKAN token
-gcloud secrets add-iam-policy-binding ${DEPLOYMENT_NAME}-ckan-token \
-  --member="serviceAccount:${SA_EMAIL}" \
-  --role="roles/secretmanager.secretAccessor"
-```
-
-## 5. Create the Cloud Run Job
-
-Create the Cloud Run Job. This mounts the secrets securely and sets the configuration for the specific deployment.
-
-*Replace the `...` values under `--set-env-vars` with the actual URLs and configurations for the deployment.*
-
-See [RapidPro API Tools] and [CKAN Tools] for configuration guides.
-
-```bash
-gcloud run jobs create ${DEPLOYMENT_NAME}-ckan-export \
-  --image $IMAGE_URL \
-  --region $REGION \
-  --service-account $SA_EMAIL \
-  --set-env-vars "^|^RAPIDPRO_URL=https://app.rapidpro.io|\
-DEPLOYMENT_NAME=${DEPLOYMENT_NAME}|\
-ALLOWLIST_FIELDS=uuid,gender,age_years,location|\
-CKAN_URL=https://sds.plhdashboard.org/|\
-CKAN_OWNER_ORG=your-ckan-org-id|\
-CKAN_DATASET=${DEPLOYMENT_NAME}-monitoring|\
-CKAN_RESOURCE_NAME=RapidPro Contacts Export" \
-  --set-secrets="RAPIDPRO_API_TOKEN=${DEPLOYMENT_NAME}-rapidpro-token:latest,CKAN_API_KEY=${DEPLOYMENT_NAME}-ckan-token:latest"
 
 ```
 
-*Note: The `^|^` syntax allows us to safely use commas within the `ALLOWLIST_FIELDS`/`DENYLIST_FIELDS` variable without `gcloud` interpreting it as the end of the variable declaration.*
+**Step D: Clean Up**
+Delete the `.txt` files from your machine to prevent accidental leakage.
 
-## 6. Test and Schedule the Pipeline
+---
 
-**Step A: Run a Manual Test**
-Trigger the job manually to ensure permissions, secrets, and environment variables are configured correctly.
+## 3. Setup the Deployment Repository
 
-```bash
-gcloud run jobs execute ${DEPLOYMENT_NAME}-ckan-export --region $REGION --wait
+In the specific deployment's GitHub Repository (e.g., `IDEMSInternational/parenttext-crisis-ukraine-georgia`):
+
+**Step A: Add the Credentials Secret**
+Go to **Settings > Secrets and variables > Actions > Secrets** and add:
+
+* `GCP_CREDENTIALS`: The JSON key for your Global Deployer Service Account.
+
+**Step B: Add the Configuration Variables**
+Go to **Settings > Secrets and variables > Actions > Variables** and add the following repository variables.
+
+*Note: `CONTAINER_ENV_VARS` is a JSON string. This allows you to add or modify Python script variables in the future without ever having to touch the underlying OpenTofu code!*
+
+| Variable | Example Value | Description |
+| --- | --- | --- |
+| `GCP_PROJECT` | `idems-general-123` | Your Google Cloud Project ID |
+| `GCP_REGION` | `europe-west4` | Target Cloud Region |
+| `TF_STATE_BUCKET` | `idems-general-123-parenttext-tofu-state` | Global bucket name from Step 1 |
+| `DEPLOYMENT_NAME` | `parenttext-crisis-ukraine-georgia` | Used to locate your secrets and name resources |
+| `CRON_SCHEDULE` | `0 0 * * *` | Cron format for when the job runs (e.g. Midnight UTC) |
+| `IMAGE_URL` | `ghcr.io/idemsinternational/parenttext-pipeline-ckan-export:latest` | URL to the pipeline docker image |
+| `CONTAINER_ENV_VARS` | *(See JSON block below)* | All container configuration mapped as JSON |
+
+**Example `CONTAINER_ENV_VARS` payload:**
+
+```json
+{
+  "RAPIDPRO_URL": "[https://app.rapidpro.io](https://app.rapidpro.io)",
+  "ALLOWLIST_FIELDS": "uuid,gender,age_years,location",
+  "CKAN_URL": "[https://sds.plhdashboard.org/](https://sds.plhdashboard.org/)",
+  "CKAN_OWNER_ORG": "your-ckan-org-id",
+  "CKAN_DATASET": "parenttext-ukraine-monitoring",
+  "CKAN_RESOURCE_NAME": "RapidPro Contacts Export"
+}
 
 ```
 
-*Check the Google Cloud Console logs for this job to verify success.*
+**Step C: Create the GitHub Action**
+Create a new file in your deployment repository at `.github/workflows/deploy-ckan.yml` that invokes the reusable IaC workflow:
 
-**Step B: Schedule the Automation**
-Once the manual test succeeds, link the job to Google Cloud Scheduler to run automatically (e.g., daily at midnight UTC).
+```yaml
+name: Deploy CKAN Export Infrastructure
 
-```bash
-gcloud scheduler jobs create http ${DEPLOYMENT_NAME}-ckan-schedule \
-  --location $REGION \
-  --schedule="0 0 * * *" \
-  --uri="https://${REGION}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/$(gcloud config get-value project)/jobs/${DEPLOYMENT_NAME}-ckan-export:run" \
-  --http-method POST \
-  --oauth-service-account-email=$SA_EMAIL
+on:
+  workflow_dispatch: # Allows manual trigger from the Actions tab
+
+jobs:
+  deploy-infra:
+    uses: IDEMSInternational/parenttext-pipeline/.github/workflows/deploy-ckan-job.yml@main
+    secrets:
+      gcp_credentials: ${{ secrets.GCP_CREDENTIALS }}
+    with:
+      gcp_project: ${{ vars.GCP_PROJECT }}
+      gcp_region: ${{ vars.GCP_REGION }}
+      tf_state_bucket: ${{ vars.TF_STATE_BUCKET }}
+      deployment_name: ${{ vars.DEPLOYMENT_NAME }}
+      cron_schedule: ${{ vars.CRON_SCHEDULE }}
+      image_url: ${{ vars.IMAGE_URL }}
+      container_env_vars: ${{ vars.CONTAINER_ENV_VARS }}
 
 ```
 
-[RapidPro API Tools]: rapidpro_api_tools.md
-[CKAN Tools]: ckan_tools.md
+## 4. Run the Deployment
+
+Go to the **Actions** tab in your deployment repository, select **Deploy CKAN Export Infrastructure**, and click **Run Workflow**.
+
+OpenTofu will automatically create a uniquely hashed Runner Service Account, bind it to your secrets, deploy the Cloud Run Job, and activate the Cloud Scheduler. To add a new script variable in the future, simply edit the `CONTAINER_ENV_VARS` JSON in the repository settings and run the workflow again!

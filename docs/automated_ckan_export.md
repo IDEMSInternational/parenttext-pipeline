@@ -12,10 +12,9 @@ If your Google Cloud project is already configured for ParentText automated depl
 
 1. Clone the `parenttext-pipeline` repository to your local machine.
 2. Navigate to the bootstrap folder: `cd tools/ckan-export/bootstrap-tofu/`
-3. Edit the `main.tf` file to insert your specific `project_id`.
-4. Authenticate your CLI: `gcloud auth application-default login`
-5. Run the bootstrap: `tofu init` followed by `tofu apply`
-6. Note the output values for `deployer_sa_email` and `state_bucket_name` for use in future deployments. Create a JSON Service Account Key for the Deployer account to use in GitHub Actions.
+3. Authenticate your CLI: `gcloud auth application-default login`
+4. Run the bootstrap: `tofu init` followed by `tofu apply -var "project_id=YOUR_PROJECT_ID`
+5. Note the output values for `deployer_sa_email` and `state_bucket_name` for use in future deployments. Create a JSON Service Account Key for the Deployer account to use in GitHub Actions.
 
 ---
 

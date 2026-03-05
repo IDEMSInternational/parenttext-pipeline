@@ -2,38 +2,39 @@
 
 This guide details how to deploy an automated pipeline that exports contact data from a RapidPro workspace and uploads it to a CKAN data portal. 
 
-It utilizes an Infrastructure-as-Code approach. A GitHub Action executes **OpenTofu** to automatically provision a Google Cloud Run Job, a Cloud Scheduler, and a unique **Runner Service Account** specifically for the deployment.
+It relies on a **Deployer Service Account** to execute the deployment via GitHub Actions, and an isolated **Runner Service Account** to securely access credentials specific to each deployment.
 
 ---
 
 ## 1. Global Google Cloud Setup (One-Time Admin Task)
 
-If your Google Cloud project is already configured for ParentText automated deployments, you likely already have a Deployer account and State Bucket. If not, an Admin must set these up once per GCP project using the bootstrap script.
+If your Google Cloud project is already configured for ParentText automated deployments, you likely already have a Deployer account. If not, an Admin must create one manually.
 
-1. Clone the `parenttext-pipeline` repository to your local machine.
-2. Navigate to the bootstrap folder: `cd tools/ckan-export/bootstrap-tofu/`
-3. Authenticate your CLI: `gcloud auth application-default login`
-4. Run the bootstrap: `tofu init` followed by `tofu apply -var "project_id=YOUR_PROJECT_ID`
-5. Note the output values for `deployer_sa_email` and `state_bucket_name` for use in future deployments. Create a JSON Service Account Key for the Deployer account to use in GitHub Actions.
+**Deployer Service Account**
+Create a Service Account to be used by GitHub Actions. It requires the following IAM Roles:
+* `Cloud Run Admin`
+* `Cloud Scheduler Admin`
+* `Service Account User` (Required to attach Runner SAs to the Cloud Run Job)
+
+Generate a JSON Service Account Key for this Deployer account.
 
 ---
 
 ## 2. Setup For a New Deployment (Local Machine)
 
-We intentionally keep RapidPro and CKAN API tokens *out* of GitHub Actions for security. When setting up a new deployment (e.g. `parenttext-crisis-ukraine-georgia`), you must manually insert these secrets into Google Secret Manager from your local terminal.
+When setting up a new deployment (e.g. `parenttext-crisis-ukraine-georgia`), an Admin must manually insert the secrets into Google Cloud and use the internal Infrastructure repository to provision the Runner Service Account.
 
 **Step A: Define variables locally**
 ```bash
-# The exact name of your deployment (used for the secret names)
 export DEPLOYMENT_NAME="parenttext-crisis-ukraine-georgia"
 
 ```
 
-**Step B: Create temporary text files**
-Create `rp_token.txt` with your RapidPro Token, and `ckan_token.txt` with your CKAN API Key.
+**Step B: Store API Tokens in Secret Manager**
+Create temporary text files for your tokens to avoid leaking secrets in terminal histories.
 
-**Step C: Create the Secrets in Google Cloud**
-We attempt to delete the secrets first to prevent multi-version billing costs if you are updating an existing token.
+1. Create `rp_token.txt` with your RapidPro Token, and `ckan_token.txt` with your CKAN API Key.
+2. Run the following commands to securely upload them:
 
 ```bash
 gcloud secrets delete ${DEPLOYMENT_NAME}-rapidpro-token --quiet || true
@@ -42,10 +43,15 @@ gcloud secrets delete ${DEPLOYMENT_NAME}-ckan-token --quiet || true
 gcloud secrets create ${DEPLOYMENT_NAME}-rapidpro-token --data-file=rp_token.txt
 gcloud secrets create ${DEPLOYMENT_NAME}-ckan-token --data-file=ckan_token.txt
 
+rm rp_token.txt ckan_token.txt
 ```
 
-**Step D: Clean Up**
-Delete the `.txt` files from your machine to prevent accidental leakage.
+**Step C: Create the Isolated Runner Service Account (OpenTofu)**
+
+1. Open the private IDEMS Infrastructure repository.
+2. In the root `main.tf`, add a new module block for this deployment using the `ckan-runner` template.
+3. Run `tofu apply` to create the uniquely hashed Runner Service Account and bind it strictly to the secrets you just created.
+4. Copy the `runner_sa_email` outputted by Tofu. You will need this for the GitHub Repository setup.
 
 ---
 
@@ -56,19 +62,19 @@ In the specific deployment's GitHub Repository (e.g., `IDEMSInternational/parent
 **Step A: Add the Credentials Secret**
 Go to **Settings > Secrets and variables > Actions > Secrets** and add:
 
-* `GCP_CREDENTIALS`: The JSON key for your Global Deployer Service Account.
+* `GCP_CREDENTIALS`: The JSON key for your Global Deployer Service Account (from Step 1).
 
 **Step B: Add the Configuration Variables**
 Go to **Settings > Secrets and variables > Actions > Variables** and add the following repository variables.
 
-*Note: `CONTAINER_ENV_VARS` is a JSON string. This allows you to add or modify Python script variables in the future without ever having to touch the underlying OpenTofu code!*
+*Note: `CONTAINER_ENV_VARS` is a JSON string. This allows you to safely manage complex environment variables like field allowlists directly from the GitHub UI without modifying pipeline code.*
 
 | Variable | Example Value | Description |
 | --- | --- | --- |
 | `GCP_PROJECT` | `idems-general-123` | Your Google Cloud Project ID |
 | `GCP_REGION` | `europe-west4` | Target Cloud Region |
-| `TF_STATE_BUCKET` | `idems-general-123-parenttext-tofu-state` | Global bucket name from Step 1 |
-| `DEPLOYMENT_NAME` | `parenttext-crisis-ukraine-georgia` | Used to locate your secrets and name resources |
+| `DEPLOYMENT_NAME` | `parenttext-crisis-ukraine-georgia` | Must match the name used in Step 2 |
+| `RUNNER_SA_EMAIL` | `pt-a1b2c3d4-sa@...` | The email of the SA outputted by OpenTofu |
 | `CRON_SCHEDULE` | `0 0 * * *` | Cron format for when the job runs (e.g. Midnight UTC) |
 | `IMAGE_URL` | `ghcr.io/idemsinternational/parenttext-pipeline-ckan-export:latest` | URL to the pipeline docker image |
 | `CONTAINER_ENV_VARS` | *(See JSON block below)* | All container configuration mapped as JSON |
@@ -79,16 +85,16 @@ Go to **Settings > Secrets and variables > Actions > Variables** and add the fol
 {
   "RAPIDPRO_URL": "[https://app.rapidpro.io](https://app.rapidpro.io)",
   "ALLOWLIST_FIELDS": "uuid,gender,age_years,location",
-  "CKAN_URL": "[https://sds.plhdashboard.org/](https://sds.plhdashboard.org/)",
+  "CKAN_URL": "ckan.example.com",
   "CKAN_OWNER_ORG": "your-ckan-org-id",
   "CKAN_DATASET": "parenttext-ukraine-monitoring",
-  "CKAN_RESOURCE_NAME": "RapidPro Contacts Export"
+  "CKAN_RESOURCE_NAME": "Contacts Export"
 }
 
 ```
 
 **Step C: Create the GitHub Action**
-Create a new file in your deployment repository at `.github/workflows/deploy-ckan.yml` that invokes the reusable IaC workflow:
+Create a new file in your deployment repository at `.github/workflows/deploy-ckan.yml` that invokes the reusable workflow:
 
 ```yaml
 name: Deploy CKAN Export Infrastructure
@@ -104,8 +110,8 @@ jobs:
     with:
       gcp_project: ${{ vars.GCP_PROJECT }}
       gcp_region: ${{ vars.GCP_REGION }}
-      tf_state_bucket: ${{ vars.TF_STATE_BUCKET }}
       deployment_name: ${{ vars.DEPLOYMENT_NAME }}
+      runner_sa_email: ${{ vars.RUNNER_SA_EMAIL }}
       cron_schedule: ${{ vars.CRON_SCHEDULE }}
       image_url: ${{ vars.IMAGE_URL }}
       container_env_vars: ${{ vars.CONTAINER_ENV_VARS }}
@@ -116,4 +122,4 @@ jobs:
 
 Go to the **Actions** tab in your deployment repository, select **Deploy CKAN Export Infrastructure**, and click **Run Workflow**.
 
-OpenTofu will automatically create a uniquely hashed Runner Service Account, bind it to your secrets, deploy the Cloud Run Job, and activate the Cloud Scheduler. To add a new script variable in the future, simply edit the `CONTAINER_ENV_VARS` JSON in the repository settings and run the workflow again!
+The action will assume the highly restricted Deployer identity, parse your JSON variables, start the Cloud Run Job connected to your Runner identity, and apply the schedule. To add or change script configuration later, edit the `CONTAINER_ENV_VARS` JSON in the repository settings and run the workflow again.

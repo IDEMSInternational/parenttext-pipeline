@@ -167,27 +167,27 @@ def upload_to_ckan(file_path, dataset_name, resource_name, reconcile_column=None
     if existing_resource and reconcile_column:
         reconcile_datasets(file_path, existing_resource['url'], reconcile_column, save_intermediary)
 
-    # try:
-    #     if existing_resource:
-    #         print(f"   > Updating existing resource '{resource_name}' (id: {existing_resource['id']})...")
-    #         ckan.action.resource_patch(
-    #             id=existing_resource['id'],
-    #             upload=open(file_path, 'rb'),
-    #             last_modified=datetime.now().isoformat()
-    #         )
-    #     else:
-    #         print(f"   > Creating new resource '{resource_name}'...")
-    #         ckan.action.resource_create(
-    #             package_id=package['id'],
-    #             name=resource_name,
-    #             upload=open(file_path, 'rb'),
-    #             format='CSV',
-    #             description=f"Uploaded via automation on {datetime.now().date()}"
-    #         )
-    #     print("   ✅ Upload successful!")
+    try:
+        if existing_resource:
+            print(f"   > Updating existing resource '{resource_name}' (id: {existing_resource['id']})...")
+            ckan.action.resource_patch(
+                id=existing_resource['id'],
+                upload=open(file_path, 'rb'),
+                last_modified=datetime.now().isoformat()
+            )
+        else:
+            print(f"   > Creating new resource '{resource_name}'...")
+            ckan.action.resource_create(
+                package_id=package['id'],
+                name=resource_name,
+                upload=open(file_path, 'rb'),
+                format='CSV',
+                description=f"Uploaded via automation on {datetime.now().date()}"
+            )
+        print("   ✅ Upload successful!")
 
-    # except Exception as e:
-    #     print(f"   [!] Error uploading resource: {e}")
+    except Exception as e:
+        print(f"   [!] Error uploading resource: {e}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upload CSV to CKAN.")

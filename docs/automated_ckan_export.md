@@ -36,7 +36,7 @@ Create temporary text files for your tokens to avoid leaking secrets in terminal
 1. Create `rp_token.txt` with your RapidPro Token, and `ckan_token.txt` with your CKAN API Key.
 2. Run the following commands to securely upload them:
 
-```bash
+<!-- ```bash
 gcloud secrets delete ${DEPLOYMENT_NAME}-rapidpro-token --quiet || true
 gcloud secrets delete ${DEPLOYMENT_NAME}-ckan-token --quiet || true
 
@@ -44,7 +44,12 @@ gcloud secrets create ${DEPLOYMENT_NAME}-rapidpro-token --data-file=rp_token.txt
 gcloud secrets create ${DEPLOYMENT_NAME}-ckan-token --data-file=ckan_token.txt
 
 rm rp_token.txt ckan_token.txt
+``` -->
+```bash
+gcloud secrets versions add ${DEPLOYMENT_NAME}-ckan-token --data-file=ckan_token.txt
+gcloud secrets versions add ${DEPLOYMENT_NAME}-rapidpro-token --data-file=rp_token.txt
 ```
+It is advised to clean up old secrets versions to prevent charges.
 
 **Step C: Create the Isolated Runner Service Account (OpenTofu)**
 

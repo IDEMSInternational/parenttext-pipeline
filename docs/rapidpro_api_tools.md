@@ -45,4 +45,5 @@ These tools rely on environment variables defined in a `.env` file or the execut
 
 | Variable | Description | How to find it |
 | --- | --- | --- |
-| `CONTACT_FIELDS` | Comma-separated list of contact field keys to include as columns. | Go to **Contacts** -> **Fields** in RapidPro. Use the **Key** column (e.g., `gender`, `age_years`), not the Label. |
+| `ALLOWLIST_FIELDS` | Comma-separated list of contact field keys to include as columns. | Go to **Contacts** -> **Fields** in RapidPro. Use the **Key** column (e.g., `gender`, `age_years`), not the Label. |
+| `DENYLIST_FIELDS` | Comma-separated list of contact field keys to specifically exclude as columns. | Go to **Contacts** -> **Fields** in RapidPro. Use the **Key** column (e.g., `gender`, `age_years`), not the Label. |

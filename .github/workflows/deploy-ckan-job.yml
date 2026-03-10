@@ -1,0 +1,81 @@
+name: Deploy CKAN Export Job (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      gcp_project: { required: true, type: string }
+      gcp_region: { required: true, type: string }
+      deployment_name: { required: true, type: string }
+      runner_sa_email: { required: true, type: string }
+      cron_schedule: { required: true, type: string }
+      image_url: { required: true, type: string }
+      container_env_vars: { required: true, type: string }
+    secrets:
+      gcp_credentials: { required: true }
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.gcp_credentials }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy Cloud Run Job
+        run: |
+          # 1. Parse the JSON variables into a comma-safe format for gcloud
+          ENV_VARS=$(echo '${{ inputs.container_env_vars }}' | jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join("|^")')
+          ESCAPED_ENV_VARS="^|^$ENV_VARS"
+          
+          JOB_NAME="${{ inputs.deployment_name }}-ckan-export"
+          SECRETS="RAPIDPRO_API_TOKEN=${{ inputs.deployment_name }}-rapidpro-token:latest,CKAN_API_KEY=${{ inputs.deployment_name }}-ckan-token:latest"
+
+          # 2. Create or Update the Cloud Run Job
+          if gcloud run jobs describe $JOB_NAME --region ${{ inputs.gcp_region }} > /dev/null 2>&1; then
+            echo "Updating existing Cloud Run Job..."
+            gcloud run jobs update $JOB_NAME \
+              --image ${{ inputs.image_url }} \
+              --region ${{ inputs.gcp_region }} \
+              --service-account ${{ inputs.runner_sa_email }} \
+              --set-env-vars "$ESCAPED_ENV_VARS" \
+              --set-secrets "$SECRETS"
+          else
+            echo "Creating new Cloud Run Job..."
+            gcloud run jobs create $JOB_NAME \
+              --image ${{ inputs.image_url }} \
+              --region ${{ inputs.gcp_region }} \
+              --service-account ${{ inputs.runner_sa_email }} \
+              --set-env-vars "$ESCAPED_ENV_VARS" \
+              --set-secrets "$SECRETS"
+          fi
+
+      - name: Configure Cloud Scheduler
+        run: |
+          SCHEDULER_NAME="${{ inputs.deployment_name }}-ckan-schedule"
+          URI="https://${{ inputs.gcp_region }}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${{ inputs.gcp_project }}/jobs/${{ inputs.deployment_name }}-ckan-export:run"
+
+          if gcloud scheduler jobs describe $SCHEDULER_NAME --location ${{ inputs.gcp_region }} > /dev/null 2>&1; then
+            echo "Updating existing Cloud Scheduler..."
+            gcloud scheduler jobs update http $SCHEDULER_NAME \
+              --location ${{ inputs.gcp_region }} \
+              --schedule "${{ inputs.cron_schedule }}" \
+              --uri "$URI" \
+              --http-method POST \
+              --oauth-service-account-email "${{ inputs.runner_sa_email }}"
+          else
+            echo "Creating new Cloud Scheduler..."
+            gcloud scheduler jobs create http $SCHEDULER_NAME \
+              --location ${{ inputs.gcp_region }} \
+              --schedule "${{ inputs.cron_schedule }}" \
+              --uri "$URI" \
+              --http-method POST \
+              --oauth-service-account-email "${{ inputs.runner_sa_email }}"
+          fi

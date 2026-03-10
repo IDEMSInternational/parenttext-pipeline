@@ -48,8 +48,8 @@ rm rp_token.txt ckan_token.txt
 
 **Step C: Create the Isolated Runner Service Account (OpenTofu)**
 
-1. Open the private IDEMS Infrastructure repository.
-2. In the root `main.tf`, add a new module block for this deployment using the `ckan-runner` template.
+1. Open the private infrastructure repository.
+2. In the `parenttext.tf`, add a new module block for this deployment using the `ckan-runner` template.
 3. Run `tofu apply` to create the uniquely hashed Runner Service Account and bind it strictly to the secrets you just created.
 4. Copy the `runner_sa_email` outputted by Tofu. You will need this for the GitHub Repository setup.
 
@@ -71,7 +71,7 @@ Go to **Settings > Secrets and variables > Actions > Variables** and add the fol
 
 | Variable | Example Value | Description |
 | --- | --- | --- |
-| `GCP_PROJECT` | `idems-general-123` | Your Google Cloud Project ID |
+| `GCP_PROJECT` | `project-1234` | Your Google Cloud Project ID |
 | `GCP_REGION` | `europe-west4` | Target Cloud Region |
 | `DEPLOYMENT_NAME` | `parenttext-crisis-ukraine-georgia` | Must match the name used in Step 2 |
 | `RUNNER_SA_EMAIL` | `pt-a1b2c3d4-sa@...` | The email of the SA outputted by OpenTofu |

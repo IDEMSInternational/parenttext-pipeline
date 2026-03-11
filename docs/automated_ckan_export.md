@@ -78,7 +78,6 @@ Go to **Settings > Secrets and variables > Actions > Variables** and add the fol
 | --- | --- | --- |
 | `GCP_PROJECT` | `project-1234` | Your Google Cloud Project ID |
 | `GCP_REGION` | `europe-west4` | Target Cloud Region |
-| `DEPLOYMENT_NAME` | `parenttext-crisis-ukraine-georgia` | Must match the name used in Step 2 |
 | `RUNNER_SA_EMAIL` | `pt-a1b2c3d4-sa@...` | The email of the SA outputted by OpenTofu |
 | `CRON_SCHEDULE` | `0 0 * * *` | Cron format for when the job runs (e.g. Midnight UTC) |
 | `IMAGE_URL` | `ghcr.io/idemsinternational/parenttext-pipeline-ckan-export:latest` | URL to the pipeline docker image |
@@ -88,7 +87,7 @@ Go to **Settings > Secrets and variables > Actions > Variables** and add the fol
 
 ```json
 {
-  "RAPIDPRO_URL": "[https://app.rapidpro.io](https://app.rapidpro.io)",
+  "RAPIDPRO_URL": "https://app.rapidpro.io",
   "ALLOWLIST_FIELDS": "uuid,gender,age_years,location",
   "CKAN_URL": "ckan.example.com",
   "CKAN_OWNER_ORG": "your-ckan-org-id",
@@ -115,7 +114,7 @@ jobs:
     with:
       gcp_project: ${{ vars.GCP_PROJECT }}
       gcp_region: ${{ vars.GCP_REGION }}
-      deployment_name: ${{ vars.DEPLOYMENT_NAME }}
+      deployment_name: ${{ github.event.repository.name }} # Must be all lowercase and match the secret
       runner_sa_email: ${{ vars.RUNNER_SA_EMAIL }}
       cron_schedule: ${{ vars.CRON_SCHEDULE }}
       image_url: ${{ vars.IMAGE_URL }}

@@ -1,6 +1,7 @@
 name: Publish CKAN Export Tool to Docker Hub
 
 on:
+  workflow_dispatch:
   push:
     branches: 
       - "main" # Updated to match the repository's primary branch

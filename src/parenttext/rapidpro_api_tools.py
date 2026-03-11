@@ -368,7 +368,7 @@ def step_export_contacts(host=None, output_filename=None, allowlist_fields=None,
         if allowlist_fields == []:
             allowlist_fields = [f["key"] for f in get_all_results("fields.json", host)]
     if denylist_fields is None: 
-        denylist_str = safe_getenv("ALLOWLIST_FIELDS", "")
+        denylist_str = safe_getenv("DENYLIST_FIELDS", "")
         denylist_fields = [f.strip() for f in denylist_str.split(",") if f.strip()]
     allowlist_fields = ["_".join(f.split(" ")).lower() for f in allowlist_fields]
     denylist_fields = ["_".join(f.split(" ")).lower() for f in denylist_fields]

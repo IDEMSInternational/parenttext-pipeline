@@ -32,7 +32,7 @@ jobs:
       - name: Deploy Cloud Run Job
         run: |
           # 1. Parse the JSON variables into a comma-safe format for gcloud
-          ENV_VARS=$(echo '${{ inputs.container_env_vars }}' | jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join("|^")')
+          ENV_VARS=$(echo '${{ inputs.container_env_vars }}' | jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | join("|")')
           ESCAPED_ENV_VARS="^|^$ENV_VARS"
           
           JOB_NAME="${{ inputs.deployment_name }}-ckan-export"

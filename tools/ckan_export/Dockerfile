@@ -32,7 +32,7 @@ echo "Starting CKAN upload..."\n\
 python -m parenttext.ckan_tools \\\n\
   --file "$OUTPUT_FILE" \\\n\
   --dataset "$CKAN_DATASET" \\\n\
-  --resource-name "$CKAN_RESOURCE_NAME"\n\
+  --resource-name "$CKAN_RESOURCE_NAME"\\\n\
   --reconcile "uuid"\n\
 \n\
 echo "Pipeline completed successfully!"\n\

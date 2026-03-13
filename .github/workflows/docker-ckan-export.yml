@@ -7,7 +7,7 @@ on:
       - "main" # Updated to match the repository's primary branch
     # Only run this action if files relevant to the tool change
     paths:
-      - 'tools/ckan-export/**'
+      - 'tools/ckan_export/**'
       - 'src/**'
       - 'pyproject.toml'
     tags: [ 'v*.*.*' ]

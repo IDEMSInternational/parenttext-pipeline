@@ -415,7 +415,11 @@ def step_export_contacts(host=None, output_filename=None, allowlist_fields=None,
                 for g_uuid, g_name in groups_mapping.items():
                     row[g_name] = g_uuid in contact_group_uuids
 
-                filter_true = row["consent"] == "yes"
+                filter_true = (
+                    row["consent"] == "yes"
+                    or 
+                    safe_getenv("IGNORE_CONSENT_COLUMN", "FALSE").lower() == "true"
+                    )
                 if filter_true:
                     writer.writerow(row)
                     count += 1

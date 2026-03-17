@@ -47,3 +47,4 @@ These tools rely on environment variables defined in a `.env` file or the execut
 | --- | --- | --- |
 | `ALLOWLIST_FIELDS` | Comma-separated list of contact field keys to include as columns. | Go to **Contacts** -> **Fields** in RapidPro. Use the **Key** column (e.g., `gender`, `age_years`), not the Label. |
 | `DENYLIST_FIELDS` | Comma-separated list of contact field keys to specifically exclude as columns. | Go to **Contacts** -> **Fields** in RapidPro. Use the **Key** column (e.g., `gender`, `age_years`), not the Label. |
+| `IGNORE_CONSENT_COLUMN` | TRUE/FALSE, if the consent column is not present in the deployment or needs to be excluded for another reason | |

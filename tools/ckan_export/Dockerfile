@@ -19,24 +19,7 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=1.0.0
 RUN pip install --no-cache-dir .
 
 # Create an entrypoint script that chains the two commands
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-# Default output file if not specified in env\n\
-export OUTPUT_FILE=${OUTPUT_FILE:-contacts.csv}\n\
-\n\
-echo "Starting RapidPro export..."\n\
-python -m parenttext.rapidpro_api_tools --steps export_contacts\n\
-\n\
-echo "Starting CKAN upload..."\n\
-python -m parenttext.ckan_tools \\\n\
-  --file "$OUTPUT_FILE" \\\n\
-  --dataset "$CKAN_DATASET" \\\n\
-  --resource-name "$CKAN_RESOURCE_NAME"\\\n\
-  --reconcile "uuid"\n\
-\n\
-echo "Pipeline completed successfully!"\n\
-' > /app/entrypoint.sh
+COPY tools/ckan_export/entrypoint.sh /app/entrypoint.sh
 
 RUN chmod +x /app/entrypoint.sh
 

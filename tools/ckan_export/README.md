@@ -1,28 +1,49 @@
 # RapidPro to CKAN Data Export Pipeline
 
-This directory contains the containerization for the automated RapidPro to CKAN data export pipeline. 
+This directory contains the containerization for the automated RapidPro to CKAN data export pipeline.
 
----
+## Build
 
-## Directory Structure
+It is important for the Docker context to encompass the whole of the project.
 
-* `Dockerfile`: The container image definition for the export pipeline.
+If the current directory is the same as the one containing this readme file.
+```sh
+docker build -f Dockerfile -t idems/ckan-exporter:latest ../..
+```
 
----
+If the current directory is the root of the project.
+```sh
+docker build -f tools/ckan_export/Dockerfile -t idems/ckan-exporter:latest .
+```
 
-## Container Architecture (`Dockerfile`)
+## Configure
 
-The `Dockerfile` builds a lightweight Python environment capable of executing both the RapidPro data extraction and the CKAN upload scripts.
+The container is configured by environment variables passed in at runtime.
 
-### Key Technical Details
-1. **Base Image & System Dependencies:** Uses `python:3.14-slim`. It explicitly installs `git` because the core pipeline (`pyproject.toml`) relies on fetching a GitHub-hosted dependency (`rapidpro-abtesting`).
-2. **Version Resolution Bypass:** Because the Docker build context does not (and should not) include the `.git/` folder, `setuptools-scm` will fail to resolve the package version. We bypass this by injecting `ENV SETUPTOOLS_SCM_PRETEND_VERSION=1.0.0` during the build.
-3. **Chained Entrypoint:** Instead of executing a single Python module, the image dynamically generates an `entrypoint.sh` script during the build. This script sequentially runs:
-   * `python -m parenttext.rapidpro_api_tools --steps export_contacts`
-   * `python -m parenttext.ckan_tools`
-4. **Environment-Driven:** The container relies entirely on environment variables passed in at runtime by Cloud Run (e.g., `RAPIDPRO_URL`, `ALLOWLIST_FIELDS`, `CKAN_DATASET`). It does not hardcode any configuration.
+- `RAPIDPRO_URL`: Location of the RapidPro instance to extract data from
+- `RAPIDPRO_API_TOKEN`: Authentication key for the API of the RapidPro instance
+- `CKAN_URL`: Location of the CKAN instance into which data will be uploaded
+- `CKAN_API_KEY`: Authentication key for the API of the CKAN instance
+- `CKAN_OWNER_ORG`: Name of the organization in CKAN into which data will be uploaded
+- `CKAN_DATASET`: ID of the dataset in CKAN
+- `CKAN_RESOURCE_NAME`: Name given to the data itself, within the dataset
 
-## Deployment & Usage
+There are several ways to manage environment variables, but it may be most convenient to keep different configurations in separate files with a `.env` extension. The `.env` file should hold a single key-value pair per line.
 
-For step-by-step instructions on how to use these tools to deploy the pipeline for a new project, see the full operations guide:
-👉 **[Automated RapidPro to CKAN Export Pipeline](../../docs/automated_ckan_export.md)**
+```env
+RAPIDPRO_URL=https://rapidpro.example.com
+RAPIDPRO_API_TOKEN=...
+# etc...
+```
+
+## Run
+
+The container will execute the RapidPro data extraction first, followed by the upload to CKAN. Assuming your environment variables are contained in a file called `example.env`.
+
+```sh
+docker run --env-file example.env idems/ckan-exporter:latest
+```
+
+## Deployment
+
+For step-by-step instructions on how to use these tools to deploy the pipeline for a new project, see the [full operations guide](../../docs/automated_ckan_export.md).

@@ -1,26 +1,16 @@
-FROM python:3.14-slim
-
+FROM python:3.14-trixie AS builder
 WORKDIR /app
+# To install rapidpro-abtesting Python package from git
+RUN apt-get install -y git
+COPY . .
+ENV PATH=/app/venv/bin:$PATH
+RUN python -m venv venv && pip install --no-cache-dir .
 
-# Install git so pip can fetch repositories from GitHub
-RUN apt-get update && \
-    apt-get install -y git && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy python project requirements and source code
-COPY pyproject.toml README.md ./
-COPY src/ ./src/
-
-# Tell setuptools-scm to pretend the version is 1.0.0
-# since the .git folder is not present in the Docker build context.
-ENV SETUPTOOLS_SCM_PRETEND_VERSION=1.0.0
-
-# Install the Python package (installs dependencies like ckanapi, requests)
-RUN pip install --no-cache-dir .
-
-# Create an entrypoint script that chains the two commands
-COPY tools/ckan_export/entrypoint.sh /app/entrypoint.sh
-
-RUN chmod +x /app/entrypoint.sh
-
+FROM python:3.14-slim-trixie
+ENV PATH=/app/venv/bin:$PATH \
+    PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY --from=builder /app/venv ./venv
+COPY tools/ckan_export/entrypoint.sh ./
+RUN chmod +x entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]

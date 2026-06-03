@@ -2,9 +2,11 @@ FROM python:3.14-trixie AS builder
 WORKDIR /app
 # To install rapidpro-abtesting Python package from git
 RUN apt-get install -y git
-COPY . .
+RUN python -m venv venv
 ENV PATH=/app/venv/bin:$PATH
-RUN python -m venv venv && pip install --no-cache-dir .
+RUN pip install --no-cache-dir pandas
+COPY . .
+RUN pip install --no-cache-dir .
 
 FROM python:3.14-slim-trixie
 ENV PATH=/app/venv/bin:$PATH \

@@ -8,25 +8,28 @@ It is important for the Docker context to encompass the whole of the project.
 
 If the current directory is the same as the one containing this readme file.
 ```sh
-docker build -f Dockerfile -t idems/ckan-exporter:latest ../..
+docker build -f Dockerfile -t idems/parenttext-pipeline-ckan-export:latest ../..
 ```
 
 If the current directory is the root of the project.
 ```sh
-docker build -f tools/ckan_export/Dockerfile -t idems/ckan-exporter:latest .
+docker build -f tools/ckan_export/Dockerfile -t idems/parenttext-pipeline-ckan-export:latest .
 ```
 
 ## Configure
 
 The container is configured by environment variables passed in at runtime.
 
-- `RAPIDPRO_URL`: Location of the RapidPro instance to extract data from
-- `RAPIDPRO_API_TOKEN`: Authentication key for the API of the RapidPro instance
-- `CKAN_URL`: Location of the CKAN instance into which data will be uploaded
-- `CKAN_API_KEY`: Authentication key for the API of the CKAN instance
-- `CKAN_OWNER_ORG`: Name of the organization in CKAN into which data will be uploaded
-- `CKAN_DATASET`: ID of the dataset in CKAN
-- `CKAN_RESOURCE_NAME`: Name given to the data itself, within the dataset
+| Name                 | Description                                                                               |
+|--------------------- |-------------------------------------------------------------------------------------------|
+| `CKAN_API_KEY`       | Authentication key for the API of the CKAN instance                                       |
+| `CKAN_DATASET`       | ID of the dataset in CKAN                                                                 |
+| `CKAN_OWNER_ORG`     | Name of the organization in CKAN into which data will be uploaded                         |
+| `CKAN_RESOURCE_NAME` | Name given to the data itself, within the dataset                                         |
+| `CKAN_URL`           | Location of the CKAN instance into which data will be uploaded                            |
+| `OUTPUT_FILE`        | Name of the file where contact data will be saved, in CSV format; default: `contacts.csv` |
+| `RAPIDPRO_API_TOKEN` | Authentication key for the API of the RapidPro instance                                   |
+| `RAPIDPRO_URL`       | Location of the RapidPro instance to extract data from                                    |
 
 There are several ways to manage environment variables, but it may be most convenient to keep different configurations in separate files with a `.env` extension. The `.env` file should hold a single key-value pair per line.
 
@@ -41,7 +44,22 @@ RAPIDPRO_API_TOKEN=...
 The container will execute the RapidPro data extraction first, followed by the upload to CKAN. Assuming your environment variables are contained in a file called `example.env`.
 
 ```sh
-docker run --env-file example.env idems/ckan-exporter:latest
+docker run --rm --env-file example.env idems/parenttext-pipeline-ckan-export:latest
+```
+
+## Post-export scripts
+
+It is possible to run your own Bash scripts in a stage after the export from RapidPro and before the upload to CKAN. Scripts should be:
+
+- Contained within a single directory and mounted to `/app/scripts` on the container
+- Executable, otherwise they will be skipped
+- Named according to execution order - filename ascending
+
+Failure of one script will cause the entire pipeline to fail. The name of the contact data file is given by the `OUTPUT_FILE` environment variable.
+
+To run the container with post-export scripts.
+```sh
+docker run --rm --env-file example.env -v ./scripts:/app/scripts idems/parenttext-pipeline-ckan-export:latest
 ```
 
 ## Deployment

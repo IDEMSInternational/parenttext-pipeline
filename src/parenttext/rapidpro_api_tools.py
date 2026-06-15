@@ -432,6 +432,90 @@ def step_export_contacts(host=None, output_filename=None, allowlist_fields=None,
         print(f"  [!] Error writing output file: {e}")
 
 
+def step_upload_contacts_to_group():
+    host = getenv("RAPIDPRO_URL")
+    # Default to "upload_contacts.csv" if not specified
+    input_filename = safe_getenv("UPLOAD_FILE", "upload_contacts.csv")
+    target_group_name = getenv("UPLOAD_GROUP_NAME")
+
+    if not target_group_name:
+        print("  [!] Group name not specified. Please set UPLOAD_GROUP_NAME in your environment.")
+        return
+
+    if not os.path.exists(input_filename):
+        print(f"  [!] Input file '{input_filename}' not found.")
+        return
+
+    print(f"  > Reading contacts from {input_filename}...")
+    contacts = []
+    urns = []
+    try:
+        with open(input_filename, "r", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            # Normalize headers to lowercase to handle casing differences
+            headers = [h.strip().lower() for h in reader.fieldnames] if reader.fieldnames else []
+            reader.fieldnames = headers
+            
+            for row in reader:
+                if "uuid" in row and row["uuid"].strip():
+                    contacts.append(row["uuid"].strip())
+                elif "urn" in row and row["urn"].strip():
+                    urns.append(row["urn"].strip())
+                elif "urns" in row and row["urns"].strip():
+                    urns.append(row["urns"].strip())
+    except IOError as e:
+        print(f"  [!] Error reading input file: {e}")
+        return
+
+    if contacts:
+        payload_key = "contacts"
+        items = contacts
+    elif urns:
+        payload_key = "urns"
+        items = urns
+    else:
+        print("  [!] No contacts found. The CSV must have a 'uuid' or 'urn' column.")
+        return
+
+    print(f"  > Found {len(items)} contacts to add.")
+
+    print(f"  > Checking if group '{target_group_name}' exists...")
+    target_group_uuid = None
+    for group in get_all_results("groups.json", host, {"name": target_group_name}):
+        if group["name"] == target_group_name:
+            target_group_uuid = group["uuid"]
+            break
+
+    headers = get_headers()
+    verify_ssl = safe_getenv("VERIFY_SSL", "true").lower() == "true"
+
+    if not target_group_uuid:
+        print(f"  > Group not found. Creating new group '{target_group_name}'...")
+        if not env.get("dry_run"):
+            try:
+                response = requests.post(
+                    f"{host}/api/v2/groups.json",
+                    headers=headers,
+                    json={"name": target_group_name},
+                    verify=verify_ssl
+                )
+                response.raise_for_status()
+                target_group_uuid = response.json()["uuid"]
+                print(f"  > Created group UUID: {target_group_uuid}")
+            except requests.exceptions.RequestException as e:
+                print(f"  [!] Failed to create group: {e}")
+                return
+        else:
+            print(f"  [DRY RUN] Would create group '{target_group_name}'.")
+            target_group_uuid = "DRY-RUN-UUID"
+    else:
+        print(f"  > Found existing group UUID: {target_group_uuid}")
+
+    print(f"  > Adding {len(items)} contacts to group '{target_group_name}' in batches...")
+    chunked_action("contact_actions.json", host, payload_key, items, "add", {"group": target_group_uuid})
+    print("  > Done adding contacts.")
+
+
 def generate_quadrant_chart(data, response_key):
     # 1. Filter out empty runs and calculate Max for Normalization
     valid_data = [d for d in data if d['Total Runs'] > 0]
@@ -529,7 +613,17 @@ step_dict = {
             "RAPIDPRO_API_TOKEN",
             "RAPIDPRO_URL",
         ]
-    }
+    },
+    "upload_contacts_to_group": {
+        "fn": step_upload_contacts_to_group,
+        "start_msg": "Starting contact upload to group",
+        "end_msg": "Contact upload complete",
+        "required_env": [
+            "RAPIDPRO_API_TOKEN",
+            "RAPIDPRO_URL",
+            "UPLOAD_GROUP_NAME"
+        ]
+    },
 }
 
 

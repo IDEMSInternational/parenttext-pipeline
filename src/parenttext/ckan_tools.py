@@ -190,23 +190,34 @@ def upload_to_ckan(file_path, dataset_name, resource_name, reconcile_column=None
         print(f"   [!] Error uploading resource: {e}")
 
 if __name__ == "__main__":
+    load_dotenv()
+    
     parser = argparse.ArgumentParser(description="Upload CSV to CKAN.")
     parser.add_argument("--file", required=True, help="Path to the CSV file to upload")
-    parser.add_argument("--dataset", required=True, help="Unique name (slug) of the CKAN dataset")
-    parser.add_argument("--resource-name", required=True, help="Name of the resource to create/update")
+    
+    # Make dataset and resource-name NOT required in argparse
+    parser.add_argument("--dataset", required=False, help="Unique name (slug) of the CKAN dataset")
+    parser.add_argument("--resource-name", required=False, help="Name of the resource to create/update")
+    
     parser.add_argument(
-        "--reconcile", 
-        nargs='?', 
-        const='uuid', 
-        default=None, 
-        help="Reconcile data to preserve historical rows before uploading. Defaults to 'uuid' column if flag is passed without a value."
-    )
-    parser.add_argument(
-        "--save-intermediary",
-        action="store_true",
-        help="Saves the downloaded remote file as 'response.csv' and any extracted missing rows as 'missing_rows.csv' for debugging."
-    )
-
+        "--reconcile",
+        nargs="?",
+        const="uuid",
+        default=None,
+        help="Reconcile data to preserve historical rows before uploading. Defaults to 'uuid' column if flag is passed without a value.")
+    parser.add_argument("--save-intermediary", action="store_true", 
+                        help="Saves the downloaded remote file and missing rows for debugging.")
     args = parser.parse_args()
 
-    upload_to_ckan(args.file, args.dataset, args.resource_name, args.reconcile, args.save_intermediary)
+    # Fallback to environment variables if arguments were not provided in CLI
+    dataset = args.dataset if args.dataset else os.getenv('CKAN_DATASET')
+    resource_name = args.resource_name if args.resource_name else os.getenv('CKAN_RESOURCE_NAME')
+
+    # Validate that the values were successfully retrieved from either source
+    if not dataset:
+        raise ValueError("Error: Dataset was not provided via CLI or env variables.")
+    if not resource_name:
+        raise ValueError("Error: Resource name was not provided via CLI or env variables.")
+
+    # Call your original function with the resolved values
+    upload_to_ckan(args.file, dataset, resource_name, args.reconcile, args.save_intermediary)

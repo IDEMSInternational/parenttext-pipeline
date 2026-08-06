@@ -5,11 +5,13 @@ Currently supported operations:
     - count_flow_runs: Calculates run statistics for specific flows defined in .env
     - process_deletion_requests: Deletes messages, runs, and contacts for users in a specific group.
     - export_contacts: Exports contact data to CSV with allowlisted fields and group memberships.
+    - upload_contacts_to_group: Adds contacts listed in a CSV to a group, creating the group if needed.
 
 Usage:
     python -m parenttext.rapidpro_api_tools --steps count_flow_runs
     python -m parenttext.rapidpro_api_tools --steps process_deletion_requests --dry-run
     python -m parenttext.rapidpro_api_tools --steps export_contacts
+    python -m parenttext.rapidpro_api_tools --steps upload_contacts_to_group
 """
 
 import argparse

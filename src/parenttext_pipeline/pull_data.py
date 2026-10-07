@@ -11,6 +11,7 @@ import concurrent.futures
 import requests
 import subprocess
 
+from google.auth.exceptions import RefreshError
 from googleapiclient.discovery import build
 from rpft.converters import convert_to_json
 from rpft.google import Drive
@@ -127,6 +128,31 @@ def get_json_from_sheet_id(source, temp_dir, sheet_id):
         return convert_to_json(sheet_path, source.subformat)
 
 
+def check_drive_credentials():
+    try:
+        Drive.client()
+    except RefreshError as e:
+        if os.getenv("CREDENTIALS"):
+            hint = (
+                "The service account credentials in the CREDENTIALS environment "
+                "variable were rejected by Google. Check that the key has not "
+                "been deleted or disabled in the Google Cloud console."
+            )
+        else:
+            hint = (
+                f"The saved Google login in '{Path('token.json').resolve()}' is "
+                "no longer valid. This usually happens when the token has not "
+                "been used for a while (Google revokes refresh tokens after ~6 "
+                "months of inactivity) or the Google password/access changed.\n"
+                "To fix it, delete token.json and re-run this command; a browser "
+                "window will open so you can log in again and a new token.json "
+                "will be created."
+            )
+        raise RuntimeError(
+            f"Could not authenticate with Google Drive ({e.args[0]}).\n{hint}"
+        ) from e
+
+
 def pull_sheets(config, source, source_name, last_update):
     source_input_path = get_input_subfolder(
         config, source_name, makedirs=True, in_temp=False
@@ -157,7 +183,7 @@ def pull_sheets(config, source, source_name, last_update):
     )
 
     # Check that the drive credentials work before N auth tabs are opened
-    Drive.client()
+    check_drive_credentials()
 
     sheets_to_download = {}
 
